@@ -5,8 +5,9 @@
 Repository: **<https://github.com/NoAuthZone/Refindings>** · [Download `refindings.html`](https://github.com/NoAuthZone/Refindings/raw/main/refindings.html) 
 
 Refindings is a single HTML file that runs entirely in your browser. You load the results of recurring scans
-from **Semgrep, CodeQL, Bandit, Gitleaks, Trivy, Snyk Code, Checkov, ESLint, any other SARIF tool** or
-FalconEYE, rate each finding once (confirmed, false positive,
+from **Semgrep, CodeQL, Bandit, Gitleaks, Trivy, KICS, 2ms, Checkmarx (CxSAST / Checkmarx One), Joern, Bearer,
+Snyk Code, Checkov, ESLint, AI reviewers such as Metis, Gito, vulnhuntr or Claude Code Security Review, any other
+SARIF tool** or FalconEYE, rate each finding once (confirmed, false positive,
 accepted risk, fixed), and the tool recognises the same findings in every later scan. You see how often a
 finding is reported, what is new, what disappeared, and what came back. Reports go out as HTML (print to PDF),
 Markdown, SARIF (with your false positives as suppressions) or as a baseline that FalconEYE can use to suppress
@@ -61,7 +62,7 @@ finding, carries your rating forward, and shows the history.
 1. Download `refindings.html` from the [repository](https://github.com/NoAuthZone/Refindings) (or
    `git clone https://github.com/NoAuthZone/Refindings.git`) and open it in a current browser (Chrome, Edge,
    Firefox or Safari).
-2. Click **Load scans** or drop one or more result files onto the page (`.sarif`, `.json`, `.html`, also `.gz`).
+2. Click **Load scans** or drop one or more result files onto the page (`.sarif`, `.json`, `.xml`, `.txt`, `.log`, `.html`, also `.gz`).
 3. Click a finding to open the detail view and rate it with a key: `c` confirmed, `f` false positive,
    `a` accepted risk, `x` fixed, `o` open.
 4. Load the next scan whenever it is available. Ratings carry over automatically.
@@ -72,7 +73,8 @@ off. The project file is the portable copy and the one to back up.
 
 ## Supported input
 
-The format is recognised from the content, not from the file name.
+The format is recognised from the content, not from the file name. The [`examples/`](examples/) folder has a
+sample report for every format below (a fictional project scanned by 13 tools), ready to drop onto the page.
 
 | Format | What Refindings uses from it |
 |---|---|
@@ -81,6 +83,23 @@ The format is recognised from the content, not from the file name.
 | **Bandit JSON** (`bandit -f json`) | test id and name, text, severity, confidence, CWE, code with line numbers, `generated_at` |
 | **Gitleaks JSON** (`--report-format json`) | rule, description, file, line, match, commit. **The secret value is never stored**: it is replaced by `«redacted 1a2b3c»`, a short hash that changes when the secret is rotated |
 | **Trivy JSON** (`trivy fs --format json`) | vulnerable packages (CVE, package, installed and fixed version, CWE), misconfigurations with cause lines (PASS results skipped), secrets (already masked by Trivy) |
+| **KICS JSON** (`kics scan -o out --report-formats json`, `results.json`) | query name and id, severity, CWE, risk score, description, actual / expected value, resource, platform, remediation, start time. KICS writes no code: findings are matched by query and *search key* (resource + attribute), so they survive moved lines. Category from the CWE or title, otherwise *Configuration* |
+| **2ms JSON** (`2ms filesystem --path . --report-path 2ms.json`) | rule, description, severity / CVSS, validation status, lines; `git show <commit>:<file>` sources become file + commit. **The secret value is never stored** (same masking as Gitleaks) |
+| **Checkmarx CxSAST XML report** (`CxXMLResults`) | query, group, language, CWE, severity, every data flow. The **sink** (last node) is the location, the source and the whole flow go into the reasoning; state *Not Exploitable* / `FalsePositive="True"` counts as *suppressed by tool*; Checkmarx comments, state and deep link are kept |
+| **Checkmarx One JSON** (`cx results show --report-format json`) | SAST (query, data flow, sink as location), IaC (KICS queries), SCA (CVE, package, recommended version), secret detection (snippet not stored), state *Not Exploitable* as *suppressed by tool* |
+| **Joern** (`joern-scan` console output saved as `.txt`) | lines `Result: <score> : <title>: <file>:<line>:<method>`; the score is the severity |
+| **Bearer JSON** (`bearer scan --format json`, also `jsonv2`) | rule, title, CWE, severity, sink code and lines, data categories; the rule description is split into *Description* (reasoning) and *Remediations* (recommendation) |
+| **GitLab SAST report** (`gl-sast-report.json`, e.g. `kics --report-formats glsast`, `bearer --format gitlab-sast`) | name, description, solution, severity, confidence, identifiers (CWE, CVE), location, code extract (never for secret detection), dependency findings, *likely false positive* flags |
+| **SonarQube generic issues** (e.g. `kics --report-formats sonarqube`) | rule, message, severity (blocker 10, critical 8, major 5, minor 1, info 0), location; KICS' secondary locations become findings of their own |
+| **Code Climate** (e.g. `kics --report-formats codeclimate`) | check name, description, severity (same scale), location |
+| **reviewdog rdjson** (e.g. `bearer --format reviewdog`) | message, rule code and URL, severity, range, suggestions |
+| **Metis** (`--output-file review.json`, SARIF too) | issue, snippet, line, CWE, severity, reasoning, mitigation, confidence; Metis triage *invalid* counts as *self-refuted* |
+| **Gito** (`code-review-report.json`) | title, details, tags, severity 1–5 (→ 10/8/5/1/0), confidence, affected lines with code and proposed change |
+| **Claude Code Security Review** (`claudecode-results.json` or `findings.json`) | file, line, severity, category, description, exploit scenario, recommendation, confidence; findings the action's filter excluded are kept as *self-refuted* with the reason |
+| **vulnhuntr** (`vulnhuntr.log`) | the last analysis per file and vulnerability type (LFI, RCE, SSRF, AFO, SQLI, XSS, IDOR): analysis, proof of concept, confidence; analyses that ended without a finding are skipped |
+| **codescan** (console output saved as `.txt`) | per file: line, severity, type, issue, fix |
+| **promptfoo code-scans** (`--json`) | file, lines, finding, fix, severity |
+| **vulnerability-agent** (`--output json`) | npm advisories per repository: CVE/GHSA, package, version, CVSS, recommended upgrade |
 | FalconEYE raw result (`*_result.json`: `metadata`, `found_snippet`, `actual_snippet`, `verifier_data`) | findings, flagged code, full file content (for change detection), verifier verdict |
 | FalconEYE 2.0 report as JSON (`review`, `location` object, `code_snippet` text, severity as word) | findings, flagged code, recommendation, confidence |
 | FalconEYE report as HTML | same as the JSON report (read as text, no script is executed) |
@@ -88,6 +107,10 @@ The format is recognised from the content, not from the file name.
 
 Severities become numbers 0–10: SARIF `security-severity` as given, otherwise error = 8, warning = 5, note = 1;
 words critical = 10, high / ERROR = 8, medium / WARNING = 5, low / INFO = 1. Gitleaks findings count as 8.
+Secrets from 2ms and Gitleaks SARIF are masked as well (their SARIF carries the secret as snippet).
+
+Not importable, because these tools write no result file: kodus-ai (PR comments only), buttercup (patches and
+proofs of vulnerability, no finding report), agentic-security (web UI / e-mail report).
 
 For FalconEYE files, slightly different variants are accepted as well: other field names (`title` instead of `issue`, `results`
 instead of `findings`, `file` instead of `file_path`), severities as number or word
@@ -99,8 +122,9 @@ brings file hashes and the verifier verdict, the report brings the recommendatio
 
 The **scan label** is the tool name plus whatever the file name adds (`semgrep-main.sarif` → *Semgrep main*);
 for FalconEYE it is taken from the file name, such as `mlx` or `CoderNEXT`. Click the name under a bar in the
-chart to rename a scan. Tools that write no start time (Semgrep JSON, Gitleaks) get the file's modification
-time as scan time, so keep the files as they were written or rename the scan afterwards.
+chart to rename a scan. Tools that write no start time (Semgrep JSON, Gitleaks, Bearer, 2ms, Joern, Metis …)
+take the scan time from a date in the file name (`bearer-2026-09-15.json`, `joern_20260915_0800.txt`), otherwise
+from the file's modification time, so put the date into the file name or keep the files as they were written.
 
 ## Producing scan files
 
@@ -128,6 +152,26 @@ trivy fs --format sarif -o trivy-$(date +%F).sarif .
 snyk code test --sarif-file-output=snyk-$(date +%F).sarif
 checkov -d . -o sarif --output-file-path .
 eslint . -f @microsoft/eslint-formatter-sarif -o eslint-$(date +%F).sarif
+
+# KICS (IaC) – JSON has the most detail; sarif, glsast, sonarqube and codeclimate work too
+kics scan -p . -o kics-$(date +%F) --report-formats json
+
+# 2ms (secrets)
+2ms filesystem --path . --report-path 2ms-$(date +%F).json
+
+# Checkmarx: CxSAST XML report from the portal / CxCLI, or Checkmarx One CLI
+cx results show --scan-id <id> --report-format json --output-name cxone-$(date +%F)
+
+# Joern
+joern-scan ./src > joern-$(date +%F).txt
+
+# Bearer
+bearer scan . --format json --output bearer-$(date +%F).json
+
+# AI reviewers
+metis --codebase-path . --output-file metis-$(date +%F).json   # then: review_code
+vulnhuntr -r . && mv vulnhuntr.log vulnhuntr-$(date +%F).log
+codescan … > codescan-$(date +%F).txt
 ```
 
 In CI, collect the files as build artefacts and load them into Refindings whenever you triage.
