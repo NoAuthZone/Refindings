@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <!--
   Refindings (formerly Scan-Triage) — changelog · https://github.com/NoAuthZone/Refindings
+  1.7.0  More scanners, detected from the file content: KICS JSON (search key keeps IaC findings stable when lines move),
+         2ms JSON (secret masked like Gitleaks), Checkmarx CxSAST XML report and Checkmarx One JSON (SAST location is the
+         sink, source and data flow go into the reasoning; "Not Exploitable" counts as suppressed by tool), joern-scan
+         text output (score = severity), Bearer JSON (v1 and v2, description and remediation split), Metis JSON and SARIF
+         (triage "invalid" counts as self-refuted), Gito code-review-report.json, Claude Code Security Review JSON (findings
+         the review filter excluded are kept as self-refuted), vulnhuntr.log, codescan console output, promptfoo code-scans
+         JSON, vulnerability-agent JSON. Generic formats: GitLab SAST report (secret-detection extracts are never stored),
+         SonarQube generic issues, Code Climate and reviewdog rdjson (so kics --report-formats glsast/sonarqube/codeclimate
+         and bearer --format gitlab-sast/reviewdog work too). SARIF from secret scanners (2ms, Gitleaks …) no longer keeps
+         the secret from the snippet. Tools that write no scan time take it from a date in the file name
+         (bearer-2026-09-15.json), only then from the file date. File dialog also offers .xml, .txt, .log.
+         examples/ in the repository: sample reports of a fictional project for every supported format
   1.6.2  Settings placeholder uses a neutral example path instead of a real one
   1.6.1  GitHub link as a button in the header and in a page footer (with link to the issue tracker)
   1.6.0  Other scanners besides FalconEYE: SARIF 2.1.0 (Semgrep, CodeQL, Snyk Code, Checkov, Trivy, ESLint, Bandit …),
@@ -85,7 +97,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-iCjSvWRtTXo+4EqHvKuPH+/3KoVWOpQGL5mhK8VhrPE=' 'sha256-S7FaO5ZfLrjFqxmOPB4ucdNhDGXUbpHIL4DeZYIyMgg='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-22g4PKYV6oXtAODO1HLa9VBs1y0sPOEMkLlT/UfhJgI=' 'sha256-Qy1pSt57Nrce+SOiqmgVts2xyOgezUWU89WynMe7oC8='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Refindings 1.6.2</title>
 <style>
@@ -385,13 +397,13 @@ a.edlink:hover{text-decoration-color:currentColor}
     </div>
   </header>
 
-  <input type="file" id="fileScans" accept=".json,.sarif,.html,.htm,.gz,application/json,application/sarif+json,text/html,application/gzip" multiple class="hidden">
+  <input type="file" id="fileScans" accept=".json,.sarif,.xml,.txt,.log,.jsonl,.ndjson,.html,.htm,.gz,application/json,application/sarif+json,application/xml,text/xml,text/plain,text/html,application/gzip" multiple class="hidden">
   <input type="file" id="fileProject" accept=".json,.gz,application/json,application/gzip" class="hidden">
 
   <section id="emptyState" class="panel">
     <div class="empty">
       <h2>No scans loaded yet</h2>
-      <p>Load one or more scan results: <b>SARIF</b> (<span class="mono">.sarif</span> from Semgrep, CodeQL, Snyk, Checkov, Trivy, ESLint …), <b>Semgrep</b>, <b>Bandit</b>, <b>Gitleaks</b> or <b>Trivy</b> JSON, and <b>FalconEYE</b> results (<span class="mono">*_result.json</span>, report <span class="mono">.json</span> / <span class="mono">.html</span>). Several tools can live in one project. Identical findings are recognised by file, category and the flagged code, even when the scanner words the title differently each time. Ratings are kept in the browser and can be saved as a project file.</p>
+      <p>Load one or more scan results: <b>SARIF</b> (<span class="mono">.sarif</span> from Semgrep, CodeQL, Snyk, Checkov, Trivy, KICS, 2ms, Bearer, Metis …), JSON from <b>Semgrep</b>, <b>Bandit</b>, <b>Gitleaks</b>, <b>Trivy</b>, <b>KICS</b>, <b>2ms</b>, <b>Bearer</b>, <b>Checkmarx One</b>, <b>Metis</b>, <b>Gito</b>, <b>Claude Code Security Review</b>, <b>promptfoo</b>, <b>vulnerability-agent</b>, the <b>GitLab SAST</b>, <b>SonarQube</b>, <b>Code Climate</b> and <b>reviewdog</b> formats, the <b>CxSAST</b> XML report, <b>joern-scan</b> and <b>codescan</b> console output saved as <span class="mono">.txt</span>, <span class="mono">vulnhuntr.log</span>, and <b>FalconEYE</b> results (<span class="mono">*_result.json</span>, report <span class="mono">.json</span> / <span class="mono">.html</span>). The format is detected from the content. Several tools can live in one project. Identical findings are recognised by file, category and the flagged code, even when the scanner words the title differently each time. Ratings are kept in the browser and can be saved as a project file.</p>
       <div class="drop" id="dropZone">
         <p style="margin:0 0 12px">Drop files here or</p>
         <button class="btn primary" id="btnLoad2">Choose scans</button>
@@ -570,7 +582,7 @@ a.edlink:hover{text-decoration-color:currentColor}
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
 const TOOL_VERSION = 3;          // project file schema
-const APP_VERSION = '1.6.2';     // program version, increase with every change
+const APP_VERSION = '1.7.0';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
@@ -741,7 +753,7 @@ function normalizeInput(json, fileName){
       _lines: ls ? [ls, Math.max(ls,le)] : null,
       // set by the importers of other scanners
       cwe: Array.isArray(f.cwe) ? f.cwe.map(n=>int(n)).filter(n=>n>0).slice(0,10) : [],
-      rule: str(f.rule).slice(0,200), _fpx: str(f._fpx).slice(0,40), _cat: has(CAT_LABEL, str(f._cat)) ? str(f._cat) : '', _sup: str(f._sup).slice(0,300), _alt: str(f._alt).slice(0,400),
+      rule: str(f.rule).slice(0,200), _fpx: str(f._fpx).slice(0,40), _cat: has(CAT_LABEL, str(f._cat)) ? str(f._cat) : '', _sup: str(f._sup).slice(0,300), _fk: f._fk==='self' ? 'self' : '', _alt: str(f._alt).slice(0,400),
     };
   });
   if(!meta.label) meta.label = labelFromFile(fileName, meta.codebase_path);
@@ -772,7 +784,7 @@ function parseFinding(x){
     filterReason: str(vd.filter_reason) || (vd.hallucination ? 'hallucination' : ''),
     // Kind of rejection: hallucination (snippet does not match the file) or refuted by the LLM itself
     filterKind: !(vd.filtered || vd.hallucination) || /^baseline:/.test(str(vd.filter_reason)) ? '' : vd.hallucination ? 'hall' : 'self',
-    ...(x._sup ? {scannerFiltered:true, filterReason:str(x._sup), filterKind:'sup'} : {}),
+    ...(x._sup ? {scannerFiltered:true, filterReason:str(x._sup), filterKind: x._fk==='self' ? 'self' : 'sup'} : {}),
   };
 }
 
@@ -846,6 +858,7 @@ function sarifText(m, rule){
   const args = Array.isArray(m.arguments) ? m.arguments : [];
   return t.replace(/\{(\d+)\}/g, (x,i)=> args[+i]!==undefined ? str(args[+i]) : x);
 }
+const SECRET_TOOLS = /^(2ms|gitleaks|trufflehog|detect-secrets|betterleaks|ggshield|kingfisher)$/i;
 function fromSarif(j){
   const findings=[], tools=[]; let started='', base='';
   for(const run of Array.isArray(j.runs)?j.runs:[]){
@@ -883,23 +896,31 @@ function fromSarif(j){
       const ls = int(reg.startLine,0), le = Math.max(ls, int(reg.endLine,ls));
       const shortD = sarifText(rule.shortDescription), fullD = sarifText(rule.fullDescription), help = sarifText(rule.help);
       const generic = t => !t || t===rid || /^semgrep finding:/i.test(t) || t===str(rule.name);
-      const title = firstLine(!generic(shortD) ? shortD : msg || shortD || str(rule.name) || rid) || rid || '(untitled)';
+      const secretTool = SECRET_TOOLS.test(tname) || 'validationStatus' in resP;
+      // secret scanners word the message per file ("X has detected secret for file …"): the rule text is the better title
+      const title = firstLine(secretTool && (fullD || rule.name) ? (fullD || humanize(rule.name)) : !generic(shortD) ? shortD : msg || shortD || str(rule.name) || rid) || rid || '(untitled)';
       const cwe = cweList(rp.tags, resP.tags, rp.cwe, resP.cwe, rp.CWE,
         (Array.isArray(rule.relationships)?rule.relationships:[]).map(x=>x && x.target && x.target.id),
         (Array.isArray(r.taxa)?r.taxa:[]).map(t=>t && t.id));
       const sup = (Array.isArray(r.suppressions)?r.suppressions:[]).find(s => s && s.status!=='rejected' && s.status!=='underReview');
       const level = str(r.level || (rule.defaultConfiguration||{}).level || 'warning');
+      // secret scanners (2ms, Gitleaks …) write the secret itself as snippet: keep only the masked line
+      const snipText = secretTool ? maskSecret(str((reg.snippet && reg.snippet.properties || {}).lineContent || ''), reg.snippet && reg.snippet.text) : reg.snippet && reg.snippet.text;
+      const tri = str(resP.metisTriageStatus).toLowerCase();
       findings.push({
         uuid: str(r.guid), issue: title,
-        severity: sevOf(resP['security-severity']!=null ? resP['security-severity'] : rp['security-severity'], level),
+        severity: secretTool ? sevOf(num(resP.cvssScore)>0 ? resP.cvssScore : null, resP.severity || level, 8)
+                             : sevOf(resP['security-severity']!=null ? resP['security-severity'] : rp['security-severity'], level),
         reasoning: [msg && msg!==title ? msg : '', fullD && fullD!==msg && fullD!==title ? fullD : ''].filter(Boolean).join('\n\n'),
         mitigation: help && help!==msg && help!==fullD && help!==shortD ? help : '',
         confidence: str(rp.precision || resP.confidence || ''),
         location: {file_path: uriToPath(uri), line_start: ls, line_end: le},
-        found_snippet: snipOf(ls, le, reg.snippet && reg.snippet.text, int(ctx.startLine,0), ctx.snippet && ctx.snippet.text),
-        cwe, rule: rid, tool: tname,
-        _sup: sup ? 'suppressed by tool ('+(str(sup.kind)||'suppression')+')'+(sup.justification?': '+str(sup.justification).slice(0,200):'') : '',
-        _alt: rid+' '+msg,
+        found_snippet: secretTool ? snipOf(ls, ls, snipText) : snipOf(ls, le, snipText, int(ctx.startLine,0), ctx.snippet && ctx.snippet.text),
+        cwe, rule: rid, tool: tname, ...(secretTool ? {_cat:'SECRET'} : /^kics$/i.test(tname) ? {_cat: catPref(title, cwe, 'CONFIG')} : {}),
+        _sup: sup ? 'suppressed by tool ('+(str(sup.kind)||'suppression')+')'+(sup.justification?': '+str(sup.justification).slice(0,200):'')
+            : tri==='invalid' ? 'rejected by Metis triage'+(resP.metisTriageReason?': '+str(resP.metisTriageReason).slice(0,200):'') : '',
+        _fk: !sup && tri==='invalid' ? 'self' : '',
+        _alt: rid+' '+(secretTool && reg.snippet && reg.snippet.text ? fnv(str(reg.snippet.text)) : msg),
       });
     }
   }
@@ -984,29 +1005,552 @@ function fromTrivy(j){
   }
   return {tool:'Trivy', started: str(j.CreatedAt), codebase: str(j.ArtifactName), findings};
 }
+/* ---- More scanners (1.7.0) ----
+   KICS, 2ms, Checkmarx (CxSAST XML, Checkmarx One JSON), Joern (joern-scan text), Bearer, GitLab SAST, SonarQube generic,
+   Code Climate, reviewdog (rdjson), Metis, Gito, Claude Code Security Review, vulnhuntr (log), codescan (console text),
+   promptfoo code-scans and vulnerability-agent. Each converts into the same shape as the importers above. */
+const ACRO = new Set(['sql','nosql','xss','ssrf','rce','lfi','rfi','idor','xxe','csrf','jwt','api','ldap','xpath','os','cors','tls','ssl','dos','redos','iac','pii','aws','gcp','url','http','https','json','xml','yaml','html','cve','cwe','afo','ssti','id','dom','xslt','orm','sca']);
+const humanize = s => str(s).replace(/[_]+|(?<=\w)-(?=\w)/g,' ').replace(/\s+/g,' ').trim().split(' ')
+  .map((w,i)=> ACRO.has(w.toLowerCase()) ? w.toUpperCase() : i===0 ? w.charAt(0).toUpperCase()+w.slice(1) : w).join(' ');
+/* "## Heading" sections of a Markdown text → {heading: body}, text before the first heading under "_" */
+function mdSections(md){
+  const out=Object.create(null); let cur='_'; out[cur]=[];
+  for(const line of str(md).replace(/\r/g,'').split('\n')){
+    const m=/^#{1,3}\s+(.+?)\s*#*\s*$/.exec(line);
+    if(m){ cur=m[1].trim().toLowerCase(); if(!out[cur]) out[cur]=[]; continue; }
+    out[cur].push(line);
+  }
+  for(const k of Object.keys(out)) out[k]=out[k].join('\n').trim();
+  return out;
+}
+/* Replace a secret (and each of its lines) by a short hash so that it never lands in the project */
+function maskSecret(text, secret){
+  let t=str(text); const s=str(secret);
+  if(s.trim().length<4) return t;
+  const tag='«redacted '+fnv(s).slice(0,6)+'»';
+  t=t.split(s).join(tag);
+  for(const part of s.replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(x=>x.length>=4)) t=t.split(part).join(tag);
+  return t;
+}
+/* Category from the CWE, then from the title, otherwise the given default (e.g. CONFIG for IaC checks) */
+function catPref(title, cwes, dflt){
+  for(const n of cwes||[]) if(CWE_CAT[n]) return CWE_CAT[n];
+  const c=categorize(title); return c!=='OTHER' ? c : dflt;
+}
+const cweOf = v => (v==null || v==='') ? [] : cweList(/cwe/i.test(str(v)) ? v : String(v).split(/[,;\s]+/).filter(Boolean).map(n=>'CWE-'+n));
+const lines0 = t => str(t).replace(/\r/g,'').split('\n');
+const noAnsi = t => str(t).replace(/\x1b\[[0-9;]*[A-Za-z]/g,'');
+const SECRET_FIX = 'Rotate the secret, remove it from the code (and the history) and load it from a secret store.';
+
+function fromKics(j){
+  const findings=[], paths=(Array.isArray(j.paths)?j.paths:[]).map(uriToPath);
+  for(const q of Array.isArray(j.queries)?j.queries:[]){
+    if(!q || typeof q!=='object') continue;
+    const cwe=cweOf(q.cwe), title=str(q.query_name).trim() || str(q.query_id);
+    const secret=/secret|password/i.test(str(q.category));
+    const facts=[q.platform?'Platform: '+str(q.platform):'', q.cloud_provider?'Cloud: '+str(q.cloud_provider):'', q.category?'KICS category: '+str(q.category):'',
+      q.risk_score?'Risk score: '+str(q.risk_score):''].filter(Boolean).join(' · ');
+    for(const f of Array.isArray(q.files)?q.files:[]){
+      if(!f || typeof f!=='object') continue;
+      const ls=int(f.line,0);
+      findings.push({ issue: title, severity: sevOf(null, q.severity, 5),
+        reasoning: [str(q.description), f.actual_value?'Actual: '+str(f.actual_value):'', f.expected_value?'Expected: '+str(f.expected_value):'',
+          f.resource_type||f.resource_name ? `Resource: ${[f.resource_type,f.resource_name].filter(Boolean).map(str).join(' ')}` : '',
+          f.search_key?'Search key: '+str(f.search_key):'', facts, q.cis_description_title?`CIS: ${str(q.cis_description_id)} ${str(q.cis_description_title)}`:'',
+          q.query_url?'Docs: '+str(q.query_url):''].filter(Boolean).join('\n'),
+        mitigation: f.remediation ? (f.remediation_type==='replacement' ? 'Replace with: ' : f.remediation_type==='addition' ? 'Add: ' : '')+str(f.remediation) : str(f.expected_value),
+        confidence: q.experimental ? 'experimental query' : '',
+        location:{file_path: uriToPath(f.file_name), line_start: ls, line_end: ls}, found_snippet: dict(),
+        cwe, rule: str(q.query_id), tool:'KICS', _cat: catPref(title, cwe, secret?'SECRET':'CONFIG'),
+        // the search key names the resource and attribute, it stays the same when lines move
+        _alt: `${str(q.query_id)} ${str(f.search_key)} ${str(f.issue_type)}` });
+    }
+  }
+  // code base: the scanned folder when there was exactly one
+  let base = paths.length===1 ? paths[0] : '';
+  if(base && findings.some(f=>f.location.file_path===base)) base = base.includes('/') ? base.replace(/\/[^/]*$/,'') : '';
+  return {tool:'KICS', started: str(j.start), codebase: base, findings};
+}
+
+function from2ms(j){
+  const findings=[];
+  for(const list of Object.values(j.results && typeof j.results==='object' ? j.results : {})){
+    for(const s of Array.isArray(list)?list:[]){
+      if(!s || typeof s!=='object') continue;
+      const value=str(s.value); let src=str(s.source), commit='';
+      const g=/^git show ([0-9a-f]{7,40}):(.*)$/i.exec(src); if(g){ commit=g[1]; src=g[2]; }
+      const ls=int(s.startLine,0), le=Math.max(ls, int(s.endLine,ls));
+      const line=maskSecret(str(s.lineContent).replace(/\r/g,''), value);
+      const name=str(s.ruleName) || str(s.ruleId);
+      findings.push({ issue: firstLine(s.ruleDescription) || (name ? 'Secret: '+humanize(name) : 'Secret'),
+        severity: sevOf(num(s.cvssScore)>0 ? s.cvssScore : null, s.severity, 8),
+        reasoning: [str(s.ruleDescription), `Rule: ${name}${s.ruleCategory?' · '+str(s.ruleCategory):''}`,
+          s.validationStatus ? 'Validation: '+str(s.validationStatus) : '', commit ? 'Commit '+commit.slice(0,12) : ''].filter(Boolean).join('\n'),
+        mitigation: SECRET_FIX, confidence: str(s.validationStatus),
+        location:{file_path: /^[a-z]+:\/\//i.test(src) ? src : uriToPath(src), line_start: ls, line_end: le},
+        found_snippet: line.trim() && ls ? snipOf(ls, le, line.split('\n').map(x=>x.trim()).join('\n')) : dict(),
+        cwe:[798], rule: name, tool:'2ms', _cat:'SECRET', _alt: `${str(s.ruleId)} ${value ? fnv(value) : ''}` });
+    }
+  }
+  return {tool:'2ms', started:'', codebase:'', findings};
+}
+
+const BEARER_LEVELS=['critical','high','medium','low','warning'];
+const BEARER_SEV={critical:10, high:8, medium:5, low:1, warning:0};
+function bearerFinding(f, level){
+  const md=mdSections(f.description);
+  const reason=md.description || md._ || '';
+  const fix=[md.remediations || md.remediation || '', md.resources ? 'Resources:\n'+md.resources : ''].filter(Boolean).join('\n\n');
+  const sink=f.sink && typeof f.sink==='object' ? f.sink : {};
+  const ls=int(sink.start, int(f.line_number,0)), le=Math.max(ls, int(sink.end,ls));
+  const code=str(sink.content) || (int(f.parent_line_number)===ls ? str(f.snippet) : '');
+  const lv=str(level).toLowerCase();
+  return { issue: firstLine(f.title).replace(/\.$/,'') || str(f.id), severity: has(BEARER_SEV,lv) ? BEARER_SEV[lv] : sevOf(null, lv),
+    reasoning: [reason, Array.isArray(f.category_groups) && f.category_groups.length ? 'Data categories: '+f.category_groups.map(str).join(', ') : '',
+      f.data_type && f.data_type.name ? 'Data type: '+str(f.data_type.name) : '', f.documentation_url ? 'Docs: '+str(f.documentation_url) : ''].filter(Boolean).join('\n\n'),
+    mitigation: fix, confidence:'', location:{file_path: uriToPath(f.filename || f.full_filename), line_start: ls, line_end: le},
+    found_snippet: snipOf(ls, le, code), cwe: cweOf((Array.isArray(f.cwe_ids)?f.cwe_ids:[]).join(',')), rule: str(f.id), tool:'Bearer',
+    _alt: str(f.id)+' '+code };
+}
+function fromBearer(j){
+  const findings=[];
+  if(Array.isArray(j.findings)){ for(const f of j.findings) if(f && typeof f==='object') findings.push(bearerFinding(f, f.severity)); }
+  else for(const lv of BEARER_LEVELS) for(const f of Array.isArray(j[lv])?j[lv]:[]) if(f && typeof f==='object') findings.push(bearerFinding(f, lv));
+  return {tool:'Bearer', started:'', codebase:'', findings};
+}
+
+function fromGitlab(j){
+  const scan=j.scan && typeof j.scan==='object' ? j.scan : {}, type=str(scan.type);
+  const tname=str((scan.scanner||{}).name) || str((scan.analyzer||{}).name) || 'GitLab report';
+  const findings=[];
+  for(const v of j.vulnerabilities){
+    if(!v || typeof v!=='object') continue;
+    const loc=v.location && typeof v.location==='object' ? v.location : {};
+    const dep=loc.dependency && typeof loc.dependency==='object' ? loc.dependency : null, pkg=dep && dep.package || {};
+    const ids=(Array.isArray(v.identifiers)?v.identifiers:[]).filter(i=>i && typeof i==='object');
+    const cwe=cweList(cweOf(v.cwe), ids.filter(i=>/^cwe$/i.test(str(i.type))).map(i=>'CWE-'+str(i.value).replace(/^cwe-?/i,'')));
+    const ruleObj=ids.find(i=>!/^(cwe|owasp|cve|ghsa)$/i.test(str(i.type))) || ids[0] || {};
+    const rule=str(ruleObj.value || ruleObj.name);
+    const secret=type==='secret_detection' || str(v.category)==='secret_detection';
+    const ls=int(loc.start_line,0), le=Math.max(ls, int(loc.end_line,ls));
+    const code=secret ? '' : str(v.raw_source_code_extract);     // secret reports put the secret itself there
+    const fl=(Array.isArray(v.flags)?v.flags:[]).find(x=>x && /false.?positive/i.test(str(x.type)));
+    const advisory=ids.map(i=>str(i.value)).find(x=>/^(CVE|GHSA)-/i.test(x)) || rule;
+    const title = dep ? `${advisory}: ${str(pkg.name)} ${str(dep.version)}${v.name && !str(v.name).includes(advisory) ? ' – '+firstLine(v.name,120) : ''}`
+                      : firstLine(v.name || v.message || v.description) || rule;
+    findings.push({ uuid: str(v.id), issue: title, severity: sevOf(null, v.severity, 5),
+      reasoning: [str(v.description)!==title ? str(v.description) : '', v.message && v.message!==v.name && v.message!==v.description ? str(v.message) : '',
+        loc.class || loc.method ? 'In '+[loc.class, loc.method].filter(Boolean).map(str).join('.') : '',
+        loc.commit && loc.commit.sha ? 'Commit '+str(loc.commit.sha).slice(0,12) : '',
+        (Array.isArray(v.links)?v.links:[]).map(l=>l && str(l.url)).filter(Boolean).slice(0,3).join('\n')].filter(Boolean).join('\n\n'),
+      mitigation: str(v.solution) || (secret ? SECRET_FIX : ''), confidence: /^(unknown|)$/i.test(str(v.confidence)) ? '' : str(v.confidence),
+      location:{file_path: uriToPath(loc.file), line_start: ls, line_end: le}, found_snippet: snipOf(ls, le, code),
+      cwe, rule, tool: str((v.scanner||{}).name) || tname, _cat: dep ? 'DEPS' : secret ? 'SECRET' : /^kics$/i.test(tname) ? catPref(title, cwe, 'CONFIG') : '',
+      _sup: fl ? 'flagged as likely false positive'+(fl.origin?' by '+str(fl.origin):'')+(fl.description?': '+str(fl.description).slice(0,200):'') : '',
+      _alt: `${rule} ${dep ? str(pkg.name) : ''}${secret || dep ? '' : ' '+firstLine(v.name || v.message)}` });
+  }
+  return {tool: tname, started: str(scan.start_time), codebase:'', findings};
+}
+
+/* SonarQube "generic issue" import format (old: severity per issue, new: rules with impacts); KICS writes it with its
+   version as engineId. KICS maps HIGH → CRITICAL and CRITICAL → BLOCKER, the scale below follows that. */
+const SONAR_SEV={blocker:10, critical:8, high:8, major:5, medium:5, minor:1, low:1, info:0};
+function fromSonar(j){
+  const rules=dict(); for(const r of Array.isArray(j.rules)?j.rules:[]) if(r && typeof r==='object' && r.id) rules[safeId(r.id)]=r;
+  const issues=j.issues.filter(i=>i && typeof i==='object');
+  const eng=issues.map(i=>str(i.engineId)).find(Boolean) || Object.values(rules).map(r=>str(r.engineId)).find(Boolean) || '';
+  const kics=issues.length>0 && issues.every(i=>/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(str(i.ruleId))) && (!eng || /^(v?\d|development)/i.test(eng));
+  const tname=kics ? 'KICS' : (eng && !/^v?\d/.test(eng) ? eng : 'SonarQube import');
+  const findings=[];
+  for(const i of issues){
+    const rule=rules[safeId(str(i.ruleId))] || {};
+    const impact=(Array.isArray(rule.impacts)?rule.impacts:[]).map(x=>x && str(x.severity).toLowerCase()).find(Boolean);
+    const sevW=str(i.severity || rule.severity).toLowerCase() || impact || 'major';
+    // KICS lists the other files of the same check as secondary locations: those are findings of their own
+    const locs=[i.primaryLocation].concat(kics && Array.isArray(i.secondaryLocations) ? i.secondaryLocations : []).filter(l=>l && typeof l==='object');
+    const others=!kics && Array.isArray(i.secondaryLocations) ? i.secondaryLocations.filter(Boolean).map(s=>`${uriToPath(s.filePath)}:${int((s.textRange||{}).startLine)}`).slice(0,20) : [];
+    for(const pl of locs){
+      const tr=pl.textRange||{}, msg=str(pl.message), title=firstLine(rule.name || msg) || str(i.ruleId);
+      const ls=int(tr.startLine,0), le=Math.max(ls, int(tr.endLine,ls)), cwe=cweOf(i.cwe);
+      findings.push({ issue: title, severity: has(SONAR_SEV,sevW) ? SONAR_SEV[sevW] : 5,
+        reasoning: [msg!==title ? msg : '', str(rule.description), i.riskScore ? 'Risk score: '+str(i.riskScore) : '', others.length ? 'Also at: '+others.join(', ') : ''].filter(Boolean).join('\n\n'),
+        mitigation:'', confidence:'', location:{file_path: uriToPath(pl.filePath), line_start: ls, line_end: le}, found_snippet: dict(),
+        cwe, rule: str(i.ruleId), tool: tname, _cat: kics ? catPref(title, cwe, 'CONFIG') : '', _alt: str(i.ruleId)+' '+firstLine(msg,80) });
+    }
+  }
+  return {tool: tname, started:'', codebase:'', findings};
+}
+
+const CC_SEV={blocker:10, critical:8, major:5, minor:1, info:0};
+function fromCodeClimate(arr){
+  const items=arr.filter(r=>r && typeof r==='object' && str(r.type||'issue').toLowerCase()==='issue');
+  const kics=items.length>0 && items.every(r=>'risk_score' in r);
+  const tname=kics ? 'KICS' : (items.map(r=>str(r.engine_name)).find(Boolean) || 'Code Climate');
+  const findings=items.map(r=>{
+    const loc=r.location||{}, lines=loc.lines||{}, pos=loc.positions||{};
+    const ls=int(lines.begin, int((pos.begin||{}).line,0)), le=Math.max(ls, int(lines.end, int((pos.end||{}).line,ls)));
+    const title=kics ? str(r.check_name) : (firstLine(r.description) || str(r.check_name)), cwe=cweOf(r.cwe);
+    const body=r.content && typeof r.content==='object' ? str(r.content.body) : '';
+    return { issue: title, severity: has(CC_SEV,str(r.severity).toLowerCase()) ? CC_SEV[str(r.severity).toLowerCase()] : 5,
+      reasoning: [kics || str(r.description)!==title ? str(r.description) : '', body, r.risk_score ? 'Risk score: '+str(r.risk_score) : '',
+        Array.isArray(r.categories) && r.categories.length ? 'Categories: '+r.categories.map(str).join(', ') : ''].filter(Boolean).join('\n\n'),
+      mitigation:'', confidence:'', location:{file_path: uriToPath(loc.path), line_start: ls, line_end: le}, found_snippet: dict(),
+      cwe, rule: str(r.check_name), tool: str(r.engine_name) || tname, _cat: kics ? catPref(title, cwe, 'CONFIG') : '',
+      _alt: str(r.check_name)+' '+(kics ? '' : firstLine(r.description,80)) };
+  });
+  return {tool: tname, started:'', codebase:'', findings};
+}
+
+const RD_SEV={error:8, warning:5, info:1};
+function fromRdjson(j){
+  const tname=str((j.source||{}).name) || 'reviewdog';
+  const findings=j.diagnostics.filter(d=>d && typeof d==='object').map(d=>{
+    const msg=str(d.message).trim(); let title=firstLine(msg), body=msg;
+    const h=/^#\s+(.+)$/m.exec(msg); if(h){ title=h[1].trim().replace(/\.$/,''); body=msg.slice(h.index+h[0].length).trim(); }
+    const md=/^##\s/m.test(body) ? mdSections(body) : null;
+    const loc=d.location||{}, rg=loc.range||{}, ls=int((rg.start||{}).line,0), le=Math.max(ls, int((rg.end||{}).line,ls));
+    const code=d.code && typeof d.code==='object' ? d.code : {}, rule=str(code.value);
+    const sug=(Array.isArray(d.suggestions)?d.suggestions:[]).map(s=>s && str(s.text)).filter(Boolean);
+    return { issue: title || rule, severity: RD_SEV[str(d.severity || j.severity).toLowerCase()] ?? 5,
+      reasoning: [md ? (md.description || md._) : body!==title ? body : '', code.url ? 'Docs: '+str(code.url) : ''].filter(Boolean).join('\n\n'),
+      mitigation: [md ? (md.remediations || md.remediation || '') : '', sug.length ? 'Suggested fix:\n'+sug.join('\n') : ''].filter(Boolean).join('\n\n'),
+      confidence:'', location:{file_path: uriToPath(loc.path), line_start: ls, line_end: le}, found_snippet: dict(),
+      cwe: cweList(msg.match(/CWE-\d+/gi)), rule, tool: str((d.source||{}).name) || tname, _alt: rule+' '+title };
+  });
+  return {tool: tname, started:'', codebase:'', findings};
+}
+
+/* ---- Checkmarx ---- */
+const CX_STATE={0:'To Verify', 1:'Not Exploitable', 2:'Confirmed', 3:'Urgent', 4:'Proposed Not Exploitable'};
+const flowText = nodes => { const s=nodes.map(n=>`${n.file}:${n.line}${n.name?' '+n.name:''}`);
+  return s.length>8 ? [...s.slice(0,4), `… ${s.length-7} more …`, ...s.slice(-3)].join('\n→ ') : s.join('\n→ '); };
+/* CxSAST XML report (CxXMLResults): one result per data flow; location is the sink (last node), where the other tools
+   report the same flaw; the source and the whole flow go into the reasoning */
+function fromCxXml(doc){
+  const root=doc.documentElement, att=(el,n)=>str(el.getAttribute(n));
+  const kids=(el,tag)=>Array.from(el.children).filter(c=>c.tagName===tag);
+  const txt=(el,tag)=>{ const c=kids(el,tag)[0]; return c ? c.textContent : ''; };
+  const node=n=>{ const sn=kids(n,'Snippet')[0], l=sn && kids(sn,'Line')[0];
+    return {file: uriToPath(txt(n,'FileName')), line: int(txt(n,'Line'),0), name: txt(n,'Name'), code: l ? {n:int(txt(l,'Number'),0), c:txt(l,'Code')} : null}; };
+  const findings=[];
+  for(const q of kids(root,'Query')){
+    const qn=att(q,'name'), title=humanize(qn) || 'Checkmarx query '+att(q,'id'), cwe=cweOf(att(q,'cweId')==='0' ? '' : att(q,'cweId'));
+    for(const r of kids(q,'Result')){
+      const path=kids(r,'Path')[0], nodes=path ? kids(path,'PathNode').map(node) : [];
+      const first={file: uriToPath(att(r,'FileName')), line: int(att(r,'Line'),0), name:'', code:null};
+      const src=nodes[0] || first, sink=nodes[nodes.length-1] || first;
+      const stN=att(r,'state'), stName=has(CX_STATE,stN) ? CX_STATE[stN] : (stN ? 'custom state '+stN : '');
+      const ne=/^true$/i.test(att(r,'FalsePositive')) || stN==='1';
+      const ls=sink.line || first.line, code=sink.code && sink.code.c ? sink.code : null;
+      findings.push({ issue: title, severity: sevOf(null, att(r,'Severity') || att(q,'Severity'), 5),
+        reasoning: [`${title}${att(q,'group')?' ('+humanize(att(q,'group'))+')':''}${att(q,'Language')?' · '+att(q,'Language'):''}`,
+          nodes.length>1 ? `Data flow (${nodes.length} nodes):\n→ ${flowText(nodes)}` : '',
+          [stName && stN!=='0' ? 'State: '+stName : '', att(r,'Status') ? 'Status: '+att(r,'Status') : '', att(r,'DetectionDate') ? 'Detected: '+att(r,'DetectionDate') : ''].filter(Boolean).join(' · '),
+          att(r,'Remark') ? 'Checkmarx comments: '+att(r,'Remark') : '', att(r,'DeepLink') ? 'Checkmarx: '+att(r,'DeepLink') : ''].filter(Boolean).join('\n\n'),
+        mitigation:'', confidence:'', location:{file_path: sink.file || first.file, line_start: ls, line_end: ls},
+        found_snippet: code ? snipOf(code.n || ls, code.n || ls, code.c) : dict(),
+        cwe, rule: qn, tool:'CxSAST',
+        _sup: ne ? 'marked Not Exploitable in Checkmarx'+(att(r,'Remark')?': '+att(r,'Remark').slice(0,200):'') : '',
+        _alt: `${qn} ${sink.name} ${src.name}` });
+    }
+  }
+  // "Monday, July 15, 2019 3:45:12 PM" (English report locale); other locales fall back to the file date
+  const when=[att(root,'ScanStart'), att(root,'ReportCreationTime')].map(s=>s.replace(/^[A-Za-z]+,\s*/,'')).find(s=>ts(s));
+  return {tool:'CxSAST', started: when ? new Date(ts(when)).toISOString() : '', codebase:'', findings, labelHint: att(root,'ProjectName')};
+}
+/* Checkmarx One: cx results show --report-format json (SAST, IaC/KICS, SCA, secrets and others) */
+function fromCxOne(j){
+  const findings=[]; let last='';
+  for(const r of j.results){
+    if(!r || typeof r!=='object') continue;
+    const type=str(r.type).toLowerCase(), d=r.data && typeof r.data==='object' ? r.data : {}, vd=r.vulnerabilityDetails||{};
+    const cwe=cweOf(vd.cweId), state=str(r.state).toUpperCase();
+    if(str(r.foundAt) > last) last=str(r.foundAt);
+    const stateLine=[state && state!=='TO_VERIFY' ? 'State: '+humanize(state.toLowerCase()) : '', r.status ? 'Status: '+humanize(str(r.status).toLowerCase()) : '',
+      r.firstFoundAt ? 'First found: '+str(r.firstFoundAt).slice(0,10) : ''].filter(Boolean).join(' · ');
+    const base={ severity: sevOf(num(vd.cvssScore)>0 && type==='sca' ? vd.cvssScore : null, r.severity, 5), confidence:'', cwe, tool:'Checkmarx One',
+      _sup: state==='NOT_EXPLOITABLE' ? 'marked Not Exploitable in Checkmarx One' : '', uuid: str(r.id) };
+    const desc=str(r.description || d.description);
+    if(type==='sast'){
+      const nodes=(Array.isArray(d.nodes)?d.nodes:[]).filter(Boolean).map(n=>({file: uriToPath(str(n.fileName).replace(/^\//,'')), line:int(n.line,0), name:str(n.name), method:str(n.method)}));
+      const src=nodes[0]||{}, sink=nodes[nodes.length-1]||{file:'', line:0};
+      findings.push({...base, issue: humanize(d.queryName) || str(r.label), reasoning: [desc, nodes.length>1 ? `Data flow (${nodes.length} nodes):\n→ ${flowText(nodes)}` : '',
+          [d.group ? 'Group: '+str(d.group) : '', d.languageName ? str(d.languageName) : ''].filter(Boolean).join(' · '), stateLine].filter(Boolean).join('\n\n'),
+        mitigation: str(r.recommendations), location:{file_path: sink.file, line_start: sink.line, line_end: sink.line}, found_snippet: dict(),
+        rule: str(d.queryName), _alt: `${str(d.queryName)} ${str(sink.name)} ${str(sink.method)} ${str(src.name)}` });
+    } else if(type==='kics' || type==='iac'){
+      const ls=int(d.line,0), title=str(d.queryName) || str(r.label);
+      findings.push({...base, issue: title, reasoning: [desc, d.value ? 'Actual: '+str(d.value) : '', d.expectedValue ? 'Expected: '+str(d.expectedValue) : '',
+          [d.platform ? 'Platform: '+str(d.platform) : '', d.group ? 'Group: '+str(d.group) : '', d.issueType ? str(d.issueType) : ''].filter(Boolean).join(' · '), stateLine].filter(Boolean).join('\n'),
+        mitigation: str(d.expectedValue), location:{file_path: uriToPath(str(d.filename).replace(/^\//,'')), line_start: ls, line_end: ls}, found_snippet: dict(),
+        rule: str(d.queryId), _cat: catPref(title, cwe, 'CONFIG'), _alt: `${str(d.queryId)} ${str(d.expectedValue)}` });
+    } else if(type==='sca'){
+      const pkg=str(d.packageIdentifier), sp=d.scaPackageData||{}, where=(Array.isArray(sp.locations)?sp.locations:[]).map(str).find(Boolean);
+      const rv=d.recommendedVersion!=null && d.recommendedVersion!=='' ? str(d.recommendedVersion) : '';
+      findings.push({...base, issue: `${str(vd.cveName || r.id)}: ${pkg}`, reasoning: [desc, stateLine, sp.isDirectDependency===false ? 'Transitive dependency' : ''].filter(Boolean).join('\n\n'),
+        mitigation: rv ? `Upgrade to ${rv}` : '', location:{file_path: where ? uriToPath(where) : 'dependencies', line_start:0, line_end:0}, found_snippet: dict(),
+        rule: str(vd.cveName || r.id), _cat:'DEPS', _alt: `${str(vd.cveName || r.id)} ${pkg}` });
+    } else if(/secret/.test(type)){
+      const ls=int(d.line,0);
+      findings.push({...base, issue: humanize(d.ruleName) || 'Secret', reasoning: [desc, stateLine].filter(Boolean).join('\n\n'), mitigation: SECRET_FIX,
+        location:{file_path: uriToPath(str(d.filename).replace(/^\//,'')), line_start: ls, line_end: ls}, found_snippet: dict(),   // the snippet may hold the secret
+        cwe: cwe.length ? cwe : [798], rule: str(d.ruleId || d.ruleName), _cat:'SECRET', _alt: `${str(d.ruleId || d.ruleName)} ${d.snippet ? fnv(str(d.snippet)) : ''}` });
+    } else {
+      const ls=int(d.line,0);
+      findings.push({...base, issue: firstLine(r.label || d.queryName || d.ruleName || desc) || str(r.id), reasoning: [desc, stateLine].filter(Boolean).join('\n\n'),
+        mitigation: str(r.recommendations), location:{file_path: uriToPath(str(d.filename || d.fileName || d.imageFilePath).replace(/^\//,'')) || type || 'other', line_start: ls, line_end: ls},
+        found_snippet: dict(), rule: str(d.queryId || d.ruleId || r.id), _alt: `${type} ${str(r.label || d.queryName || r.id)}` });
+    }
+  }
+  return {tool:'Checkmarx One', started: last, codebase:'', findings, labelHint: str(j.scanID).slice(0,8)};
+}
+
+/* joern-scan prints "Result: <score> : <title>: <file>:<line>:<method>" per finding */
+function fromJoern(text){
+  const findings=[];
+  for(const raw of noAnsi(text).split(/\r?\n/)){
+    const m=/^\s*Result:\s*(-?\d+(?:\.\d+)?)\s*:\s*(.*)$/.exec(raw); if(!m) continue;
+    const rest=m[2]; let title=rest.replace(/:\s*$/,''), file='', line=0, method='';
+    for(let i=rest.indexOf(': '); i>=0; i=rest.indexOf(': ', i+1)){
+      const t=/^(.+?):(\d+):(.*)$/.exec(rest.slice(i+2));
+      if(t && !t[1].includes(': ')){ title=rest.slice(0,i); file=t[1]; line=+t[2]; method=t[3].trim(); break; }
+    }
+    findings.push({ issue: title.trim() || 'Joern finding', severity: sevOf(m[1], null),
+      reasoning: [method ? 'Method: '+method : '', 'Joern score: '+m[1]].filter(Boolean).join('\n'), mitigation:'', confidence:'',
+      location:{file_path: uriToPath(file) || '(unknown file)', line_start: line, line_end: line}, found_snippet: dict(),
+      cwe:[], rule:'', tool:'Joern', _alt: `${title.trim()} ${method}` });
+  }
+  return {tool:'Joern', started:'', codebase:'', findings};
+}
+
+/* codescan (codescan-ai) console output: "--- Vulnerabilities found in <file> ---" + "- **Line N: [sev] type**" blocks */
+function fromCodescan(text){
+  const findings=[]; let file='', cur=null;
+  for(const raw of noAnsi(text).split(/\r?\n/)){
+    let m;
+    if((m=/^-{3}\s*Vulnerabilities found in\s+(.+?)\s*-{3}\s*$/.exec(raw))){ file=m[1]; cur=null; continue; }
+    if(!file) continue;
+    if(/^\d{4}-\d\d-\d\d[ T][\d:,.]+\s+-\s+[A-Z]+\s+-\s/.test(raw)){ cur=null; continue; }           // log line of the tool
+    if((m=/^\s*-\s*\*\*(?:Line\s+(\d+):\s*)?\[([^\]]*)\]\s*(.*?)\*\*\s*$/.exec(raw))){ cur={file, line:+(m[1]||0), sev:m[2], type:m[3].trim(), issue:'', fix:'', k:''}; findings.push(cur); continue; }
+    if(!cur) continue;
+    if((m=/^\s*-\s*\*\*Issue\*\*:\s*(.*)$/.exec(raw))){ cur.issue=m[1]; cur.k='issue'; continue; }
+    if((m=/^\s*-\s*\*\*Fix\*\*:\s*(.*)$/.exec(raw))){ cur.fix=m[1]; cur.k='fix'; continue; }
+    if(cur.k && raw.trim()) cur[cur.k]+='\n'+raw.trim();
+  }
+  return {tool:'codescan', started:'', codebase:'', findings: findings.map(c=>({ issue: c.type || firstLine(c.issue), severity: sevOf(null, c.sev, 5),
+    reasoning: c.issue.trim(), mitigation: c.fix.trim(), confidence:'', location:{file_path: uriToPath(c.file), line_start: c.line, line_end: c.line},
+    found_snippet: dict(), cwe: cweList(c.type, c.issue), rule:'', tool:'codescan', _alt: c.type }))};
+}
+
+/* vulnhuntr writes vulnhuntr.log as JSON lines; the last secondary analysis per file and vulnerability type is the result */
+const VH_TYPES={LFI:['Local file inclusion',8,[22,98]], RCE:['Remote code execution',10,[94,78]], SSRF:['Server-side request forgery',8,[918]],
+  AFO:['Arbitrary file overwrite',8,[73,22]], SQLI:['SQL injection',8,[89]], XSS:['Cross-site scripting',5,[79]], IDOR:['Insecure direct object reference',5,[639]]};
+function fromVulnhuntr(events){
+  const last=new Map(); let cur=null, started='';
+  const cleanPath=p=>str(p).replace(/^\w*Path\((['"])(.*)\1\)$/,'$2');
+  for(const e of events){
+    if(!e || typeof e!=='object') continue;
+    if(!started && e.timestamp) started=str(e.timestamp);
+    const ev=str(e.event);
+    if(/^Performing vuln-specific analysis/i.test(ev)){ cur={file: cleanPath(e.file), type: str(e.vuln_type).replace(/^VulnType\./,'').toUpperCase()}; continue; }
+    if(/^Secondary analysis complete/i.test(ev) && cur && e.secondary_analysis_report && typeof e.secondary_analysis_report==='object')
+      last.set(cur.file+'|'+cur.type, {...cur, rep:e.secondary_analysis_report});
+  }
+  const findings=[];
+  for(const {file, type, rep} of last.values()){
+    const conf=int(rep.confidence_score,0);
+    if(conf<=0 && !(Array.isArray(rep.vulnerability_types) && rep.vulnerability_types.length)) continue;   // analysis ended without a finding
+    const [name, sev, cwe]=VH_TYPES[type] || [humanize(type), 5, []];
+    findings.push({ issue: name, severity: sev, reasoning: [str(rep.analysis), rep.poc ? 'Proof of concept:\n'+str(rep.poc) : ''].filter(Boolean).join('\n\n'),
+      mitigation:'', confidence: conf+'/10', location:{file_path: uriToPath(file), line_start:0, line_end:0}, found_snippet: dict(),
+      cwe, rule: type, tool:'vulnhuntr', _alt: type });
+  }
+  return {tool:'vulnhuntr', started, codebase:'', findings};
+}
+
+/* Metis JSON ({reviews:[{file, reviews:[…]}]}); "invalid" from Metis' own triage counts as rejected by the tool */
+function fromMetis(j){
+  const findings=[];
+  for(const fe of j.reviews){
+    if(!fe || typeof fe!=='object') continue;
+    const file=uriToPath(fe.file || fe.file_path);
+    for(const r of Array.isArray(fe.reviews)?fe.reviews:[]){
+      if(!r || typeof r!=='object') continue;
+      const ls=int(r.line_number,0), sn=str(r.code_snippet).replace(/\r/g,'').replace(/\n+$/,'');
+      const numbered=/^\s*\d+\s*[|:>]/.test(sn), n=sn ? sn.split('\n').length : 0;
+      const tri=str(r.metisTriageStatus).toLowerCase();
+      findings.push({ issue: firstLine(r.issue) || 'Metis finding', severity: sevOf(null, r.severity, 5),
+        reasoning: [str(r.reasoning), str(r.issue)!==firstLine(r.issue) ? str(r.issue) : '', tri && tri!=='invalid' ? `Metis triage: ${tri}${r.metisTriageReason?' – '+str(r.metisTriageReason):''}` : ''].filter(Boolean).join('\n\n'),
+        mitigation: str(r.mitigation), confidence: str(r.confidence), location:{file_path: file, line_start: ls, line_end: ls+Math.max(0,n-1)},
+        found_snippet: numbered ? snippetFromText(sn) : ls && sn ? snipOf(ls, ls+n-1, sn) : dict(),
+        cwe: cweList(r.cwe), rule:'', tool:'Metis', _sup: tri==='invalid' ? 'rejected by Metis triage'+(r.metisTriageReason?': '+str(r.metisTriageReason).slice(0,200):'') : '', _fk:'self',
+        _alt: sn ? '' : firstLine(r.issue,60) });
+    }
+  }
+  return {tool:'Metis', started:'', codebase:'', findings};
+}
+
+/* Gito code-review-report.json: issues per file, severity 1 (critical) … 5 (suggestion), confidence 1 (highest) … 4 */
+const GITO_SEV={1:10, 2:8, 3:5, 4:1, 5:0}, GITO_CONF={1:'highest', 2:'very high', 3:'high', 4:'medium'};
+function fromGito(j){
+  const findings=[];
+  for(const [file, list] of Object.entries(j.issues)){
+    for(const it of Array.isArray(list)?list:[]){
+      if(!it || typeof it!=='object') continue;
+      const al=(Array.isArray(it.affected_lines)?it.affected_lines:[]).filter(a=>a && typeof a==='object');
+      const a0=al[0]||{}, ls=int(a0.start_line,0), le=Math.max(ls, int(a0.end_line,ls));
+      const fs=dict();
+      for(const a of al.filter(a=>!a.file || a.file===(a0.file||file))){
+        const s=int(a.start_line,0), e=Math.max(s, int(a.end_line,s));
+        for(const line of lines0(a.affected_code)){ const m=/^\s*(\d+):\s?(.*)$/.exec(line); if(m) fs[+m[1]]={identifier: +m[1]>=s && +m[1]<=e ? '>' : '|', line:' '+m[2]}; }
+      }
+      const props=al.filter(a=>a.proposal).map(a=>`Proposed change (lines ${int(a.start_line)}–${int(a.end_line||a.start_line)}):\n${str(a.proposal)}`);
+      const tags=Array.isArray(it.tags) ? it.tags.map(str) : [];
+      findings.push({ uuid: str(it.id), issue: firstLine(it.title) || 'Gito issue', severity: has(GITO_SEV,int(it.severity)) ? GITO_SEV[int(it.severity)] : 5,
+        reasoning: [str(it.details), tags.length ? 'Tags: '+tags.join(', ') : ''].filter(Boolean).join('\n\n'), mitigation: props.join('\n\n'),
+        confidence: GITO_CONF[int(it.confidence)] || str(it.confidence), location:{file_path: uriToPath(a0.file || file), line_start: ls, line_end: le},
+        found_snippet: fs, cwe: cweList(it.details), rule: tags.join(','), tool:'Gito', _alt: Object.keys(fs).length ? '' : firstLine(it.title,60) });
+    }
+  }
+  return {tool:'Gito', started: str(j.created_at), codebase:'', findings, labelHint: str(j.model)};
+}
+
+/* Claude Code Security Review (GitHub action / claudecode-results.json / findings.json); the findings its filter excluded
+   are kept as "rejected by the tool", like FalconEYE's verifier verdicts */
+function fromCcsr(j){
+  const kept=Array.isArray(j) ? j : (Array.isArray(j.findings) ? j.findings : []);
+  const excl=Array.isArray(j) ? [] : (((j.filtering_summary||{}).excluded_findings_details)||[]);
+  const one=(f, ex)=>{
+    const ls=int(f.line,0), cat=str(f.category);
+    return { issue: firstLine(f.description,140) || humanize(cat) || 'Security finding', severity: sevOf(null, f.severity, 5),
+      reasoning: [str(f.description), f.exploit_scenario ? 'Exploit scenario: '+str(f.exploit_scenario) : '', cat ? 'Category: '+humanize(cat) : '',
+        ex && ex.justification ? 'Filter justification: '+str(ex.justification) : ''].filter(Boolean).join('\n\n'),
+      mitigation: str(f.recommendation), confidence: f.confidence!=null ? str(f.confidence) : '',
+      location:{file_path: uriToPath(f.file), line_start: ls, line_end: ls}, found_snippet: dict(), cwe: cweList(f.cwe, f.description),
+      rule: humanize(cat), tool:'Claude Security Review', _sup: ex ? 'excluded by the review filter: '+str(ex.exclusion_reason || 'no reason given').slice(0,200) : '', _fk:'self',
+      _alt: cat || firstLine(f.description,60) };
+  };
+  const findings=[...kept.filter(f=>f && typeof f==='object').map(f=>one(f,null)),
+    ...excl.filter(x=>x && x.finding && typeof x.finding==='object').map(x=>one(x.finding, x))];
+  return {tool:'Claude Security Review', started:'', codebase:'', findings, labelHint: j.pr_number ? 'PR '+int(j.pr_number) : ''};
+}
+
+/* promptfoo code-scans --json: {success, review, comments:[{file, line, startLine, finding, fix, severity}]} */
+function fromPromptfoo(j){
+  const findings=j.comments.filter(c=>c && typeof c==='object' && (c.finding || c.body)).map(c=>{
+    const text=str(c.finding || c.body), ls=int(c.startLine ?? c.line, 0), le=Math.max(ls, int(c.line,ls));
+    return { issue: firstLine(text,140), severity: sevOf(null, c.severity, 5), reasoning: text!==firstLine(text,140) ? text : '',
+      mitigation: str(c.fix), confidence:'', location:{file_path: uriToPath(c.file || c.path) || '(no file)', line_start: ls, line_end: le},
+      found_snippet: dict(), cwe: cweList(text), rule:'', tool:'promptfoo', _alt:'' };
+  });
+  return {tool:'promptfoo', started:'', codebase:'', findings};
+}
+
+/* vulnerability-agent (npm dependencies): array of scan results per repository */
+function fromVulnAgent(j){
+  const list=(Array.isArray(j) ? j : [j]).filter(r=>r && typeof r==='object'), multi=list.length>1, findings=[];
+  for(const sr of list){
+    const repo=sr.repository||{}, pj=str(repo.packageJsonPath) || 'package.json';
+    const file=uriToPath(multi && repo.fullName ? str(repo.fullName)+'/'+pj : pj);
+    const fixes=dict(); for(const fx of Array.isArray(sr.fixes)?sr.fixes:[]) if(fx && fx.vulnerability && fx.vulnerability.id) fixes[safeId(fx.vulnerability.id)]=fx;
+    for(const v of Array.isArray(sr.vulnerabilities)?sr.vulnerabilities:[]){
+      if(!v || typeof v!=='object') continue;
+      const adv=(Array.isArray(v.cves)?v.cves:[]).map(str).find(Boolean) || str(v.id), fx=fixes[safeId(str(v.id))];
+      findings.push({ issue: `${adv}: ${str(v.packageName)} ${str(v.currentVersion)}${v.title ? ' – '+firstLine(v.title,120) : ''}`,
+        severity: sevOf(num(v.cvss)>0 ? v.cvss : null, v.severity), reasoning: [str(v.description), v.vulnerableVersions ? 'Vulnerable versions: '+str(v.vulnerableVersions) : '',
+          str(v.advisoryUrl || v.url), v.source ? 'Source: '+str(v.source) : ''].filter(Boolean).join('\n\n'),
+        mitigation: fx && fx.recommendedVersion ? `Upgrade ${str(v.packageName)} to ${str(fx.recommendedVersion)}` : fx && fx.alternativePackage ? 'Replace with '+str(fx.alternativePackage) : '',
+        confidence:'', location:{file_path: file, line_start:0, line_end:0}, found_snippet: dict(), cwe:[], rule: str(v.id), tool:'vulnerability-agent', _cat:'DEPS',
+        _alt: `${str(v.id)} ${str(v.packageName)}` });
+    }
+  }
+  return {tool:'vulnerability-agent', started: str((list[0]||{}).scanDate), codebase:'', findings, labelHint: list.length===1 ? str((list[0].repository||{}).name) : ''};
+}
+
+/* Text reports: joern-scan, codescan console output and vulnhuntr.log (JSON lines) */
+function detectText(text){
+  const t=noAnsi(text);
+  if(/^\s*Result:\s*-?\d+(\.\d+)?\s*:/m.test(t)) return 'joern';
+  if(/^-{3}\s*Vulnerabilities found in .+-{3}\s*$/m.test(t) || /^\s*-\s*\*\*(Line \d+: )?\[[^\]]+\][^*]*\*\*\s*$/m.test(t) && /Scanning file:/i.test(t)) return 'codescan';
+  if(/^\s*\{.*"event"\s*:\s*"(Performing|Initial analysis|Secondary analysis|Summarizing)/m.test(t)) return 'vulnhuntr';
+  return null;
+}
 /* Recognise the format; null = not a foreign format (FalconEYE and similar go through normalizeInput directly) */
+const SEV_KEYS = new Set(['critical','high','medium','low','warning']);
 function detectForeign(j){
   if(!j || typeof j!=='object') return null;
-  if(Array.isArray(j)) return j.length && j.every(r=>r && typeof r==='object' && 'RuleID' in r && ('Secret' in r || 'Match' in r)) ? 'gitleaks' : null;
+  const first = a => (Array.isArray(a) ? a : []).find(r=>r && typeof r==='object');
+  if(Array.isArray(j)){
+    const r0=first(j); if(!r0) return null;
+    if(j.every(r=>r && typeof r==='object' && 'RuleID' in r && ('Secret' in r || 'Match' in r))) return 'gitleaks';
+    if('check_name' in r0 && 'location' in r0) return 'codeclimate';
+    if('repository' in r0 && Array.isArray(r0.vulnerabilities)) return 'vulnagent';
+    if('exploit_scenario' in r0 || ('category' in r0 && 'recommendation' in r0 && 'file' in r0 && !('issue' in r0))) return 'ccsr';
+    return null;
+  }
   if(Array.isArray(j.runs) && (/^2\./.test(str(j.version)) || /sarif/i.test(str(j.$schema)))) return 'sarif';
   if(j.SchemaVersion!==undefined && (Array.isArray(j.Results) || 'ArtifactName' in j)) return 'trivy';
+  if(Array.isArray(j.queries) && ('kics_version' in j || 'queries_total' in j || 'severity_counters' in j)) return 'kics';
+  if('totalSecretsFound' in j && j.results && typeof j.results==='object' && !Array.isArray(j.results)) return '2ms';
+  if(Array.isArray(j.vulnerabilities) && j.scan && typeof j.scan==='object' && (j.scan.scanner || j.scan.analyzer)) return 'gitlab';
+  if(Array.isArray(j.issues) && (Array.isArray(j.rules) || (first(j.issues) && 'primaryLocation' in first(j.issues)))) return 'sonar';
+  if(Array.isArray(j.diagnostics) && (j.source || first(j.diagnostics) && 'location' in first(j.diagnostics))) return 'rdjson';
+  if(Array.isArray(j.findings) && /^bearer$/i.test(str(j.source))) return 'bearer';
+  if(Array.isArray(j.reviews) && (!first(j.reviews) || Array.isArray(first(j.reviews).reviews))) return 'metis';
+  if(j.issues && typeof j.issues==='object' && !Array.isArray(j.issues) && ('number_of_processed_files' in j || 'total_issues' in j || 'summary' in j)) return 'gito';
+  if(Array.isArray(j.comments) && ('review' in j || 'success' in j || 'commentsPosted' in j)) return 'promptfoo';
+  if('repository' in j && Array.isArray(j.vulnerabilities) && 'summary' in j) return 'vulnagent';
+  if(Array.isArray(j.findings) && ('analysis_summary' in j || 'filtering_summary' in j || 'pr_number' in j ||
+     (first(j.findings) && 'exploit_scenario' in first(j.findings)))) return 'ccsr';
   if(Array.isArray(j.results)){
-    const r0=j.results.find(r=>r && typeof r==='object');
+    const r0=first(j.results);
+    if(r0 ? ('similarityId' in r0 || 'vulnerabilityDetails' in r0) && 'data' in r0 : 'scanID' in j) return 'cxone';
     if(r0 ? 'check_id' in r0 : (Array.isArray(j.errors) && ('paths' in j || 'version' in j) && !j.metrics)) return 'semgrep';
     if(r0 ? ('test_id' in r0 && 'issue_severity' in r0) : (j.metrics && j.generated_at)) return 'bandit';
   }
+  // Bearer JSON: findings grouped by severity (an empty report is just "{}" and says nothing about the tool)
+  const keys=Object.keys(j);
+  if(keys.length && keys.every(k=>SEV_KEYS.has(k) && Array.isArray(j[k])) && keys.some(k=>{ const r=first(j[k]); return r && 'id' in r && ('filename' in r || 'line_number' in r); })) return 'bearer';
   return null;
 }
+const IMPORTERS = {sarif:fromSarif, semgrep:fromSemgrep, bandit:fromBandit, gitleaks:fromGitleaks, trivy:fromTrivy, kics:fromKics, '2ms':from2ms,
+  gitlab:fromGitlab, sonar:fromSonar, codeclimate:fromCodeClimate, rdjson:fromRdjson, bearer:fromBearer, metis:fromMetis, gito:fromGito,
+  promptfoo:fromPromptfoo, vulnagent:fromVulnAgent, ccsr:fromCcsr, cxone:fromCxOne};
 function adaptForeign(j, fileName, mtime){
   const kind = detectForeign(j); if(!kind) return null;
-  const A = kind==='sarif' ? fromSarif(j) : kind==='semgrep' ? fromSemgrep(j) : kind==='bandit' ? fromBandit(j) : kind==='gitleaks' ? fromGitleaks(j) : fromTrivy(j);
-  let started = ts(A.started) ? A.started : '';
+  return finishForeign(IMPORTERS[kind](j), kind, fileName, mtime);
+}
+/* XML (CxSAST) and text reports (joern-scan, codescan, vulnhuntr.log); null = not recognised */
+function adaptTextReport(text, fileName, mtime){
+  if(/<CxXMLResults[\s>]/.test(text.slice(0,4000))){
+    const doc=new DOMParser().parseFromString(text,'application/xml');
+    if(doc.getElementsByTagName('parsererror').length) throw new Error('Checkmarx XML report is not well-formed');
+    return finishForeign(fromCxXml(doc), 'cxsast', fileName, mtime);
+  }
+  const kind=detectText(text); if(!kind) return null;
+  if(kind==='vulnhuntr'){
+    const events=[]; for(const line of text.split(/\r?\n/)){ const s=line.trim(); if(!s.startsWith('{')) continue; try{ events.push(JSON.parse(s)); }catch(e){} }
+    return finishForeign(fromVulnhuntr(events), kind, fileName, mtime);
+  }
+  return finishForeign(kind==='joern' ? fromJoern(text) : fromCodescan(text), kind, fileName, mtime);
+}
+/* "bearer-2026-09-15.json", "joern_20260915_0800.txt" → scan time for tools that write none (before the file date) */
+function dateFromName(name){
+  const m=/(?:^|\D)(20\d\d)-?(0[1-9]|1[0-2])-?(0[1-9]|[12]\d|3[01])(?:[T_ -]?([01]\d|2[0-3])[:.-]?([0-5]\d)(?:[:.-]?([0-5]\d))?)?(?!\d)/.exec(str(name));
+  if(!m) return '';
+  const iso=`${m[1]}-${m[2]}-${m[3]}T${m[4]||'00'}:${m[5]||'00'}:${m[6]||'00'}`;
+  return ts(iso) ? iso : '';
+}
+function finishForeign(A, kind, fileName, mtime){
+  let started = ts(A.started) ? A.started : '' || dateFromName(fileName);
   if(!started && Number.isFinite(+mtime) && +mtime>0) started = new Date(+mtime).toISOString();
   // label: tool name plus whatever the file name adds (e.g. "semgrep-main.sarif" → "Semgrep main")
   const esc_ = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  let rest = labelFromFile(str(fileName).replace(/\.sarif(\.json)?$/i,'').replace(/\.json$/i,''), A.codebase);
+  let rest = labelFromFile(str(fileName).replace(/\.sarif(\.json)?$/i,'').replace(/\.(json|xml|txt|log|jsonl|ndjson)$/i,''), A.codebase);
+  rest = rest.replace(/\b(results?|report|output|scan|sarif|code.?review|code.?scans?|findings|cxone|claudecode)\b/ig,' ');
   for(const t of A.tool.split(/ \+ |\s+/)) if(t.length>1) rest = rest.replace(new RegExp(esc_(t),'ig'),'');
-  rest = rest.replace(/\b(results?|report|output|scan|sarif)\b/ig,'').replace(/[\s_.-]+/g,' ').trim();
+  rest = rest.replace(/[\s_.-]+/g,' ').trim();
+  if(!rest && A.labelHint) rest = str(A.labelHint).trim();
   const label = (A.tool + (rest ? ' '+rest : '')).slice(0,40);
   const baseDir = normPath(A.codebase).replace(/\/*$/,'/');
   for(const f of A.findings){
@@ -1590,9 +2134,16 @@ async function readFiles(files){
   for(const f of [...files]){
     try{
       const text=await fileText(f);
-      if(/\.html?(\.gz)?$/i.test(f.name) || /^\s*</.test(text)){ scans.push({f, json:htmlReportToJson(text)}); continue; }
-      let json = JSON.parse(text);
-      // SARIF, Semgrep, Bandit, Gitleaks, Trivy → internal report shape (file date stands in when the tool writes no start time)
+      let json;
+      try{ json = JSON.parse(text); }
+      catch(e){
+        // not JSON: Checkmarx XML, joern-scan / codescan console output, vulnhuntr.log (JSON lines), FalconEYE HTML report
+        const rep = adaptTextReport(text, f.name, f.lastModified);
+        if(rep){ scans.push({f, json:rep}); continue; }
+        if(/\.html?(\.gz)?$/i.test(f.name) || /^\s*</.test(text)){ scans.push({f, json:htmlReportToJson(text)}); continue; }
+        throw new Error('format not recognised (not JSON, SARIF, Checkmarx XML or a known text report)');
+      }
+      // SARIF and the other scanners' formats → internal report shape (file date stands in when the tool writes no start time)
       const foreign = adaptForeign(json, f.name, f.lastModified);
       if(foreign){ scans.push({f, json:foreign}); continue; }
       if(json && json.items && json.scans && (json.tool==='refindings'||json.tool==='scan-triage')){ // project file via drag & drop
