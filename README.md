@@ -8,8 +8,7 @@ Refindings is a single HTML file that runs locally in your browser. Import scann
 findings, record decisions and notes, compare scans, and export reports or portable project files.
 No installation, server, account or runtime network connection is required.
 
-The interface contains English labels and German labels for the newer team and review features.
-This guide uses the labels shown in the application.
+The interface and this guide use English labels.
 
 ## Contents
 
@@ -19,7 +18,6 @@ This guide uses the labels shown in the application.
 - [Reviewers and assignments](#reviewers-and-assignments)
 - [Review queue](#review-queue)
 - [Change history](#change-history)
-- [Flowtrace](#flowtrace)
 - [Supported input](#supported-input)
 - [Ratings, rules and undo](#ratings-rules-and-undo)
 - [Filters and scan comparison](#filters-and-scan-comparison)
@@ -34,9 +32,9 @@ This guide uses the labels shown in the application.
 
 This version brings together the features added since the original 1.7 release:
 
-- A prioritised **Review-Warteschlange**, explanations of priority, session progress and next-finding navigation.
-- A sortable **Bearbeiter** column, reviewer filter, individual and bulk assignments, and **Meine Findings**.
-- An **Änderungsverlauf** for assignment, status and note changes.
+- A prioritised **Review queue**, explanations of priority, session progress and next-finding navigation.
+- A sortable **Assignee** column, reviewer filter, individual and bulk assignments, and **My findings**.
+- A **Change history** for assignment, status and note changes.
 - Flowtrace JSON, HTML and `.refindings` import, with a source-to-sink path view.
 - AES-256 encrypted ZIP projects with a selectable password and compatibility with older JSON/GZIP projects.
 
@@ -47,9 +45,9 @@ This version brings together the features added since the original 1.7 release:
    without encryption; Flowtrace `.refindings` files are accepted too.
 3. Open a finding and rate it. Enter your reviewer name when prompted. Opening a saved project or
    restoring a browser project also asks for the current reviewer.
-4. Click a name in **Bearbeiter** to change its assignment, or select several rows and choose
-   **Bearbeiter zuweisen**. Use **Meine Findings** to see your open work.
-5. Choose **Review-Warteschlange** to review findings in priority order.
+4. Click a name in **Assignee** to change its assignment, or select several rows and choose
+   **Assign reviewer**. Use **My findings** to see your open work.
+5. Choose **Review queue** to review findings in priority order.
 6. Use **Project → Save project file** to create a portable backup. On the first ZIP export, choose
    a password; the suggested default is `refindings`.
 7. Import subsequent scans to retain decisions and track new, recurring and disappearing findings.
@@ -75,7 +73,7 @@ An empty password is not accepted; Cancel stops the export. The password is reme
 for that project and is not written to project JSON or browser storage. Reopening the project asks
 again on its next export.
 
-Use **Project → ZIP-Kennwort ändern** to choose a different password for future exports. This does
+Use **Project → Change ZIP password** to choose a different password for future exports. This does
 not change ZIP files already saved. An imported custom password is not automatically reused for exports.
 
 ### Opening an encrypted project
@@ -99,25 +97,25 @@ antivirus warnings disappear.
 
 Two names have different purposes:
 
-- **Current reviewer:** the name entered when opening a project, or set with **Project → Change reviewer / Bearbeiter**.
+- **Current reviewer:** the name entered when opening a project, or set with **Project → Change reviewer**.
   This identifies the person performing subsequent edits. It is a local name, not an authenticated account.
-- **Finding assignee:** the name in the **Bearbeiter** column. Click it, or **Ändern** in the detail view,
+- **Finding assignee:** the name in the **Assignee** column. Click it, or **Change** in the detail view,
   to assign a person. Enter an empty name to leave the finding explicitly unassigned.
 
-Before an explicit assignment is made, editing a finding records the current reviewer as its Bearbeiter.
+Before an explicit assignment is made, editing a finding records the current reviewer as its assignee.
 Once explicitly assigned, later edits by other reviewers preserve the assignment while the history
 records who made the change. Opening a project does not reassign existing findings.
 
-To assign several findings, select their checkboxes and choose **Bearbeiter zuweisen**.
+To assign several findings, select their checkboxes and choose **Assign reviewer**.
 One Undo restores the entire batch. Assignments are included in project files and report detail cards.
 
-The **Bearbeiter** filter offers **Alle**, individual names and **Nicht zugewiesen**, with counts.
-The column can also be sorted. **Meine Findings** resets other filters and selects open findings
+The **Assignee** filter offers **All**, individual names and **Unassigned**, with counts.
+The column can also be sorted. **My findings** resets other filters and selects open findings
 assigned to the current reviewer. Scanner-rejected findings remain hidden by default.
 
 ## Review queue
 
-Click **Review-Warteschlange** to start a session. It resets the other filters and opens the first
+Click **Review queue** to start a session. It resets the other filters and opens the first
 eligible finding. The queue includes:
 
 - Open and confirmed findings.
@@ -138,12 +136,12 @@ Priority is determined in this order, rather than by an opaque combined score:
 5. More days overdue for remediation.
 6. File path and finding ID as stable tie-breakers.
 
-The list and detail view show an explanation, such as **Hohe Schwere (8/10) · Erneut gemeldet trotz behoben**.
+The list and detail view show an explanation, such as **High severity (8/10) · Reported again after being marked fixed**.
 The queue controls sorting while active; additional filters can narrow the displayed findings.
 
 ### Moving through the queue
 
-Choose **Nächstes Finding**, or use `j`; `k` moves backwards. Navigation cycles through the remaining
+Choose **Next finding**, or use `j`; `k` moves backwards. Navigation cycles through the remaining
 matches. With **Jump to next finding after rating** enabled, a rating, renewed accepted-risk review,
 or resolved rating conflict automatically advances.
 
@@ -157,7 +155,7 @@ necessarily mean all vulnerabilities are fixed.
 
 ## Change history
 
-**Änderungsverlauf** in the finding detail records assignment, status and note changes with:
+**Change history** in the finding detail records assignment, status and note changes with:
 
 - The person who made the change and its timestamp.
 - The changed field.
@@ -170,28 +168,7 @@ imports, merging and regrouping. Undo restores both the values and their previou
 Existing projects do not receive a retroactive change log. Their older status history remains visible.
 This is a local, editable activity history, not a tamper-proof audit trail.
 
-## Flowtrace
 
-Import any of these through **Load scans**, **Open project or scan file**, or drag and drop:
-
-- `flowtrace.json`
-- `flowtrace.html`
-- `flowtrace.refindings`
-
-The importer retains sink file, line and code, severity, CWE, data-flow steps, LLM assessment, and
-reproduction/remediation information where supplied. The detail view provides:
-
-- A compact summary of source, sink, route and LLM verdict.
-- Numbered source, call, return and sink steps, each with file, line and code.
-- Expandable reproduction and exploit examples.
-
-An LLM verdict of `not_vulnerable` is a **scanner rejection**, not a manual false-positive rating.
-These findings are retained but hidden by the default scanner-verdict filter. Select **show all** or
-**only self-refuted** to inspect them. Other LLM verdicts do not automatically set a manual rating.
-
-Formats of the same run are deduplicated using the project root, scan minute and finding IDs. Keep
-original timestamps when no scan date is embedded. Import one preferred format when those metadata
-differ. HTML is parsed as data; its scripts are not executed.
 
 ## Supported input
 
@@ -257,14 +234,14 @@ or the Undo action in a notification.
 
 Filters support status, severity, category, scanner, frequency, scan inclusion/exclusion, folders,
 status-change date, scanner verdict and flags such as regression, overdue, conflict and merged.
-The Bearbeiter dropdown filters by assignment. Counts respect the other active filters; saved filter
+The Assignee dropdown filters by assignment. Counts respect the other active filters; saved filter
 preferences are local to the browser.
 
 Use **More filters** for additional options. Search supports multiple terms, `-excluded`,
 `"exact phrases"`, and the fields `file:`, `note:` and `cat:`.
 
 The **Worklist** tile selects open, unrated findings reported in at least two scans. This is distinct
-from the prioritised review queue and the reviewer-specific **Meine Findings** view.
+from the prioritised review queue and the reviewer-specific **My findings** view.
 
 **Compare two scans** shows findings new in the second scan, gone since the first, present in both,
 and changes in severity. File-change comparisons require source-file hashes from suitable raw results.
@@ -348,7 +325,7 @@ A held-down status key rates only one finding.
 | Buttons do not respond after editing the HTML | Recompute the CSP hashes for every embedded script. See development notes below. |
 | “Could not read” | Read the full message after the filename. Supply an anonymised sample when reporting the issue. |
 | Findings appear to be missing | Reset filters and check the scanner-verdict filter. Flowtrace `not_vulnerable` findings are hidden by default. |
-| “Meine Findings” is empty | Check the current reviewer name, explicit assignments and whether findings are still Open. |
+| “My findings” is empty | Check the current reviewer name, explicit assignments and whether findings are still Open. |
 | Queue has no remaining findings | Entries may already be reviewed this session, excluded by filters, or ineligible. Toggle the queue off/on for a fresh session. |
 | ZIP password keeps failing | Check the export password; the default is `refindings`. The archive may also be damaged. |
 | Browser data disappeared | Open your exported project backup. Storage can depend on browser, profile and local file location. |
@@ -369,3 +346,5 @@ is the base64 SHA-256 digest of the exact UTF-8 script text between its opening 
 including whitespace. Hash all three scripts and retain the existing restrictive policy.
 `tests/project.cjs` checks that every shipped script is authorised; a syntax check alone will not catch
 stale CSP hashes.
+
+
