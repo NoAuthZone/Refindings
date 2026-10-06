@@ -97,7 +97,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-7AeEIpPg0e9bQGQrexRSOjZO4mvRY8p+bmiFkfT1f90=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-3QhuTTI/OMWJxkC3Sp6/vRFB3q7lW7wKsMSFu07b6i0='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yuD11mqemgxbNhZXRr8A4RxCsYbJ2mo1i37PQVwuOis=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-hVXPrcFT6eV2qYR+TjG3s+KoO0pb1gWwhruXZ+5Qtqk='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Refindings 1.6.2</title>
 <style>
@@ -362,6 +362,62 @@ a.edlink:hover{text-decoration-color:currentColor}
   table.list .c-strip,table.list .c-seen{display:none}
 }
 .queue-info{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0;background:var(--sunk)}.queue-info p{margin:4px 0;color:var(--muted);font-size:13px}.queue-reason{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}.audit-log{padding-left:20px}.audit-log>li{padding:10px 0}.audit-diff{display:grid;grid-template-columns:1fr 1fr;gap:12px}.audit-diff pre,.ft-step pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;font:13px/1.6 monospace}.ft-step{border-left:3px solid var(--line);padding-left:14px!important;margin:12px 0;list-style:decimal}.ft-location{color:var(--muted);font-size:12px;margin-top:4px}.ft-summary dd{overflow-wrap:anywhere}.ft-section{margin:14px 0;border:1px solid var(--line);border-radius:8px;padding:12px}.ft-section summary{cursor:pointer;font-weight:600}.ft-trace{padding-left:24px}.ft-trace li{padding:8px 0;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 monospace}.ft-code{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 monospace}.ft-assessment{margin:14px 0;padding:12px;background:var(--sunk);border-radius:8px}
+
+/* Reviewer field follows the active light or dark theme. */
+#reviewerName{appearance:none;background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:34px;caret-color:var(--ink)}
+#reviewerName::placeholder{color:var(--muted);opacity:1}
+#reviewerName:hover{border-color:var(--muted)}
+#reviewerName:focus{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:2px}
+#reviewerName::selection{background:var(--focus);color:var(--bg)}
+#reviewerHint{color:var(--muted);font-size:13px}
+
+#btnUndo,#btnRedo{font-size:24px;min-width:42px;padding:3px 10px}
+#btnUndo:disabled,#btnRedo:disabled{opacity:.35;cursor:default}
+
+/* Distinct activity panel, separate from the finding content. */
+.audit-panel{margin-top:28px;padding:16px;background:var(--sunk);border:1px solid var(--line);border-top:3px solid var(--muted);border-radius:8px}
+.audit-panel h4{color:var(--ink);font-size:14px;margin:0 0 14px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.audit-panel .audit-log{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.audit-panel .audit-log>li{padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:6px;font-size:13px;overflow-wrap:anywhere}
+.audit-panel details{margin-top:8px}
+.audit-panel summary{cursor:pointer;color:var(--muted);font-size:12px;padding:4px 0}
+.audit-panel .audit-diff{margin-top:8px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.audit-panel .audit-diff>div{background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:10px;min-width:0}
+.audit-panel .audit-diff b{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.audit-panel .audit-diff pre{margin:6px 0 0;color:var(--ink)}
+@media(max-width:500px){.audit-panel .audit-diff{grid-template-columns:1fr}.audit-panel{padding:12px}}
+
+.assignee-buttons button.sel{color:var(--focus)}
+.inline-assignee-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding:12px;background:var(--sunk);border:1px solid var(--line);border-radius:6px}
+.inline-assignee-form input{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+
+/* Compact readable activity rows. */
+.audit-panel .audit-log{gap:0}
+.audit-panel .audit-log>li{background:transparent;border:0;border-radius:0;padding:12px 0}
+.audit-panel .audit-log>li+li{border-top:1px solid var(--line)}
+.audit-heading{font-size:12px;color:var(--muted);margin-bottom:5px}
+.audit-transition{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.audit-value{font-size:13px;font-weight:500;overflow-wrap:anywhere}
+.audit-status{padding:2px 7px;border:1px solid currentColor;border-radius:5px}
+.audit-arrow{color:var(--muted)}
+.audit-meta{font-size:11.5px;color:var(--muted);margin-top:5px}
+.audit-panel .audit-empty{color:var(--muted);font-size:12px}
+
+.scanner-panel{padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);margin-bottom:14px}
+.scanner-panel h4{color:var(--ink);font-size:14px;margin-bottom:8px}
+.scanner-meta{font-size:11.5px;color:var(--muted);margin:-3px 0 10px}
+.scanner-description{margin-bottom:12px}
+.scanner-facts{display:grid;grid-template-columns:minmax(70px,auto) minmax(0,1fr);gap:6px 14px;margin:0;font-size:12.5px;padding-top:10px;border-top:1px solid var(--line)}
+.scanner-facts dt{color:var(--muted)}.scanner-facts dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.scanner-panel .reason{font-size:13px;line-height:1.6}
+.scanner-panel pre.code{background:var(--code-bg)}
+.scanner-recommendation{border-left:3px solid var(--focus)}
+
+.merge-preview{padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--sunk);font-size:13px}
+.assignee-search{display:block;width:100%;background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 10px;margin:0 0 10px}
+.assignee-buttons [hidden],#assigneeQuick [hidden]{display:none!important}
+.assignee-buttons button:disabled{cursor:default;color:var(--muted)}
+.inactive-label{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -372,7 +428,11 @@ a.edlink:hover{text-decoration-color:currentColor}
       <p id="subtitle">Track and triage findings from recurring scans over time</p>
     </div>
     <div class="actions">
+      <button class="btn" id="btnUndo" aria-label="Undo" title="Undo (Ctrl/Cmd+Z)" disabled><span aria-hidden="true">↶</span></button>
+      <button class="btn" id="btnRedo" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z or Ctrl+Y)" disabled><span aria-hidden="true">↷</span></button>
+      <span style="display:flex;flex-direction:column;justify-content:center;font-size:12px;color:var(--muted)"><span id="saveStatus" role="status" style="align-self:center;font-size:12px;color:var(--muted)">Saved locally</span> <span id="exportStatus" aria-live="polite"></span></span>
       <button class="btn primary" id="btnLoad">Load scans</button>
+      <button class="btn" id="btnTestExamples" title="Open a separate demo project with 10 synthetic scans; current work stays recoverable">Load test examples</button>
       <div class="menu" id="projMenu">
         <button class="btn" data-menu>Project</button>
         <div class="menu-list">
@@ -384,7 +444,10 @@ a.edlink:hover{text-decoration-color:currentColor}
           <button data-act="mergeProject">Import ratings only<small>Map status and notes onto matching findings, nothing else changes</small></button>
           <button data-act="changeEditor">Change reviewer</button>
           <button data-act="renameProject">Rename project<small>Shown in the header, reports and file names</small></button>
-          <button data-act="reset">Reset everything</button>
+          <button data-act="reviewers">Reviewers<small>Create, rename or deactivate reviewers</small></button>
+          <button data-act="recovery">Recovery<small>Create or restore a local project snapshot</small></button>
+          <button data-act="closeProject">Close project<small>Keep the browser copy or delete it after finishing</small></button>
+          <button data-act="reset">Delete all browser projects<small>Remove all saved projects and recovery snapshots, including older versions</small></button>
         </div>
       </div>
       <div class="menu" id="expMenu">
@@ -403,6 +466,19 @@ a.edlink:hover{text-decoration-color:currentColor}
 
   <input type="file" id="fileScans" accept=".refindings,.zip,.json,.sarif,.xml,.txt,.log,.jsonl,.ndjson,.html,.htm,.gz,application/json,application/sarif+json,application/xml,text/xml,text/plain,text/html,application/gzip" multiple class="hidden">
   <input type="file" id="fileProject" accept=".refindings,.zip,.json,.sarif,.xml,.txt,.log,.jsonl,.ndjson,.html,.htm,.gz,application/zip,application/json,application/sarif+json,application/xml,text/xml,text/plain,text/html,application/gzip" class="hidden">
+
+  <section id="importSummary" class="panel hidden" style="padding:14px 16px" aria-labelledby="importTitle">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 id="importTitle" style="margin:0">Import results</h3><button class="btn small ghost" id="importDismiss">Close</button></div>
+    <ul id="importResults" style="padding-left:20px;margin-bottom:0"></ul>
+  </section>
+  <section id="reviewerBar" class="panel hidden" aria-label="Current reviewer">
+    <form id="reviewerForm" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px">
+      <label for="reviewerName">Reviewer</label>
+      <input id="reviewerName" type="text" maxlength="120" autocomplete="name" placeholder="Your name" aria-describedby="reviewerHint" style="max-width:100%;width:220px">
+      <button class="btn" type="submit">Use name</button>
+      <span id="reviewerHint" class="muted" role="status">Browse freely. Enter your name before editing findings.</span>
+    </form>
+  </section>
 
   <section id="emptyState" class="panel">
     <div class="empty">
@@ -510,6 +586,7 @@ a.edlink:hover{text-decoration-color:currentColor}
           <input name="tpl" placeholder="{path} {pathEnc} {line}, e.g. subl://open?url=file://{path}&amp;line={line}" style="flex:1 1 320px;font-family:var(--mono);font-size:13px">
           <button class="btn small" type="submit">Apply</button>
         </form>
+        <p class="note"><label style="display:inline-flex;gap:8px;align-items:center"><input type="checkbox" id="autoNext"> Jump to next finding after rating</label><br><span style="color:var(--muted)">Off by default. Enable to advance automatically after rating a finding.</span></p>
       </details>
     </section>
 
@@ -539,6 +616,66 @@ a.edlink:hover{text-decoration-color:currentColor}
   </main>
   <footer class="appfoot">Refindings <span id="footVersion"></span> · <a href="https://github.com/NoAuthZone/Refindings" target="_blank" rel="noopener noreferrer">github.com/NoAuthZone/Refindings</a> · <a href="https://github.com/NoAuthZone/Refindings/issues" target="_blank" rel="noopener noreferrer">Report an issue</a> · runs locally, no network access</footer>
 </div>
+
+<dialog id="demoDlg" class="repdlg" aria-labelledby="demoTitle"><form method="dialog">
+  <h3 id="demoTitle">Open demo project?</h3><p>This opens a separate demo. Your current project is saved as a recovery snapshot; Undo returns to it.</p>
+  <div class="rep-actions"><button class="btn" value="cancel" autofocus>Cancel</button><button class="btn primary" value="open">Open demo</button></div>
+</form></dialog>
+<dialog id="reviewersDlg" class="repdlg" aria-labelledby="reviewersTitle">
+  <h3 id="reviewersTitle">Reviewers</h3><p class="muted">Deactivated names stay in past assignments and history but are hidden from the selection.</p>
+  <div id="reviewersList"></div>
+  <form id="reviewerAddForm" class="inline-assignee-form"><label for="reviewerAddName">New reviewer</label><input id="reviewerAddName" maxlength="120" required><button class="btn" type="submit">Add</button></form>
+  <p id="reviewersMessage" role="status"></p><div class="rep-actions"><button class="btn" id="reviewersClose">Close</button></div>
+</dialog>
+<dialog id="assigneeDlg" class="repdlg" aria-labelledby="assigneeTitle">
+  <form id="assigneeForm" method="dialog">
+    <h3 id="assigneeTitle">Assign reviewer</h3>
+    <p class="muted">Click a name to assign immediately.</p>
+    <input type="search" id="assigneeSearch" class="assignee-search" placeholder="Search reviewers" aria-label="Search reviewers">
+    <div id="assigneeQuick" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px"></div>
+    <label for="assigneeNew">New reviewer name</label>
+    <input id="assigneeNew" maxlength="120" style="width:100%;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--sunk);color:var(--ink)">
+    <div class="rep-actions"><button class="btn" type="submit" value="cancel" formnovalidate>Cancel</button><button class="btn primary" type="submit" value="assign">Assign new name</button></div>
+  </form>
+</dialog>
+
+<dialog id="closeProjectDlg" class="repdlg" aria-labelledby="closeProjectTitle">
+  <form method="dialog">
+    <h3 id="closeProjectTitle">Close project</h3>
+    <p>Keep a browser copy for later recovery, or delete this project’s related browser copies and snapshots across tabs after finishing.</p>
+    <p class="muted">Downloaded JSON and ZIP files remain on disk. Delete these separately in your file manager. Related browser copies in other tabs will also be removed; open tabs cannot save the deleted project again.</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn" value="cancel">Cancel</button>
+      <button class="btn" value="delete">Delete browser copy and close</button>
+      <button class="btn primary" value="keep">Keep browser copy and close</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="recoveryDlg" class="repdlg" aria-labelledby="recoveryTitle">
+  <h3 id="recoveryTitle">Project recovery</h3>
+  <p class="muted">Saved browser projects and up to five snapshots per tab session. Restore a copy explicitly. Delete removes browser data; downloaded files remain on disk. Deleting a project also removes its related copies across tabs and prevents old tabs from saving it again.</p>
+  <div id="recoveryList"></div>
+  <p id="recoveryStatus" role="status"></p>
+  <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+    <button class="btn" id="recoveryDeleteAll" type="button">Delete all browser projects</button>
+    <button class="btn" id="recoveryCreate" type="button">Create snapshot</button>
+    <button class="btn" id="recoveryClose" type="button">Close</button>
+  </div>
+</dialog>
+
+<dialog id="projectLoadDlg" class="repdlg" aria-labelledby="projectLoadTitle" aria-describedby="projectLoadInfo">
+  <form method="dialog">
+    <h3 id="projectLoadTitle">Load project</h3>
+    <p id="projectLoadInfo" style="overflow-wrap:anywhere"></p>
+    <p id="projectMergePreview" class="merge-preview" role="status"></p>
+    <p class="muted">Open replaces the current project. Export a backup first if needed. Merge adds scans and keeps existing work.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:20px">
+      <button class="btn" value="cancel" autofocus>Cancel</button>
+      <button class="btn" value="merge">Merge projects</button>
+      <button class="btn primary" value="open">Open project</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="repDlg" class="repdlg" aria-labelledby="repTitle">
   <form id="repForm" method="dialog">
@@ -584,7 +721,7 @@ a.edlink:hover{text-decoration-color:currentColor}
     <button class="btn small" id="drClose" title="Close (Esc)">Close</button>
   </div>
   <div class="dr-b" id="drBody"></div>
-  <div class="kbd-help"><label style="display:inline-flex;gap:6px;align-items:center;margin-right:14px;color:var(--muted)"><input type="checkbox" id="autoNext" checked> Jump to next finding after rating</label>Keys: <b>o</b> open, <b>c</b> confirmed, <b>f</b> false positive, <b>a</b> accepted risk, <b>x</b> fixed, <b>j/k</b> next/previous, <b>Ctrl/Cmd+Z</b> undo, <b>Esc</b> close</div>
+  <div class="kbd-help">Keys: <b>o</b> open, <b>c</b> confirmed, <b>f</b> false positive, <b>a</b> accepted risk, <b>x</b> fixed, <b>j/k</b> next/previous, <b>Ctrl/Cmd+Z</b> undo, <b>Esc</b> close</div>
 </aside>
 <div class="toast" id="toast"></div>
 <div class="dragover-overlay" id="dragOverlay">Drop scan or project files</div>
@@ -592,7 +729,7 @@ a.edlink:hover{text-decoration-color:currentColor}
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
 const TOOL_VERSION = 3;          // project file schema
-const APP_VERSION = '1.8.3';     // program version, increase with every change
+const APP_VERSION = '2.0.0';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
@@ -1016,12 +1153,13 @@ function fromTrivy(j){
         cwe:[], rule: str(m.ID||m.AVDID), tool:'Trivy', _cat:'CONFIG', _alt: `${str(m.ID||m.AVDID)} ${str(m.Message)}` });
     }
     for(const s of Array.isArray(res.Secrets)?res.Secrets:[]){ if(!s) continue;
-      const ls=int(s.StartLine,0), fs=codeSnip(s);
-      findings.push({ issue: firstLine(s.Title) || str(s.RuleID), severity: sevOf(null, s.Severity),
+      const ls=int(s.StartLine,0), fs=codeSnip(s), secret=str(s.Match);
+      for(const row of Object.values(fs)) row.line=maskSecret(row.line,secret);
+      findings.push({ issue: firstLine(maskSecret(s.Title,secret)) || str(s.RuleID), severity: sevOf(null, s.Severity),
         reasoning: `Rule: ${str(s.RuleID)}${s.Category?' · '+str(s.Category):''}`, mitigation: 'Rotate the secret and remove it from the code.',
         confidence:'', location:{file_path: tgt, line_start: ls, line_end: Math.max(ls, int(s.EndLine,ls))},
-        found_snippet: Object.keys(fs).length ? fs : snipOf(ls, ls, s.Match), cwe:[798], rule: str(s.RuleID), tool:'Trivy', _cat:'SECRET',
-        _alt: `${str(s.RuleID)} ${str(s.Match)}` });
+        found_snippet: Object.keys(fs).length ? fs : snipOf(ls, ls, secret?'«redacted '+fnv(secret).slice(0,6)+'»':''), cwe:[798], rule: str(s.RuleID), tool:'Trivy', _cat:'SECRET',
+        _alt: `${str(s.RuleID)} ${secret?fnv(secret):''}` });
     }
   }
   return {tool:'Trivy', started: str(j.CreatedAt), codebase: str(j.ArtifactName), findings};
@@ -1696,7 +1834,7 @@ function finishForeign(A, kind, fileName, mtime){
   return {tool:{name:A.tool}, foreign:kind, review:{id, started_at:started, codebase_path:A.codebase, label, tool:A.tool}, findings:A.findings};
 }
 
-function emptyState(){ return {version:TOOL_VERSION, scans:[], items:dict(), rules:[], roots:[], settings:{editorBase:'', editor:'vscode', editorTpl:'', projectName:'', reviewDays:90, sla:{crit:7, high:30, med:90, low:180, info:0}}}; }
+function emptyState(){ return {version:TOOL_VERSION, projectId:crypto.randomUUID(), reviewers:[], scans:[], items:dict(), rules:[], roots:[], settings:{editorBase:'', editor:'vscode', editorTpl:'', projectName:'', reviewDays:90, sla:{crit:7, high:30, med:90, low:180, info:0}}}; }
 /* Review dates for accepted risks: plain local dates (YYYY-MM-DD) */
 const isDate = s => /^\d{4}-\d\d-\d\d$/.test(str(s)) && !isNaN(Date.parse(s));
 const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -1754,7 +1892,7 @@ function sanitizeItem(v, key, depth){
 
 /* Validate and type the project file / stored state: blocks broken or crafted data (XSS, pollution) */
 function sanitizeState(raw){
-  const S = emptyState(); if(!raw || typeof raw!=='object') return S;
+  const S = emptyState(); if(!raw || typeof raw!=='object') return S;S.projectId=projectIdentity(raw);
   const validStatus = s => has(STATUS_BY_ID,s) ? s : null;
   for(const s of Array.isArray(raw.scans)?raw.scans:[]){
     if(!s || typeof s!=='object' || s.id==null) continue;
@@ -1777,6 +1915,7 @@ function sanitizeState(raw){
   const st = raw.settings && typeof raw.settings==='object' ? raw.settings : {};
   S.settings = {editorBase:str(st.editorBase), editor: has(EDITORS,st.editor)?st.editor:'vscode', editorTpl:str(st.editorTpl), projectName:str(st.projectName).trim().slice(0,80), reviewDays: st.reviewDays===undefined ? 90 : Math.min(3650,Math.max(0,int(st.reviewDays))),
     sla: (()=>{ const d={crit:7, high:30, med:90, low:180, info:0}, s=st.sla&&typeof st.sla==='object'?st.sla:{}; for(const k of Object.keys(d)) if(s[k]!==undefined) d[k]=Math.min(3650,Math.max(0,int(s[k]))); return d; })()};
+  S.reviewers=(Array.isArray(raw.reviewers)?raw.reviewers:[]).filter(r=>r && typeof r.name==='string' && r.name.trim()).map(r=>({name:r.name.trim().slice(0,120),active:r.active!==false})).filter((r,i,all)=>all.findIndex(x=>x.name===r.name)===i);
   return S;
 }
 
@@ -1789,9 +1928,22 @@ function sigEntries(it){
 
 /* Mix a scan into the state. Returns statistics. */
 /* Same scan in another format? Same ID, or same start second and same number of findings (the HTML report has no ID) */
-function findSameScan(state, id, started, count){
-  const sec = Math.floor(ts(started)/1000);
-  return state.scans.find(s=>s.id===id || (!str(id).startsWith('FT-S-') && !str(s.id).startsWith('FT-S-') && sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count)) || null;
+function scanContentKey(records){
+  return Array.isArray(records)?JSON.stringify(records.map(q=>[q.f,q.c,q.p,q.s,q.x]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))):null;
+}
+function scanDetailsCompatible(a,b){
+  const order=rows=>rows.slice().sort((x,y)=>JSON.stringify([x.f,x.c,x.p,x.s,x.x]).localeCompare(JSON.stringify([y.f,y.c,y.p,y.s,y.x])));
+  const left=order(a),right=order(b);
+  return left.every((q,i)=>['mi','co','re','fr','fk'].every(k=>!q[k] || !right[i][k] || q[k]===right[i][k]));
+}
+function findSameScan(state,id,started,count,tool='FalconEYE',records){
+  const sec=Math.floor(ts(started)/1000),key=scanContentKey(records);
+  return state.scans.find(s=>{
+    if(toolOf(s).toLowerCase()!==str(tool||'FalconEYE').toLowerCase()) return false;
+    const sameContent=key!==null && key===scanContentKey(s.rec) && scanDetailsCompatible(records,s.rec);
+    if(s.id===id) return sameContent || key===null || !Array.isArray(s.rec);
+    return sameContent && !str(id).startsWith('FT-S-') && !str(s.id).startsWith('FT-S-') && sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count;
+  })||null;
 }
 /* Replace a substitute ID (HTML report without ID) by the real scan ID once a format with ID is loaded */
 function renameScan(state, scan, newId){
@@ -1995,14 +2147,14 @@ function ingestScan(state, json, fileName){
   const N = normalizeInput(json, fileName);
   const meta = N.meta, findings = N.findings;
   const started = [meta.started_at, meta.completed_at].find(x=>ts(x)) || new Date().toISOString();
-  const scanId = safeId(meta.id || ('scan-'+fnv(str(meta.codebase_path)+'|'+started+'|'+findings.length+'|'+findings.slice(0,5).map(f=>f.uuid+f.location+f.issue).join('|'))));
+  let scanId = safeId(meta.id || ('scan-'+fnv(str(meta.codebase_path)+'|'+started+'|'+findings.length+'|'+findings.slice(0,5).map(f=>f.uuid+f.location+f.issue).join('|'))));
   const knownFiles = new Set(Object.values(state.items).flatMap(i=>[i.file, ...(i.alts||[]).map(a=>a.file)]));
   const R = makeRelativizer(findings.map(f=>f.location), state.roots, knownFiles, meta.codebase_path, N.foreign);
-  const same = findSameScan(state, scanId, started, findings.length);
+  const {recs, fileHashes} = recordsFromInput(N, R);
+  const same = findSameScan(state, scanId, started, findings.length, meta.tool, recs);
   if(same){
-    if(same.id!==scanId && same.id.startsWith('scan-') && meta.id){ renameScan(state, same, scanId); }
+    if(same.id!==scanId && same.id.startsWith('scan-') && meta.id && !state.scans.some(s=>s!==same && s.id===scanId)){ renameScan(state, same, scanId); }
     let enriched = N.rich && enrichScan(state, same, N, R);
-    const {recs} = recordsFromInput(N, R);
     if(!Array.isArray(same.rec)){ same.rec=recs; enriched=true; }
     else {
       // combine what each format has, matched by fingerprint: verifier verdict and file hashes come from the raw
@@ -2019,7 +2171,8 @@ function ingestScan(state, json, fileName){
     return {skipped:true, enriched, scanId:same.id};
   }
   if(R.root && !state.roots.includes(R.root)) state.roots.push(R.root);
-  const {recs, fileHashes} = recordsFromInput(N, R);
+  const originalId=scanId; let suffix=1;
+  while(state.scans.some(s=>s.id===scanId)) scanId=originalId+'-'+suffix++;
   const r = applyRecords(state, scanId, started, recs, meta.tool!=='FalconEYE');
   state.scans.push({id:scanId, file:str(fileName), label:meta.label, tool:meta.tool, started, codebase:str(meta.codebase_path), root:R.root, raw:recs.length, filtered:recs.filter(q=>q.x).length, distinct:r.touched.size, imported:new Date().toISOString(), fileHashes, rec:recs});
   state.scans.sort((a,b)=>ts(a.started)-ts(b.started));
@@ -2208,6 +2361,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <script>
 /* ============ UI ============ */
 const LS_KEY='scanTriage.v1';   // storage keys keep the old name so data from Scan-Triage carries over
+function projectIdentity(raw){return typeof raw.projectId==='string'&&raw.projectId?raw.projectId:'legacy-'+fnv(JSON.stringify((raw.scans||[]).map(x=>x.id).sort()));}
+const DELETED_PROJECTS=new Set();
+let SESSION_ID=crypto.randomUUID();
+const stateKey=()=> 'state:'+SESSION_ID;
+const recoveryKey=()=> 'recovery:'+SESSION_ID;
 let S = emptyState();
 let D = [];           // derived
 let BASE = [];        // derived minus scanner-rejected (if hidden): basis for counts, chart, reports
@@ -2217,7 +2375,7 @@ let CUR = null;       // open item
 let SORT = {k:'default', dir:1};
 let SUMFILTER = null;
 let NAV = [];         // order when the detail view was opened, stays stable while rating
-let AUTONEXT = true;
+let AUTONEXT = false;
 
 const $ = s=>document.querySelector(s);
 const esc = s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2249,12 +2407,21 @@ async function fileText(f){
 /* The active reviewer belongs to this session, never to an imported project. */
 let activeEditor='';
 function askEditor(){
-  const name=prompt('Who is working on this project?',activeEditor);
-  if(name===null) return false;
-  if(!name.trim()){ alert('Please enter a reviewer name.'); return false; }
-  activeEditor=name.trim().slice(0,120); return true;
+  if(!S.scans.length){ toast('Load scans first'); return false; }
+  requestReviewerAfterLoad();
+  $('#reviewerName').focus(); $('#reviewerName').select();
+  $('#reviewerHint').textContent='Enter your name and choose Use name, then continue editing.';
+  return false;
 }
 function ensureEditor(){ return !!activeEditor || askEditor(); }
+function setReviewerName(){
+  const name=$('#reviewerName').value.trim().slice(0,120);
+  if(!name){ $('#reviewerHint').textContent='Please enter a reviewer name.'; $('#reviewerName').focus(); return false; }
+  if(!(S.reviewers||[]).some(r=>r.name===name)){undoFull('add reviewer');registerReviewer(name);save();}
+  activeEditor=name; $('#reviewerName').value=name;
+  $('#reviewerHint').textContent='Current reviewer: '+name;
+  rebuild(); return true;
+}
 function touchFinding(it){ if(!it.editorAssigned){ logFindingChange(it,'editor',it.editor,activeEditor); it.editor=activeEditor; } it.editedAt=new Date().toISOString(); }
 function sanitizeAudit(entries){
   return (Array.isArray(entries)?entries:[]).filter(e=>e && ['editor','status','note'].includes(e.field))
@@ -2265,12 +2432,83 @@ function logFindingChange(it,field,before,after){
   const at=new Date().toISOString();
   it.audit=(it.audit||[]).concat({id:at+'-'+Math.random().toString(36).slice(2),at,actor:activeEditor,field,before:String(before||''),after:String(after||'')}).slice(-100);
 }
+function showImportResults(results){
+  const list=$('#importResults');list.replaceChildren();
+  for(const result of results){const li=document.createElement('li');li.textContent=result.file+' — '+result.status+(result.detail?': '+result.detail:'');list.append(li);}
+  $('#importSummary').classList.toggle('hidden',!results.length);
+}
+function renderReviewerManager(){
+  const all=new Map((S.reviewers||[]).map(r=>[r.name,r.active!==false]));
+  for(const name of knownReviewers()) if(!all.has(name)) all.set(name,true);
+  const list=$('#reviewersList');list.replaceChildren();
+  for(const [name,active] of [...all].sort((a,b)=>a[0].localeCompare(b[0]))){
+    const row=document.createElement('div');row.className='inline-assignee-form';
+    const input=document.createElement('input');input.value=name;input.maxLength=120;input.setAttribute('aria-label','Reviewer name');
+    const rename=document.createElement('button');rename.type='button';rename.className='btn small';rename.textContent='Rename';
+    rename.onclick=()=>{
+      const value=input.value.trim();if(!value||value===name)return;
+      if(all.has(value)){$('#reviewersMessage').textContent='That name already exists.';return;}
+      undoFull('rename reviewer');registerReviewer(name);S.reviewers.find(r=>r.name===name).active=false;registerReviewer(value);S.reviewers.find(r=>r.name===value).active=active;
+      for(const it of Object.values(S.items)) if(it.editor===name){logFindingChange(it,'editor',name,value);it.editor=value;it.editedAt=new Date().toISOString();}
+      if(activeEditor===name)activeEditor=value;
+      save();rebuild(true);renderReviewerManager();
+    };
+    const toggle=document.createElement('button');toggle.type='button';toggle.className='btn small';toggle.textContent=active?'Deactivate':'Reactivate';
+    toggle.onclick=()=>{undoFull('reviewer availability');registerReviewer(name);S.reviewers.find(r=>r.name===name).active=!active;save();rebuild(true);renderReviewerManager();};
+    row.append(input,rename,toggle);list.append(row);
+  }
+}
+function openReviewerManager(){$('#reviewersMessage').textContent='';renderReviewerManager();$('#reviewersDlg').showModal();}
+function registerReviewer(name){
+  if(!name) return; S.reviewers=S.reviewers||[];
+  if(!S.reviewers.some(r=>r.name===name)) S.reviewers.push({name,active:true});
+}
+function knownReviewers(){
+  const names=new Set();
+  const add=name=>{if(typeof name==='string' && name.trim()) names.add(name.trim());};
+  for(const reviewer of S.reviewers||[]) if(reviewer.active!==false) add(reviewer.name);
+  add(activeEditor);
+  for(const it of Object.values(S.items)){
+    add(it.editor);
+    for(const e of it.audit||[]){add(e.actor);if(e.field==='editor'){add(e.before);add(e.after);}}
+    for(const h of it.hist||[]) add(h.editor);
+  }
+  return [...names].filter(name=>!(S.reviewers||[]).some(r=>r.name===name && r.active===false)).sort((a,b)=>a.localeCompare(b));
+}
+async function chooseAssignee(current=''){
+  const dlg=$('#assigneeDlg'); if(dlg.open) return null;
+  const list=$('#assigneeQuick');list.replaceChildren();
+  let selected=null;
+  const add=(name,label)=>{
+    const button=document.createElement('button');button.type='button';button.className='btn';button.textContent=label;
+    button.setAttribute('aria-pressed',String(name===current));
+    if(name===current) button.style.borderColor='var(--focus)';
+    button.onclick=()=>{selected=name;dlg.close('pick');};list.append(button);
+  };
+  const names=knownReviewers();names.forEach(name=>add(name,name));add('','Unassigned');
+  const search=$('#assigneeSearch');search.value='';search.classList.toggle('hidden',names.length<=6);
+  search.oninput=()=>{const query=search.value.toLocaleLowerCase();for(const button of list.querySelectorAll('button'))button.hidden=button.textContent!=='Unassigned'&&!button.textContent.toLocaleLowerCase().includes(query);};
+  $('#assigneeNew').value='';
+  $('#assigneeForm').onsubmit=e=>{
+    if(e.submitter?.value==='assign'){
+      const name=$('#assigneeNew').value.trim().slice(0,120);
+      if(!name){e.preventDefault();$('#assigneeNew').focus();return;}
+      selected=name;
+    }
+  };
+  dlg.returnValue='cancel';
+  return new Promise(resolve=>{
+    dlg.addEventListener('close',()=>resolve(['pick','assign'].includes(dlg.returnValue)?selected:null),{once:true});
+    dlg.showModal();
+  });
+}
 function setFindingEditors(ids,name){
   if(name===null || !ensureEditor()) return;
   name=String(name).trim().slice(0,120);
   const items=[...new Set(ids)].map(id=>S.items[id]).filter(it=>it && (it.editor!==name || !it.editorAssigned));
   if(!items.length) return;
   undoItems('Assignee changed',items.map(it=>it.id));
+  registerReviewer(name);
   for(const it of items){
     logFindingChange(it,'editor',it.editor,name);
     it.editor=name; it.editorAssigned=true; it.editedAt=new Date().toISOString();
@@ -2334,24 +2572,200 @@ const IDB = {
   db:null,
   open(){ return new Promise(res=>{ try{ const r=indexedDB.open('scanTriage',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>{ this.db=r.result; res(true); }; r.onerror=()=>res(false); r.onblocked=()=>res(false); }catch(e){ res(false); } }); },
   get(k){ return new Promise(res=>{ try{ const q=this.db.transaction('kv').objectStore('kv').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(undefined); }catch(e){ res(undefined); } }); },
-  put(k,v){ return new Promise((res,rej)=>{ try{ const tx=this.db.transaction('kv','readwrite'); tx.objectStore('kv').put(v,k); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error); }catch(e){ rej(e); } }); },
+  keys(){return new Promise((res,rej)=>{try{const q=this.db.transaction('kv').objectStore('kv').getAllKeys();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);}catch(e){rej(e);}});},
+  remove(k){return new Promise((res,rej)=>{try{const tx=this.db.transaction('kv','readwrite');tx.objectStore('kv').delete(k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error);}catch(e){rej(e);}});},
+  put(k,v,guards=[]){return new Promise((res,rej)=>{try{
+    const tx=this.db.transaction('kv','readwrite'),store=tx.objectStore('kv');let remaining=guards.length,blocked=false;
+    const write=()=>{if(!blocked)store.put(v,k);};
+    if(!remaining)write();else for(const guard of guards){const q=store.get(guard);q.onsuccess=()=>{if(q.result!==undefined)blocked=true;if(!--remaining)write();};}
+    tx.oncomplete=()=>blocked?rej(new Error('This project was deleted in another tab. Its browser copy cannot be saved again.')):res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error);
+  }catch(e){rej(e);}});},
 };
-let DIRTY=false;
-function save(){ DIRTY=true; clearTimeout(save._t); save._t=setTimeout(persist,400); }
+/* Recovery snapshots are separate from the current project and survive page reloads. */
+let recoveryQueue=Promise.resolve();
+async function readRecovery(){
+  const raw=await storedGet(recoveryKey());
+  if(!raw) return [];
+  const entries=JSON.parse(raw);
+  if(!Array.isArray(entries)) throw new Error('Recovery storage is unreadable');
+  return entries.filter(e=>e && typeof e.json==='string').slice(0,5);
+}
+function recordRecovery(label,json=JSON.stringify(S)){
+  const key=recoveryKey();
+  const job=recoveryQueue.catch(()=>{}).then(async()=>{
+    const state=JSON.parse(json);
+    if(!state.scans?.length && !Object.keys(state.items||{}).length) return;
+    const entries=JSON.parse(await storedGet(key)||'[]');
+    if(entries[0]?.json===json) return;
+    entries.unshift({project:state.settings?.projectName||'Untitled project',id:Date.now()+'-'+Math.random().toString(36).slice(2),at:new Date().toISOString(),label,json});
+    const data=JSON.stringify(entries.slice(0,5));
+    await storedPut(key,data);
+  });
+  recoveryQueue=job;
+  return job;
+}
+async function renderRecovery(){
+  await recoveryQueue.catch(()=>{});
+  const entries=await allStoredProjects(),list=$('#recoveryList');
+  list.replaceChildren();
+  if(!entries.length){list.textContent='No recovery snapshots yet.';return;}
+  for(const entry of entries){
+    const row=document.createElement('div'); row.style.cssText='padding:12px 0;border-bottom:1px solid var(--line)';
+    let state; try{state=sanitizeState(JSON.parse(entry.json));}catch(e){continue;}
+    const text=document.createElement('p');
+    text.textContent=(entry.at?new Date(entry.at).toLocaleString()+' · ':'')+(state.settings.projectName||'Untitled project')+' · '+entry.label+' · '+state.scans.length+' scans · '+Object.keys(state.items).length+' findings';
+    const button=document.createElement('button');button.className='btn';button.textContent='Restore this snapshot';
+    button.onclick=async()=>{
+      button.disabled=true;
+      try{
+        await assertRecoveryAvailable(entry);const choice=await chooseProjectLoad(state,'Recovery snapshot');
+        if(choice==='cancel') return;
+        await assertRecoveryAvailable(entry);await recordRecovery('Before recovery');
+        if(choice==='merge') mergeFullProjectJson(state); else openProjectJson(state);
+        DIRTY=true;await persist();
+        $('#recoveryDlg').close();toast('Recovery snapshot restored');
+      }catch(e){$('#recoveryStatus').textContent='Recovery failed: '+e.message;}
+      finally{button.disabled=false;}
+    };
+    const remove=document.createElement('button');remove.className='btn';remove.textContent='Delete project from browser';remove.style.marginLeft='8px';
+    remove.onclick=async()=>{
+      if(!confirm('Delete this project and its related browser copies and snapshots in all tabs? Downloaded files remain on disk.'))return;
+      remove.disabled=true;
+      try{
+        if(projectIdentity(S)===projectIdentity(state)){await finishProject('delete');}else await deleteProjectCopies(state,entry.key);
+        await renderRecovery();$('#recoveryStatus').textContent='Browser copy deleted. Files on disk were kept.';
+      }catch(e){$('#recoveryStatus').textContent='Deletion failed: '+e.message;}finally{remove.disabled=false;}
+    };
+    row.append(text,button,remove);list.append(row);
+  }
+}
+async function openRecovery(){
+  $('#recoveryStatus').textContent='';$('#recoveryDlg').showModal();
+  try{await renderRecovery();}catch(e){$('#recoveryStatus').textContent=e.message;}
+}
+
+let DIRTY=false, saving=null, redoState=null, exportedState=null, exportChanged=false;
+let recoveryAt=0;
+function updateExportStatus(){
+  exportChanged=!!S.scans.length && JSON.stringify(S)!==exportedState;
+  const el=$('#exportStatus');if(el) el.textContent=exportChanged?'Changes not exported':'Project backup up to date';
+}
+async function automaticRecovery(now=Date.now()){
+  if(now-recoveryAt<120000 || !S.scans.length) return;
+  await recordRecovery('Automatic checkpoint');recoveryAt=now;
+}
+window.addEventListener('beforeunload',e=>{if(exportChanged){e.preventDefault();e.returnValue='';}});
+setInterval(()=>automaticRecovery().catch(()=>{}),30000);
+function storageStatus(text){ const el=$('#saveStatus'); if(el) el.textContent=text; }
+function save(){ if(REDO.length && redoState!==JSON.stringify(S)){REDO.length=0;updateHistoryButtons();} updateExportStatus(); DIRTY=true; storageStatus('Unsaved changes'); clearTimeout(save._t); save._t=setTimeout(persist,400); }
 async function persist(){
-  clearTimeout(save._t); if(!DIRTY) return; DIRTY=false;
-  const data=JSON.stringify(S);
-  try{
-    if(IDB.db) await IDB.put('state', CAN_GZIP ? await gzipText(data) : data); else localStorage.setItem(LS_KEY,data);
-  }catch(e){ DIRTY=true; toast('Saving in the browser failed: please save the project file'); }
+  clearTimeout(save._t); if(saving) return saving; if(!DIRTY) return;
+  DIRTY=false; const data=JSON.stringify(S),key=stateKey(); storageStatus('Saving…');
+  saving=(async()=>{
+    try{
+      if(S.scans.length || Object.keys(S.items).length) await storedPut(key,CAN_GZIP&&IDB.db?await gzipText(data):data);else await storedRemove(key);
+      storageStatus(DIRTY?'Unsaved changes':'Saved locally');
+      automaticRecovery().catch(()=>toast('Automatic recovery checkpoint failed; export a project backup.'));
+      if(DIRTY) save._t=setTimeout(persist,0);
+    }catch(e){DIRTY=true;storageStatus('Save failed — export a backup');toast(e.message.includes('deleted')?e.message:'Saving in the browser failed: please save the project file');}
+  })();
+  try{await saving;}finally{saving=null;}
 }
-async function load(){
-  await IDB.open();
-  let raw = IDB.db ? await IDB.get('state') : undefined;
-  if(raw===undefined){ try{ raw=localStorage.getItem(LS_KEY)||undefined; }catch(e){} } // migration from version 1
-  if(raw instanceof ArrayBuffer){ try{ raw=await gunzipBuf(raw); }catch(e){ raw=undefined; toast('Stored state unreadable, starting empty'); } }
-  if(raw){ try{ S=sanitizeState(JSON.parse(raw)); if(IDB.db){ DIRTY=true; await persist(); try{ localStorage.removeItem(LS_KEY); }catch(e){} } }catch(e){ toast('Stored state unreadable, starting empty'); } }
+async function storedGet(key){if(key==='legacy-local-state')return localStorage.getItem(LS_KEY);if(key==='legacy-local-recovery')return localStorage.getItem(LS_KEY+'.recovery');return IDB.db?await IDB.get(key):localStorage.getItem(key==='state'?LS_KEY:key==='recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key);}
+async function storedPut(key,value){
+  let raw=value instanceof ArrayBuffer?await gunzipBuf(value):value,ids=[];
+  if(/^(state|recovery)(:|$)|^legacy-local-/.test(key)){
+    const parsed=JSON.parse(raw);ids=Array.isArray(parsed)?parsed.filter(e=>e?.json).map(e=>projectIdentity(JSON.parse(e.json))):[projectIdentity(parsed)];
+  }
+  const scope=key.includes(':')?key.slice(key.indexOf(':')+1):key;
+  const guards=[...new Set(ids)].map(id=>'deleted-project:'+id);if(/^(state|recovery)(:|$)|^legacy-local-/.test(key))guards.push('deleted-session:'+scope);
+  if(IDB.db){await IDB.put(key,value,guards);return;}
+  if(guards.some(g=>localStorage.getItem(LS_KEY+'.'+g)!==null))throw new Error('This project was deleted in another tab. Its browser copy cannot be saved again.');
+  localStorage.setItem(key==='legacy-local-recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key,value);
 }
+async function wasDeleted(entry){
+  const id=projectIdentity(JSON.parse(entry.json)),scope=entry.key.includes(':')?entry.key.slice(entry.key.indexOf(':')+1):entry.key;
+  return !!await storedGet('deleted-project:'+id)||!!await storedGet('deleted-session:'+scope);
+}
+async function assertRecoveryAvailable(entry){
+  if(await wasDeleted(entry))throw new Error('This project has been deleted. Refresh Recovery.');
+  let raw=await storedGet(entry.key);if(raw instanceof ArrayBuffer)raw=await gunzipBuf(raw);
+  if(!raw)throw new Error('This browser copy no longer exists. Refresh Recovery.');
+  if(entry.snapshotId&&!JSON.parse(raw).some(e=>e.id===entry.snapshotId))throw new Error('This snapshot no longer exists. Refresh Recovery.');
+}
+async function deleteProjectCopies(state,key=stateKey()){
+  const id=projectIdentity(state),scope=key.includes(':')?key.slice(key.indexOf(':')+1):key;
+  const copies=await allStoredProjects();
+  // Mark first. Guarded IndexedDB writes are atomic with this marker, including writes in other tabs.
+  await storedPut('deleted-project:'+id,Date.now());await storedPut('deleted-session:'+scope,Date.now());DELETED_PROJECTS.add(id);
+  await storedRemove(key);if(key.startsWith('state:'))await storedRemove(key.replace(/^state:/,'recovery:'));if(key.startsWith('recovery:'))await storedRemove(key.replace(/^recovery:/,'state:'));
+  for(const entry of copies){
+    if(projectIdentity(JSON.parse(entry.json))!==id)continue;
+    if(!entry.snapshotId)await storedRemove(entry.key);
+    else{
+      const raw=await storedGet(entry.key);if(!raw)continue;
+      const keep=JSON.parse(raw).filter(e=>projectIdentity(JSON.parse(e.json))!==id);
+      // Cleanup is not a project save; preserve snapshots of unrelated projects.
+      if(IDB.db&&!entry.key.startsWith('legacy-local-'))await IDB.put(entry.key,JSON.stringify(keep));else localStorage.setItem(entry.key==='legacy-local-recovery'?LS_KEY+'.recovery':LS_KEY+'.'+entry.key,JSON.stringify(keep));
+    }
+  }
+  deletionChannel?.postMessage({projectId:id});
+}
+let deletionChannel=null;try{deletionChannel=new BroadcastChannel('refindings-project-deletion');deletionChannel.onmessage=async e=>{
+  if(!e.data?.projectId)return;DELETED_PROJECTS.add(e.data.projectId);
+  if(projectIdentity(S)===e.data.projectId){clearTimeout(save._t);DIRTY=false;UNDO.length=0;REDO.length=0;SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';exportedState=JSON.stringify(S);SEL.clear();closeDrawer();updateHistoryButtons();updateExportStatus();rebuild();requestReviewerAfterLoad();storageStatus('Deleted in another tab');toast('This project was deleted in another tab. Open a project file to continue.');}
+  if($('#recoveryDlg').open)await renderRecovery();
+};}catch(e){}
+
+async function storedRemove(key){if(key.startsWith('legacy-local-')){localStorage.removeItem(key==='legacy-local-state'?LS_KEY:LS_KEY+'.recovery');return;}if(IDB.db)await IDB.remove(key);localStorage.removeItem(key==='state'?LS_KEY:key==='recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key);}
+async function allStoredProjects(){
+  const keys=IDB.db?await IDB.keys():Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).filter(k=>k===LS_KEY || k.startsWith(LS_KEY+'.state:') || k.startsWith(LS_KEY+'.recovery:') || k===LS_KEY+'.recovery').map(k=>k===LS_KEY?'state':k.slice(LS_KEY.length+1));
+  // Keep legacy browser copies accessible without loading them into a new tab.
+  if(IDB.db){if(localStorage.getItem(LS_KEY))keys.push('legacy-local-state');if(localStorage.getItem(LS_KEY+'.recovery'))keys.push('legacy-local-recovery');}
+  const out=[];
+  for(const key of keys.filter(k=>/^(state|recovery)(:|$)|^legacy-local-/.test(k))){
+    try{
+      let raw=key==='legacy-local-state'?localStorage.getItem(LS_KEY):key==='legacy-local-recovery'?localStorage.getItem(LS_KEY+'.recovery'):await storedGet(key);
+      if(raw instanceof ArrayBuffer)raw=await gunzipBuf(raw);if(!raw)continue;
+      const parsed=JSON.parse(raw);
+      if(Array.isArray(parsed)){for(const e of parsed)if(e?.json)out.push({...e,key,snapshotId:e.id});}
+      else if(isProjectFile(parsed)&&parsed.scans.length)out.push({key,json:JSON.stringify(parsed),label:'Saved browser project',at:parsed.scans.at(-1)?.imported||''});
+    }catch(e){out.push({key,json:JSON.stringify(emptyState()),label:'Unreadable browser copy',at:''});}
+  }
+  const available=[];for(const entry of out)if(!await wasDeleted(entry))available.push(entry);return available.sort((a,b)=>ts(b.at)-ts(a.at));
+}
+async function finishProject(action){
+  clearTimeout(save._t);if(saving)await saving;
+  await recoveryQueue.catch(()=>{});
+  if(action==='keep'){DIRTY=true;await persist();if(DIRTY)throw new Error('The browser copy could not be saved. Export a backup before closing.');}
+  else{await deleteProjectCopies(S);}
+  // Rotate the key so the closed project cannot be overwritten by the next project in this tab.
+  SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';UNDO.length=0;REDO.length=0;DIRTY=false;recoveryAt=0;exportedState=JSON.stringify(S);
+  clearTimeout(save._t);SEL.clear();closeDrawer();F=FDEF();SUMFILTER=null;$('#fText').value='';updateHistoryButtons();updateExportStatus();storageStatus('No project loaded');rebuild();requestReviewerAfterLoad();
+}
+async function deleteAllBrowserProjects(){
+  clearTimeout(save._t);if(saving)await saving;await recoveryQueue.catch(()=>{});
+  const entries=await allStoredProjects();
+  if(S.scans.length)await deleteProjectCopies(S);
+  const handled=new Set();for(const entry of entries){const state=JSON.parse(entry.json),id=projectIdentity(state);if(handled.has(id))continue;handled.add(id);await deleteProjectCopies(state,entry.key);}
+  // Also remove unreadable/older raw copies that do not appear as a recoverable project.
+  if(IDB.db)for(const key of await IDB.keys())if(/^(state|recovery)(:|$)/.test(String(key)))await IDB.remove(key);
+  const localKeys=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key===LS_KEY||key===LS_KEY+'.recovery'||key.startsWith(LS_KEY+'.state:')||key.startsWith(LS_KEY+'.recovery:'))localKeys.push(key);}for(const key of localKeys)localStorage.removeItem(key);
+  SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';UNDO.length=0;REDO.length=0;DIRTY=false;recoveryAt=0;exportedState=JSON.stringify(S);clearTimeout(save._t);SEL.clear();closeDrawer();F=FDEF();SUMFILTER=null;$('#fText').value='';updateHistoryButtons();updateExportStatus();storageStatus('No project loaded');rebuild();requestReviewerAfterLoad();
+}
+async function confirmDeleteAll(){
+  if(!confirm('Permanently delete ALL browser projects and recovery snapshots, including copies from other tabs and older versions? No recovery snapshot or Undo will be created. Downloaded JSON/ZIP files remain on disk.'))return;
+  try{await deleteAllBrowserProjects();if($('#recoveryDlg').open)await renderRecovery();toast('All browser projects and recovery snapshots deleted. Downloaded files were kept.');}catch(e){toast('Deletion failed: '+e.message);}
+}
+async function closeProject(){
+  if(!S.scans.length&&!Object.keys(S.items).length){toast('No project is loaded. Use Recovery to manage saved browser copies.');return;}
+  const dlg=$('#closeProjectDlg');if(dlg.open)return;dlg.returnValue='cancel';
+  const action=await new Promise(resolve=>{dlg.addEventListener('close',()=>resolve(dlg.returnValue),{once:true});dlg.showModal();});
+  if(!['keep','delete'].includes(action))return;
+  try{await finishProject(action);toast(action==='delete'?'Project closed; related browser copies and snapshots deleted across tabs.':'Project closed; browser copy is available under Recovery.');}catch(e){toast(e.message);}
+}
+async function load(){await IDB.open();if(IDB.db)for(const key of await IDB.keys())if(String(key).startsWith('deleted-project:'))DELETED_PROJECTS.add(String(key).slice(16));storageStatus('No project loaded');}
+
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') persist(); });
 window.addEventListener('pagehide',persist);
 function download(name, content, type){
@@ -2384,13 +2798,95 @@ function htmlReportToJson(text){
   });
   return {tool:{name:'FalconEYE'}, review:{codebase_path:project.trim(), started_at:date}, findings};
 }
+function requestReviewerAfterLoad(){
+  $('#reviewerBar').classList.toggle('hidden',!S.scans.length);
+  if(document.activeElement!==$('#reviewerName')) $('#reviewerName').value=activeEditor;
+  $('#reviewerHint').textContent=activeEditor ? 'Current reviewer: '+activeEditor : 'Browse freely. Enter your name before editing findings.';
+}
+function validateProjectFile(json){
+  const fail=message=>{throw new Error('Invalid project file: '+message);};
+  if(!isProjectFile(json)) fail('expected a scans list and findings object.');
+  if(json.version!==undefined && (!Number.isInteger(json.version) || json.version<1 || json.version>TOOL_VERSION)) fail('unsupported project version. Use a compatible Refindings version.');
+  const ids=new Set();
+  for(const scan of json.scans){
+    if(!scan || typeof scan!=='object' || typeof scan.id!=='string' || !scan.id.trim()) fail('each scan needs a non-empty ID.');
+    if(ids.has(safeId(scan.id))) fail('duplicate scan ID: '+scan.id);ids.add(safeId(scan.id));
+    if(scan.rec!==undefined && (!Array.isArray(scan.rec) || scan.rec.length>20000 || scan.rec.some(r=>!r || typeof r!=='object' || Array.isArray(r)))) fail('scan records are invalid or exceed 20,000 findings per scan.');
+  }
+  const itemIds=new Set();
+  for(const [key,item] of Object.entries(json.items)){
+    if(!item || typeof item!=='object' || Array.isArray(item)) fail('finding '+key+' is not an object.');
+    const id=safeId(item.id||key);if(itemIds.has(id))fail('duplicate finding ID: '+id);itemIds.add(id);
+    if(item.status!=null && !has(STATUS_BY_ID,item.status))fail('unknown status in finding '+key+'.');
+    if(item.seen!==undefined && (!item.seen || typeof item.seen!=='object' || Array.isArray(item.seen)))fail('invalid scan references in finding '+key+'.');
+    for(const scanId of Object.keys(item.seen||{}))if(!ids.has(safeId(scanId)))fail('finding '+key+' refers to a missing scan.');
+  }
+  for(const field of ['rules','reviewers','roots'])if(json[field]!==undefined && !Array.isArray(json[field]))fail(field+' must be a list.');
+  return json;
+}
 function isProjectFile(json){
   return !!json && typeof json==='object' && Array.isArray(json.scans) &&
     !!json.items && typeof json.items==='object' && !Array.isArray(json.items);
 }
-async function readFiles(files, projectMode='ask'){
+
+/* Synthetic reports use the normal import path, including masking and deduplication. */
+const TEST_EXAMPLES = [{"name":"kics-example-2026-10-06.json","data":{"kics_version":"synthetic-example","start":"2026-10-06T10:00:00Z","end":"2026-10-06T10:00:02Z","paths":["demo-project"],"files_scanned":2,"queries_total":2,"severity_counters":{"CRITICAL":0,"HIGH":1,"MEDIUM":1,"LOW":0,"INFO":0},"queries":[{"query_id":"11111111-1111-4111-8111-111111111111","query_name":"Container runs as privileged","severity":"HIGH","category":"Security Best Practices","platform":"Kubernetes","cwe":"250","description":"Synthetic demonstration finding; no scanner was executed.","files":[{"file_name":"demo-project/k8s/deployment.yaml","line":24,"resource_name":"Deployment demo-api","search_key":"spec.template.spec.containers[0].securityContext.privileged","issue_type":"IncorrectValue","actual_value":"true","expected_value":"false","remediation":"false","remediation_type":"replacement"}]},{"query_id":"22222222-2222-4222-8222-222222222222","query_name":"S3 bucket versioning disabled","severity":"MEDIUM","category":"Security Best Practices","platform":"Terraform","cwe":"710","description":"Synthetic demonstration finding; no scanner was executed.","files":[{"file_name":"demo-project/infra/storage.tf","line":12,"resource_name":"aws_s3_bucket_versioning demo","search_key":"versioning_configuration.status","issue_type":"IncorrectValue","actual_value":"Disabled","expected_value":"Enabled","remediation":"Enabled","remediation_type":"replacement"}]}]}},{"name":"2ms-example-2026-10-06.json","data":{"totalSecretsFound":2,"results":{"config/demo.env":[{"id":"synthetic-secret-1","source":"config/demo.env","ruleId":"33333333-3333-4333-8333-333333333331","ruleName":"demo-generic-secret","ruleDescription":"Synthetic hardcoded secret placeholder","ruleCategory":"api-key","value":"DEMO_ONLY_NOT_A_VALID_SECRET_1","lineContent":"DEMO_API_KEY=\"DEMO_ONLY_NOT_A_VALID_SECRET_1\"","startLine":5,"endLine":5,"cvssScore":8.1,"validationStatus":"NotChecked"}],"tests/demo-config.json":[{"id":"synthetic-secret-2","source":"tests/demo-config.json","ruleId":"33333333-3333-4333-8333-333333333332","ruleName":"demo-generic-secret","ruleDescription":"Synthetic hardcoded secret placeholder","ruleCategory":"api-key","value":"DEMO_ONLY_NOT_A_VALID_SECRET_2","lineContent":"DEMO_API_KEY=\"DEMO_ONLY_NOT_A_VALID_SECRET_2\"","startLine":9,"endLine":9,"cvssScore":5.0,"validationStatus":"NotChecked"}]}}},{"name":"semgrep-example-2026-10-06.json","data":{"version":"synthetic-example","errors":[],"paths":{"scanned":["src/settings.py","src/http_client.py"]},"results":[{"check_id":"demo.python.debug-enabled","path":"src/settings.py","start":{"line":7,"col":1,"offset":0},"end":{"line":7,"col":13,"offset":12},"extra":{"message":"Debug mode enabled in production configuration","severity":"ERROR","lines":"DEBUG = True","fix":"DEBUG = False","is_ignored":false,"metadata":{"cwe":["CWE-489: Active Debug Code"],"confidence":"HIGH","security-severity":"7.5","technology":["python"],"description":"Synthetic demonstration finding; no scanner was executed."}}},{"check_id":"demo.python.tls-verification-disabled","path":"src/http_client.py","start":{"line":18,"col":1,"offset":0},"end":{"line":18,"col":19,"offset":18},"extra":{"message":"TLS certificate verification disabled","severity":"WARNING","lines":"verify_tls = False","fix":"verify_tls = True","is_ignored":true,"metadata":{"cwe":["CWE-295: Improper Certificate Validation"],"confidence":"HIGH","security-severity":"6.5","technology":["python"],"description":"Synthetic demonstration finding; no scanner was executed."}}}]}},{"name":"bandit-example-2026-10-06.json","data":{"generated_at":"2026-10-06T11:00:00Z","errors":[],"metrics":{},"results":[{"test_id":"B101","test_name":"assert_used","filename":"demo/auth.py","line_number":14,"line_range":[14],"issue_cwe":{"id":617},"issue_text":"Assert used for an authorization check (synthetic demo)","issue_severity":"MEDIUM","issue_confidence":"HIGH","code":"14 assert user.is_admin\n"},{"test_id":"B311","test_name":"random","filename":"demo/reset_code.py","line_number":8,"line_range":[8],"issue_cwe":{"id":338},"issue_text":"Non-cryptographic randomness used for a reset code (synthetic demo)","issue_severity":"LOW","issue_confidence":"HIGH","code":"8 code = random.randint(100000, 999999)\n"},{"test_id":"DEMO-DEBUG","test_name":"demo_debug_setting","filename":"src/settings.py","line_number":7,"line_range":[7],"issue_cwe":{"id":489},"issue_text":"Debug mode enabled in production configuration (synthetic demo)","issue_severity":"HIGH","issue_confidence":"HIGH","code":"7 DEBUG = True\n"}]}},{"name":"gitleaks-example-2026-10-06.json","data":[{"RuleID":"demo-generic-credential","Description":"Synthetic credential placeholder","File":"demo/dev.env","StartLine":4,"EndLine":4,"Secret":"INVALID_DEMO_PLACEHOLDER_1","Match":"token=INVALID_DEMO_PLACEHOLDER_1","Line":"token=INVALID_DEMO_PLACEHOLDER_1","Fingerprint":"demo/dev.env:demo-generic-credential:4"},{"RuleID":"demo-generic-credential","Description":"Synthetic credential placeholder","File":"demo/example-settings.yaml","StartLine":12,"EndLine":12,"Secret":"INVALID_DEMO_PLACEHOLDER_2","Match":"token=INVALID_DEMO_PLACEHOLDER_2","Line":"token=INVALID_DEMO_PLACEHOLDER_2","Fingerprint":"demo/example-settings.yaml:demo-generic-credential:12"}]},{"name":"trivy-example-2026-10-06.json","data":{"SchemaVersion":2,"CreatedAt":"2026-10-06T11:00:00Z","ArtifactName":"demo-container","ArtifactType":"container_image","Results":[{"Target":"demo/requirements.txt","Class":"lang-pkgs","Type":"pip","Vulnerabilities":[{"VulnerabilityID":"DEMO-VULN-001","PkgName":"fictional-demo-package","InstalledVersion":"1.0.0","FixedVersion":"1.0.1","Severity":"HIGH","Title":"Synthetic dependency vulnerability","Description":"Fictional package and advisory for import testing; no real CVE.","CweIDs":["CWE-20"]}]},{"Target":"demo/Dockerfile","Class":"config","Type":"dockerfile","Misconfigurations":[{"ID":"DEMO-CONFIG-001","Title":"Container has no non-root USER","Severity":"MEDIUM","Status":"FAIL","Description":"Synthetic configuration finding","Message":"Add a non-root user","Resolution":"Add USER app","CauseMetadata":{"StartLine":1,"EndLine":1,"Code":{"Lines":[{"Number":1,"Content":"FROM demo-base:1.0","IsCause":true}]}}}]}]}},{"name":"sarif-example-2026-10-06.sarif","data":{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[{"tool":{"driver":{"name":"Demo SARIF scanner","version":"1.0","rules":[{"id":"demo/rule-1","shortDescription":{"text":"Session cookie missing Secure flag"},"help":{"text":"Review the configuration and remove the insecure setting."},"properties":{"tags":["external/cwe/cwe-614"],"security-severity":"7.0"}},{"id":"demo/rule-2","shortDescription":{"text":"Verbose error response exposes internal details"},"help":{"text":"Review the configuration and remove the insecure setting."},"properties":{"tags":["external/cwe/cwe-209"],"security-severity":"4.0"}}]}},"invocations":[{"startTimeUtc":"2026-10-06T11:00:00Z","executionSuccessful":true}],"results":[{"ruleId":"demo/rule-1","ruleIndex":0,"level":"warning","message":{"text":"Session cookie missing Secure flag (synthetic demo)"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"demo/session.js"},"region":{"startLine":22,"endLine":22,"snippet":{"text":"cookieOptions.secure = false;"}}}}]},{"ruleId":"demo/rule-2","ruleIndex":1,"level":"warning","message":{"text":"Verbose error response exposes internal details (synthetic demo)"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"demo/error_handler.js"},"region":{"startLine":31,"endLine":31,"snippet":{"text":"response.body = error.stack;"}}}}]}]}]}},{"name":"kics-example-2026-10-06-12-00.json","data":{"kics_version":"synthetic-example","start":"2026-10-06T12:00:00Z","end":"2026-10-06T12:00:02Z","paths":["demo-project"],"files_scanned":2,"queries_total":2,"severity_counters":{"CRITICAL":0,"HIGH":1,"MEDIUM":1,"LOW":0,"INFO":0},"queries":[{"query_id":"11111111-1111-4111-8111-111111111111","query_name":"Container runs as privileged","severity":"HIGH","category":"Security Best Practices","platform":"Kubernetes","cwe":"250","description":"Synthetic demonstration finding; no scanner was executed.","files":[{"file_name":"demo-project/k8s/deployment.yaml","line":24,"resource_name":"Deployment demo-api","search_key":"spec.template.spec.containers[0].securityContext.privileged","issue_type":"IncorrectValue","actual_value":"true","expected_value":"false","remediation":"false","remediation_type":"replacement"}]},{"query_id":"44444444-4444-4444-8444-444444444444","query_name":"Demo backup retention too short","severity":"MEDIUM","category":"Security Best Practices","platform":"Terraform","cwe":"710","description":"Synthetic demonstration finding; no scanner was executed.","files":[{"file_name":"demo-project/infra/backup.tf","line":6,"resource_name":"demo_backup","search_key":"backup.retention_days","issue_type":"IncorrectValue","actual_value":"1","expected_value":"7","remediation":"7","remediation_type":"replacement"}]}]}},{"name":"2ms-example-2026-10-06-12-00.json","data":{"totalSecretsFound":2,"results":{"config/demo.env":[{"id":"synthetic-secret-1","source":"config/demo.env","ruleId":"33333333-3333-4333-8333-333333333331","ruleName":"demo-generic-secret","ruleDescription":"Synthetic hardcoded secret placeholder","ruleCategory":"api-key","value":"DEMO_ONLY_NOT_A_VALID_SECRET_1","lineContent":"DEMO_API_KEY=\"DEMO_ONLY_NOT_A_VALID_SECRET_1\"","startLine":5,"endLine":5,"cvssScore":8.1,"validationStatus":"NotChecked"}],"config/demo-service.env":[{"id":"synthetic-secret-3","source":"config/demo-service.env","ruleId":"33333333-3333-4333-8333-333333333331","ruleName":"demo-generic-secret","ruleDescription":"Synthetic hardcoded secret placeholder","ruleCategory":"api-key","value":"DEMO_ONLY_NOT_A_VALID_SECRET_3","lineContent":"DEMO_API_KEY=\"DEMO_ONLY_NOT_A_VALID_SECRET_3\"","startLine":3,"endLine":3,"cvssScore":8.1,"validationStatus":"NotChecked"}]}}},{"name":"semgrep-example-2026-10-06-12-00.json","data":{"version":"synthetic-example","errors":[],"paths":{"scanned":["src/settings.py","src/backup_settings.py"]},"results":[{"check_id":"demo.python.debug-enabled","path":"src/settings.py","start":{"line":7,"col":1,"offset":0},"end":{"line":7,"col":13,"offset":12},"extra":{"message":"Debug mode enabled in production configuration","severity":"ERROR","lines":"DEBUG = True","fix":"DEBUG = False","is_ignored":false,"metadata":{"cwe":["CWE-489: Active Debug Code"],"confidence":"HIGH","security-severity":"7.5","technology":["python"],"description":"Synthetic demonstration finding; no scanner was executed."}}},{"check_id":"demo.python.backup-retention","path":"src/backup_settings.py","start":{"line":4,"col":1,"offset":0},"end":{"line":4,"col":19,"offset":18},"extra":{"message":"Demo backup retention too short","severity":"WARNING","lines":"retention_days = 1","fix":"retention_days = 7","is_ignored":false,"metadata":{"cwe":["CWE-710: Improper Adherence to Coding Standards"],"confidence":"HIGH","security-severity":"4.0","technology":["python"],"description":"Synthetic demonstration finding; no scanner was executed."}}}]}}];
+async function loadTestExamples(){
+  if(importBusy){toast('An import is already running. Please wait.');return;}
+  if(S.scans.length){
+    const dlg=$('#demoDlg');if(dlg.open)return;dlg.returnValue='cancel';
+    const choice=await new Promise(resolve=>{dlg.addEventListener('close',()=>resolve(dlg.returnValue),{once:true});dlg.showModal();});
+    if(choice!=='open') return;
+  }
+  await persist();await recordRecovery('Before opening demo');
+  const previous=JSON.stringify(S);S=emptyState();S.settings.projectName='Demo project';
+  const files=TEST_EXAMPLES.map(example=>new File([JSON.stringify(example.data)],example.name,{type:'application/json',lastModified:Date.UTC(2026,9,6)}));
+  await readFiles(files);
+  // Replace the internal import step with one step restoring the previous project.
+  if(UNDO.at(-1)?.label==='scan import') UNDO.pop();
+  pushUndo({kind:'full',label:'open demo project',json:previous});save();rebuild();
+}
+
+function projectMergePreview(json){
+  const src=sanitizeState(json),target=sanitizeState(clone(S));
+  let added=0,shared=0;
+  for(const scan of src.scans){
+    const same=findSameScan(target,scan.id,scan.started,scan.raw,toolOf(scan),scan.rec);
+    if(same){shared++;continue;}
+    let id=scan.id,n=1;while(target.scans.some(s=>s.id===id))id=scan.id+'-'+n++;
+    target.scans.push({...scan,id});added++;
+  }
+  let conflicts=null;
+  if(hasAllRecords(target)&&hasAllRecords(src)){
+    for(const item of Object.values(target.items)) item._src='current';
+    for(const item of Object.values(src.items)) item._src='incoming';
+    conflicts=replay(target,Object.values(src.items));
+  }
+  return {added,shared,conflicts};
+}
+async function chooseProjectLoad(json,fileName,mode='ask'){
+  if(!S.scans.length && !Object.keys(S.items).length) return mode==='mergeFull'?'merge':'open';
+  const dlg=$('#projectLoadDlg');
+  if(dlg.open) throw new Error('Finish the current project choice before loading another project.');
+  $('#projectLoadInfo').textContent=fileName+' · '+json.scans.length+' scans · '+Object.keys(json.items).length+' findings';
+  const preview=projectMergePreview(json);
+  $('#projectMergePreview').textContent='Merge preview: '+preview.added+' new scans · '+preview.shared+' shared scans · '+(preview.conflicts===null?'rating conflict preview unavailable for legacy projects':preview.conflicts+' new rating conflicts');
+  $('#projectLoadDlg button[value="open"]').classList.toggle('hidden',mode==='mergeFull');
+
+  dlg.returnValue='cancel';
+  return new Promise(resolve=>{
+    dlg.addEventListener('close',()=>resolve(['open','merge'].includes(dlg.returnValue)?dlg.returnValue:'cancel'),{once:true});
+    dlg.showModal();
+  });
+}
+let importBusy=false;
+async function readFiles(files,projectMode='ask'){
+  if(importBusy){toast('An import is already running. Please wait.');return;}
+  importBusy=true;try{return await importFiles(files,projectMode);}finally{importBusy=false;}
+}
+async function importFiles(files, projectMode='ask'){
   let added=0, skipped=0, enriched=0, errors=[];
-  const scans=[];
+  const scans=[], results=[];
   for(const f of [...files]){
     try{
       const text=await fileText(f);
@@ -2405,19 +2901,25 @@ async function readFiles(files, projectMode='ask'){
         throw new Error('format not recognised (not JSON, SARIF, Checkmarx XML or a known text report)');
       }
       // Detect legacy/plain projects by their structure, before scanner adapters.
-      if(isProjectFile(json)){
-        if(projectMode==='merge') mergeProjectJson(json);
-        else if(projectMode==='mergeFull') mergeFullProjectJson(json);
-        else if(projectMode==='open') openProjectJson(json);
-        else if(confirm(`"${f.name}" is a project file. Replace the current state with it?\n(Cancel = merge it into this project)`)) openProjectJson(json);
-        else mergeFullProjectJson(json);
+      if(isProjectFile(json) || json?.tool==='refindings'){
+        validateProjectFile(json);
+        let projectOutcome='Opened';
+        if(projectMode==='merge'){mergeProjectJson(json);projectOutcome='Ratings imported';}
+        else if(projectMode==='mergeFull'){const choice=await chooseProjectLoad(json,f.name,'mergeFull');if(choice==='merge'){mergeFullProjectJson(json);projectOutcome='Merged';}else projectOutcome='Cancelled';}
+        else {
+          const choice=await chooseProjectLoad(json,f.name);
+          if(choice==='open') openProjectJson(json);
+          else if(choice==='merge'){mergeFullProjectJson(json);projectOutcome='Merged';}
+          else projectOutcome='Cancelled';
+        }
+        results.push({file:f.name,status:projectOutcome});
         continue;
       }
       if(projectMode==='merge' || projectMode==='mergeFull') throw new Error('Please select a project file; import scan reports with Load scans.');
       // Plain JSON reports use the same adapters from every file picker and drag/drop.
       const foreign = adaptForeign(json, f.name, f.lastModified);
       scans.push({f, json:foreign||json});
-    }catch(e){ errors.push(f.name+': '+e.message); }
+    }catch(e){ errors.push(f.name+': '+e.message); results.push({file:f.name,status:'Error',detail:e.message}); }
   }
   // Read chronologically: makes matching independent of the selection order
   const when = j => { try{ const m=normalizeInput(j,'').meta; return ts(m.started_at||m.completed_at); }catch(e){ return 0; } };
@@ -2426,22 +2928,31 @@ async function readFiles(files, projectMode='ask'){
   const richness = j => /"actual_snippet"|"verifier_data"/.test(JSON.stringify((j.findings||j.results||[])[0]||{})) ? 0 : (j.metadata||j.review||{}).id ? 1 : 2;
   const sec = j => Math.floor(when(j)/1000);
   scans.sort((a,b)=>sec(a.json)-sec(b.json) || richness(a.json)-richness(b.json));
+  let beforeImport=null,changed=false;
   for(const {f,json} of scans){
-    try{ const r = ingestScan(S, json, f.name); if(!r.skipped) added++; else if(r.enriched) enriched++; else skipped++; }
-    catch(e){ errors.push(f.name+': '+e.message); }
+    const before=JSON.stringify(S);
+    try{
+      const r=ingestScan(S,json,f.name);
+      if(!r.skipped) added++; else if(r.enriched) enriched++; else skipped++;
+      if(JSON.stringify(S)!==before){if(beforeImport===null) beforeImport=before;changed=true;}
+      results.push({file:f.name,status:!r.skipped?'New':r.enriched?'Enriched':'Already present'});
+    }catch(e){S=sanitizeState(JSON.parse(before));errors.push(f.name+': '+e.message);results.push({file:f.name,status:'Error',detail:e.message});}
   }
+  if(changed){pushUndo({kind:'full',label:'scan import',json:beforeImport});recordRecovery('Before scan import',beforeImport).catch(()=>toast('Recovery snapshot could not be saved.'));}
   // Regroup everything chronologically: loading order (e.g. an older scan added later) no longer matters
   if((added||enriched) && hasAllRecords(S)) replay(S);
-  save(); rebuild();
+  if(changed) save(); rebuild();
+  showImportResults(results);
   const parts=[]; if(added) parts.push(`${added} scan${added>1?'s':''} loaded`); if(enriched) parts.push(`${enriched} existing enriched`); if(skipped) parts.push(`${skipped} already present`); if(errors.length) parts.push(`${errors.length} error${errors.length>1?'s':''}`);
   if(parts.length) toast(parts.join(', '));
-  if(errors.length) alert('Could not read:\n'+errors.join('\n'));
+
+  requestReviewerAfterLoad();
 }
 function openProjectJson(json){
-  const next=sanitizeState(json);
-  if(!askEditor()) return;
-  if(S.scans.length) undoFull('open project');
-  S=next; SEL.clear(); closeDrawer(); save(); rebuild(); toast(`Project opened: ${S.scans.length} scans, ${Object.keys(S.items).length} findings`);
+  validateProjectFile(json);const next=sanitizeState(json);if(DELETED_PROJECTS.has(next.projectId))next.projectId=crypto.randomUUID();
+  undoFull('open project');
+  S=next; activeEditor=''; SEL.clear(); closeDrawer(); save(); rebuild(); toast(`Project opened: ${S.scans.length} scans, ${Object.keys(S.items).length} findings`);
+  requestReviewerAfterLoad();
 }
 /* ---- Project name ---- */
 function projectName(){
@@ -2459,11 +2970,12 @@ function renameProject(){
   const cur=S.settings.projectName||projectName();
   const v=prompt('Project name (empty = derive from the code base path):', cur);
   if(v===null) return;
-  S.settings.projectName=v.trim().slice(0,80); save(); rebuild(true); toast(`Project name: ${projectName()}`);
+  const name=v.trim().slice(0,80);if(name===S.settings.projectName)return;undoFull('project name');S.settings.projectName=name; save(); rebuild(true); toast(`Project name: ${projectName()}`);
 }
 
 /* ---- Merge another project file into this one: scans, findings, ratings, rules ---- */
 function mergeFullProjectJson(json){
+  validateProjectFile(json);
   undoFull('project merge');
   const src=sanitizeState(json);
   if(hasAllRecords(S) && hasAllRecords(src)) return mergeExact(src);
@@ -2474,7 +2986,7 @@ function mergeExact(src){
   let scansAdded=0, scansShared=0;
   const scanMap=new Map();
   for(const s of src.scans){
-    const same=findSameScan(S, s.id, s.started, s.raw);
+    const same=findSameScan(S, s.id, s.started, s.raw, toolOf(s), s.rec);
     if(same){
       scanMap.set(s.id, same.id); scansShared++;
       if(!same.label && s.label) same.label=s.label;
@@ -2498,6 +3010,7 @@ function mergeExact(src){
   toast(`Merged: ${scansAdded} new scan${scansAdded===1?'':'s'}, ${scansShared} shared, ${Object.keys(S.items).length} findings (was ${before}), ${rulesAdded} rule${rulesAdded===1?'':'s'}${conflicts?`, ${conflicts} rating conflict${conflicts===1?'':'s'} (newer rating kept, see flag "rating conflict")`:''}`);
 }
 function mergeRulesAndSettings(src){
+  for(const r of src.reviewers||[]){ S.reviewers=S.reviewers||[]; if(!S.reviewers.some(x=>x.name===r.name)) S.reviewers.push({...r}); }
   let rulesAdded=0;
   for(const r of src.rules) if(!S.rules.some(x=>x.glob===r.glob && x.cat===r.cat)){ S.rules.push(r); rulesAdded++; }
   for(const r of src.roots) if(!S.roots.includes(r)) S.roots.push(r);
@@ -2509,7 +3022,7 @@ function mergeRulesAndSettings(src){
 function mergeApprox(src){
   const scanMap=new Map(); let scansAdded=0, scansShared=0;
   for(const s of src.scans){
-    const same=findSameScan(S, s.id, s.started, s.raw);
+    const same=findSameScan(S, s.id, s.started, s.raw, toolOf(s), s.rec);
     if(same){
       scanMap.set(s.id, same.id); scansShared++;
       if(!same.label && s.label) same.label=s.label;
@@ -2605,24 +3118,47 @@ const defaultReviewDate = () => S.settings.reviewDays>0 ? addDays(S.settings.rev
 
 /* ---- Undo ----
    Small actions store only the touched findings; large ones (merges, scan removal, project merge) store a full snapshot. */
-const UNDO=[]; const UNDO_MAX=30, UNDO_FULL_MAX=3;
+const UNDO=[], REDO=[]; const UNDO_MAX=30, UNDO_FULL_MAX=3;
 const annot = it => ({audit:(it.audit||[]).map(e=>({...e})), editor:it.editor, editorAssigned:it.editorAssigned, editedAt:it.editedAt, status:it.status, statusAt:it.statusAt, hist:it.hist.slice(), conflict:it.conflict||null, reviewAt:it.reviewAt||null, note:it.note});
 function pushUndo(entry){
+  if(entry.kind==='full' && entry.editor===undefined) entry.editor=activeEditor;
+  REDO.length=0;
   UNDO.push(entry);
   while(UNDO.length>UNDO_MAX) UNDO.shift();
   let full=UNDO.filter(u=>u.kind==='full').length;
-  for(let i=0;i<UNDO.length && full>UNDO_FULL_MAX;i++) if(UNDO[i].kind==='full'){ UNDO.splice(i,1); i--; full--; }
+  for(let i=0;i<UNDO.length && full>UNDO_FULL_MAX;i++) if(UNDO[i].kind==='full'){ UNDO.splice(0,i+1); i=-1; full--; }
+  updateHistoryButtons();
 }
 function undoItems(label, ids){ pushUndo({kind:'items', label, data:ids.filter(id=>S.items[id]).map(id=>[id, annot(S.items[id])])}); }
-function undoFull(label){ pushUndo({kind:'full', label, json:JSON.stringify(S)}); }
+function undoFull(label){ const json=JSON.stringify(S); recordRecovery('Before '+label,json).catch(()=>toast('Recovery snapshot could not be saved; export a project backup.')); pushUndo({kind:'full', label, json}); }
 function undoRules(label){ pushUndo({kind:'rules', label, rules:JSON.parse(JSON.stringify(S.rules))}); }
-function undo(){
-  const u=UNDO.pop(); if(!u){ toast('Nothing to undo'); return; }
-  if(u.kind==='items') for(const [id,a] of u.data){ const it=S.items[id]; if(it) Object.assign(it,a); reviewedIds().delete(id); }
-  else if(u.kind==='rules') S.rules=u.rules;
+function updateHistoryButtons(){
+  $('#btnUndo').disabled=!UNDO.length; $('#btnRedo').disabled=!REDO.length;
+  $('#btnUndo').title=UNDO.length?'Undo: '+UNDO[UNDO.length-1].label+' (Ctrl/Cmd+Z)':'Nothing to undo';
+  $('#btnRedo').title=REDO.length?'Redo: '+REDO[REDO.length-1].label+' (Ctrl/Cmd+Shift+Z or Ctrl+Y)':'Nothing to redo';
+}
+function inverseHistory(u){
+  if(u.kind==='items') return {kind:u.kind,label:u.label,data:u.data.filter(([id])=>S.items[id]).map(([id])=>[id,clone(annot(S.items[id]))]),reviewed:u.data.map(([id])=>[id,reviewedIds().has(id)])};
+  if(u.kind==='rules') return {kind:u.kind,label:u.label,rules:clone(S.rules)};
+  if(u.kind==='scanlabel') return {kind:u.kind,label:u.label,id:u.id,labelOld:S.scans.find(s=>s.id===u.id)?.label||''};
+  return {kind:'full',label:u.label,json:JSON.stringify(S),editor:activeEditor};
+}
+function applyHistory(u){
+  if(u.kind==='items') for(const [id,a] of u.data){ const it=S.items[id]; if(it) Object.assign(it,clone(a)); reviewedIds().delete(id); }
+  else if(u.kind==='rules') S.rules=clone(u.rules);
   else if(u.kind==='scanlabel'){ const s=S.scans.find(x=>x.id===u.id); if(s) s.label=u.labelOld; }
-  else if(u.kind==='full'){ S=sanitizeState(JSON.parse(u.json)); SEL.clear(); if(CUR && !S.items[CUR]) closeDrawer(); }
-  save(); rebuild(true); toast(`Undone: ${u.label}`);
+  else if(u.kind==='full'){ S=sanitizeState(JSON.parse(u.json)); if(typeof u.editor==='string') activeEditor=u.editor; SEL.clear(); if(CUR && !S.items[CUR]) closeDrawer(); }
+  if(u.reviewed) for(const [id,value] of u.reviewed){ if(value) reviewedIds().add(id); else reviewedIds().delete(id); }
+}
+function undo(){
+  const u=UNDO.pop(); if(!u){toast('Nothing to undo');return;}
+  REDO.push(inverseHistory(u)); applyHistory(u); redoState=JSON.stringify(S);
+  save(); rebuild(true); updateHistoryButtons(); toast('Undone: '+u.label);
+}
+function redo(){
+  const u=REDO.pop(); if(!u){toast('Nothing to redo');return;}
+  UNDO.push(inverseHistory(u)); applyHistory(u); redoState=JSON.stringify(S);
+  save(); rebuild(true); updateHistoryButtons(); toast('Redone: '+u.label);
 }
 const undoAction = {label:'Undo', run:()=>undo()};
 
@@ -2634,13 +3170,14 @@ function setStatus(ids, status){
     const it=S.items[id]; if(!it) continue;
     // "Open" without matching rule = no rating; with a rule store it explicitly, otherwise the rule applies again
     const val = status==='clear' ? null : status==='open' ? (ruleFor(S,it) ? 'open' : null) : status;
-    touchFinding(it);
-    it.conflict=null;   // any explicit decision resolves a rating conflict
     if(it.status===val){
       // confirming an accepted risk again counts as a review: renew the review date
-      if(val==='accepted'){ it.reviewAt=defaultReviewDate(); it.statusAt=now; it.hist.push({at:now, s:'accepted', review:true, editor:activeEditor}); if(it.hist.length>40) it.hist.shift(); }
+      if(val==='accepted'){ touchFinding(it); it.conflict=null; it.reviewAt=defaultReviewDate(); it.statusAt=now; it.hist.push({at:now, s:'accepted', review:true, editor:activeEditor}); if(it.hist.length>40) it.hist.shift(); }
+      else if(it.conflict){ touchFinding(it); it.conflict=null; }
       continue;
     }
+    touchFinding(it);
+    it.conflict=null;
     logFindingChange(it,'status',it.status||'open',val||'open');
     it.status=val; it.statusAt=val?now:null;
     it.reviewAt = val==='accepted' ? defaultReviewDate() : null;
@@ -2666,6 +3203,7 @@ const sevBucket = v => (SEV_BUCKETS.find(b=>v>=b.min && v<=b.max)||SEV_BUCKETS[4
 const CHANGED_OPTS = [['today','today'],['7','last 7 days'],['30','last 30 days'],['never','never']];
 /* Compare two scans: A/B selection is kept separately (not a filter); F.cmp is the chosen comparison bucket */
 let CMP={a:'', b:''};
+let CMP_MANUAL=false;
 const CMP_MODES = {
   new:     {label:'new in B',          hint:'reported in B, not in A'},
   gone:    {label:'gone from A',       hint:'reported in A, not in B'},
@@ -2852,6 +3390,8 @@ function applyView(){
 
 /* ---- Render ---- */
 function rebuild(keepDrawer){
+  updateHistoryButtons();
+  requestReviewerAfterLoad();
   D = derive(S);
   renderVerdictOptions();
   BASE = D.filter(verdictPass);
@@ -2892,9 +3432,15 @@ function renderCompare(){
   const panel=$('#cmpPanel'); panel.classList.toggle('hidden', S.scans.length<2);
   if(S.scans.length<2){ if(F.cmp) F.cmp=''; return; }
   const ids=S.scans.map(s=>s.id);
-  if(!ids.includes(CMP.a)) CMP.a=ids[ids.length-2];
-  if(!ids.includes(CMP.b)) CMP.b=ids[ids.length-1];
-  const opt=(s,i)=>`<option value="${esc(s.id)}">${i+1}: ${esc(s.label?s.label+', ':'')}${esc(fmtDT(s.started))}</option>`;
+  if(!ids.includes(CMP.a)||!ids.includes(CMP.b)) CMP_MANUAL=false;
+  if(!CMP_MANUAL){
+    let pair=null;
+    for(let i=S.scans.length-1;i>0&&!pair;i--){
+      for(let j=i-1;j>=0;j--) if(toolOf(S.scans[i])===toolOf(S.scans[j])){pair=[S.scans[j].id,S.scans[i].id];break;}
+    }
+    CMP={a:pair?pair[0]:ids[ids.length-2],b:pair?pair[1]:ids[ids.length-1]};
+  }
+  const opt=(s,i)=>`<option value="${esc(s.id)}">${i+1}: ${esc(toolOf(s))} · ${esc(s.label?s.label+', ':'')}${esc(fmtDT(s.started))}</option>`;
   $('#cmpA').innerHTML=S.scans.map(opt).join(''); $('#cmpA').value=CMP.a;
   $('#cmpB').innerHTML=S.scans.map(opt).join(''); $('#cmpB').value=CMP.b;
   if(CMP.a===CMP.b){ $('#cmpGrid').innerHTML='<span class="cmp-note">Pick two different scans.</span>'; return; }
@@ -2905,6 +3451,7 @@ function renderCompare(){
     const n=pool.filter(d=>cmpMatch(d,k)).length;
     return `<button class="cmp-cell${F.cmp===k?' on':''}" data-cmp="${k}" title="${esc(m.hint)}"><b>${n}</b><span>${esc(m.label)}</span></button>`; }).join('')
     + (noHash?'<span class="cmp-note" style="align-self:center">File-change split needs raw results (_result.json) for both scans.</span>':'')
+    + (toolOf(sA)!==toolOf(sB)?'<span class="cmp-note">Different scanners selected; changes may reflect different coverage.</span>':'')
     + (activeFilterCount()-(F.cmp?1:0) ? '<span class="cmp-note" style="align-self:center">Counts respect the other active filters.</span>' : '');
 }
 const chipHtml = (grp, val, on, n, label, color, opts={}) =>
@@ -3169,9 +3716,21 @@ function step(dir){
 }
 function auditEntriesHtml(it){
   const labels={editor:'Assignee',status:'Status',note:'Note'};
-  return (it.audit||[]).slice().reverse().map(e=>`<li><strong>${esc(labels[e.field])}</strong> · ${esc(e.actor||'Unknown')} · ${esc(fmtDT(e.at))}<details><summary>Show change</summary><div class="audit-diff"><div><b>Before</b><pre>${esc(e.before||'—')}</pre></div><div><b>After</b><pre>${esc(e.after||'—')}</pre></div></div></details></li>`).join('')||'<li>No changes recorded yet.</li>';
+  const value=(field,text)=>{
+    if(field==='status'){
+      const status=STATUS_BY_ID[text]||STATUS_BY_ID.open;
+      return `<span class="audit-value audit-status" style="color:${status.color}">${esc(STATUS_BY_ID[text]?status.label:text||'Open')}</span>`;
+    }
+    return `<span class="audit-value">${esc(text||'Unassigned')}</span>`;
+  };
+  return (it.audit||[]).slice().reverse().map(e=>{
+    const heading=`<div class="audit-heading"><strong>${esc(labels[e.field]||e.field)}</strong></div>`;
+    const meta=`<div class="audit-meta">${esc(e.actor||'Unknown')} · <time>${esc(fmtDT(e.at))}</time></div>`;
+    if(e.field!=='note') return `<li>${heading}<div class="audit-transition">${value(e.field,e.before)}<span class="audit-arrow" aria-label="changed to">→</span>${value(e.field,e.after)}</div>${meta}</li>`;
+    return `<li>${heading}${meta}<details><summary>Show note change</summary><div class="audit-diff"><div><b>Before</b><pre>${esc(e.before||'—')}</pre></div><div><b>After</b><pre>${esc(e.after||'—')}</pre></div></div></details></li>`;
+  }).join('')||'<li class="audit-empty">No changes recorded yet.</li>';
 }
-function auditHtml(it){return `<div class="dr-sec"><h4>Change history</h4><ol class="audit-log" id="findingAudit">${auditEntriesHtml(it)}</ol></div>`;}
+function auditHtml(it){return `<section class="dr-sec audit-panel" aria-label="Change history"><h4>Change history</h4><ol class="audit-log" id="findingAudit">${auditEntriesHtml(it)}</ol></section>`;}
 function flowtraceDetails(it){
   const fields=[], sections=[];
   for(const part of String(it.reasoning||'').split(/\n\n+/).filter(Boolean)){
@@ -3206,6 +3765,45 @@ function semgrepDetails(it){
   const inline=t=>str(t).split(/(`[^`\n]+`)/).map(p=>p.startsWith('`')&&p.endsWith('`')?'<code>'+esc(p.slice(1,-1))+'</code>':esc(p)).join('');
   return `<div class="dr-sec sg-analysis"><h4>Semgrep analysis</h4><div class="reason sg-description">${description.map(inline).join('\n\n')||esc(it.lastTitle)}</div><dl class="kv sg-facts">${fields.join('')}</dl>${links.length?`<details class="sg-references"><summary>References · ${links.length}</summary><ul>${links.join('')}</ul></details>`:''}</div>`;
 }
+function assigneeButtonsHtml(it){
+  const names=knownReviewers();
+  const inactive=!!it.editor && !names.includes(it.editor);
+  return `${names.length>6?'<input type="search" class="assignee-search" data-assignee-search placeholder="Search reviewers" aria-label="Search reviewers">':''}<div class="seg assignee-buttons" role="group" aria-label="Assign reviewer">
+    ${inactive?`<button type="button" class="sel" aria-pressed="true" disabled>${esc(it.editor)} <span class="inactive-label">Inactive</span></button>`:''}
+    ${names.map(name=>`<button type="button" data-assign-name="${esc(name)}" aria-pressed="${it.editor===name}" class="${it.editor===name?'sel':''}">${esc(name)}</button>`).join('')}
+    <button type="button" data-assign-name="" aria-pressed="${!it.editor}" class="${!it.editor?'sel':''}">Unassigned</button>
+    <button type="button" data-add-assignee aria-expanded="false">+ New reviewer</button>
+  </div>
+  <form id="newAssigneeForm" class="hidden inline-assignee-form">
+    <label for="newAssigneeName">New reviewer</label>
+    <input id="newAssigneeName" maxlength="120" required autocomplete="off" placeholder="Name">
+    <button class="btn small" type="submit">Add and assign</button>
+    <button class="btn small ghost" type="button" data-cancel-assignee>Cancel</button>
+  </form>`;
+}
+function scannerReasoningHtml(it,source){
+  const fields=[],body=[],cwes=new Set();let validation=false;
+  const validationText=text=>({notchecked:'Not validated',not_checked:'Not validated',notvalidated:'Not validated',valid:'Valid',invalid:'Invalid',unknown:'Unknown'})[text.toLowerCase()]||text;
+  for(const line of str(it.reasoning).split('\n')){
+    const m=/^(Rule|Validation|Platform|Cloud|Confidence|Commit):\s*(.*)$/.exec(line);
+    if(m){
+      if(m[1]==='Validation') validation=true;
+      fields.push([m[1],m[1]==='Validation'?validationText(m[2]):m[2]]);continue;
+    }
+    if(/^CWE-\d+(?:[ ·,]+CWE-\d+)*$/.test(line.trim())){
+      for(const cwe of line.match(/CWE-\d+/g)||[]) cwes.add(cwe);continue;
+    }
+    body.push(line);
+  }
+  if(it.confidence && !fields.some(([label])=>label==='Confidence') && !validation){
+    const isValidation=/^(notchecked|not_checked|notvalidated|valid|invalid)$/i.test(it.confidence);
+    fields.push([isValidation?'Validation':'Confidence',isValidation?validationText(it.confidence):it.confidence]);
+  }
+  if(cwes.size) fields.push(['CWE',[...cwes].join(' · ')]);
+  return `<section class="dr-sec scanner-panel"><h4>Scanner analysis</h4>${source?`<p class="scanner-meta">${source}</p>`:''}
+    ${body.join('\n').trim()?`<div class="reason scanner-description">${esc(body.join('\n').trim())}</div>`:''}
+    ${fields.length?`<dl class="scanner-facts">${fields.map(([label,value])=>`<dt>${esc(label)}</dt><dd>${esc(value)}</dd>`).join('')}</dl>`:''}</section>`;
+}
 function renderDrawer(){
   const d=D.find(x=>x.it.id===CUR); if(!d){ closeDrawer(); return; }
   const it=d.it, scans=S.scans;
@@ -3228,7 +3826,9 @@ function renderDrawer(){
         <button class="btn small" data-resolve="${i}">${o.s===it.status?'Keep this':'Use this'}</button></div>`).join('')}
     </div>`:''}
     <div class="dr-sec">
-      <h4>Rating</h4><p>Assignee: <span id="findingEditor">${esc(it.editor||'Unassigned')}</span> <button class="btn small ghost" data-edit-reviewer="${esc(it.id)}">Change</button></p>
+      <h4>Assignee</h4><span id="findingEditor" class="hidden">${esc(it.editor||'Unassigned')}</span>
+      ${assigneeButtonsHtml(it)}
+      <h4 style="margin-top:18px">Rating</h4>
       <div class="seg" id="drSeg">${STATUSES.map(s=>`<button data-st="${s.id}" style="color:${s.color}" class="${d.eff===s.id?'sel':''}">${s.label}<span class="k">${s.key}</span></button>`).join('')}</div>
       ${rule&&!it.status?`<p style="font-size:13px;color:var(--muted);margin:8px 0 0">Status comes from the rule <span class="mono">${esc(rule.glob)}</span>. An individual rating takes precedence.</p>`:''}
       ${it.status&&ruleFor(S,it)?`<p style="font-size:13px;color:var(--muted);margin:8px 0 0">Individual rating overrides the rule <span class="mono">${esc(ruleFor(S,it).glob)}</span>. <button class="btn small ghost" data-st="clear">Follow the rule again</button></p>`:''}
@@ -3265,9 +3865,9 @@ function renderDrawer(){
     ${candHtml(d)}
     ${mergeLogHtml(it)}
     ${variants.length>1?`<div class="dr-sec"><h4>Scanner wordings (${variants.length})</h4><ul class="variants">${variants.map(([t,c])=>`<li>${esc(t)} <span class="c">${c}×</span></li>`).join('')}</ul></div>`:''}
-    <div class="dr-sec"><h4>Flagged code ${snipSrc}</h4><pre class="code">${snip||(d.tools.includes('Semgrep')?'<div>No code snippet included in this Semgrep export. Open the reported file at the indicated line to inspect the code.</div>':'<div>–</div>')}</pre></div>
-    ${d.tools.includes('Semgrep')?'':d.tools.some(t=>t.toLowerCase()==='flowtrace')?flowtraceDetails(it):`<div class="dr-sec"><h4>Scanner reasoning ${snipSrc}${it.confidence?`, confidence ${esc(it.confidence)}`:''}</h4><div class="reason">${esc(it.reasoning)}</div></div>`}
-    ${it.mitigation?`<div class="dr-sec"><h4>Scanner recommendation</h4><div class="reason">${esc(it.mitigation)}</div></div>`:''}
+    <div class="dr-sec scanner-panel"><h4>Flagged code</h4><p class="scanner-meta">${snipSrc}</p><pre class="code">${snip||(d.tools.includes('Semgrep')?'<div>No code snippet included in this Semgrep export. Open the reported file at the indicated line to inspect the code.</div>':'<div>–</div>')}</pre></div>
+    ${d.tools.includes('Semgrep')?'':d.tools.some(t=>t.toLowerCase()==='flowtrace')?flowtraceDetails(it):scannerReasoningHtml(it,snipSrc)}
+    ${it.mitigation?`<section class="dr-sec scanner-panel scanner-recommendation"><h4>Recommendation</h4><div class="reason">${esc(it.mitigation)}</div></section>`:''}
     ${auditHtml(it)}
     ${it.hist.length?`<div class="dr-sec"><h4>Status changes</h4><ul class="hist">${it.hist.slice().reverse().map(h=>`<li>${esc(fmtDT(h.at))}: ${esc(STATUS_BY_ID[h.s]?STATUS_BY_ID[h.s].label:h.s)}${h.review?' (reviewed again)':''}${h.editor?' · '+esc(h.editor):''}${h.src?` <span style="color:var(--faint)">(${esc(h.src)})</span>`:''}</li>`).join('')}</ul></div>`:''}
   `;
@@ -3276,11 +3876,13 @@ function renderDrawer(){
   $('#drNote').addEventListener('input',e=>{
     if(!ensureEditor()){e.target.value=it.note;return;}
     const value=e.target.value;
+    if(value===it.note) return;
     if(!noteEditId){
       undoItems('Note changed',[it.id]);
       touchFinding(it);logFindingChange(it,'note',it.note,value);
       noteEditId=it.audit?.at(-1)?.field==='note'?it.audit.at(-1).id:null;
     }else{
+      REDO.length=0; updateHistoryButtons();
       it.audit=it.audit.map(entry=>entry.id===noteEditId?{...entry,after:value,at:new Date().toISOString()}:entry);
       touchFinding(it);
     }
@@ -3293,6 +3895,9 @@ function renderDrawer(){
 function drawerSet(st){
   if(!ensureEditor()) return;
   const it=S.items[CUR]; if(!it) return;
+  const requested=st==='clear'?null:st==='open'?(ruleFor(S,it)?'open':null):st;
+  const ruleAction=$('#drRule')?.checked && st!=='open' && st!=='clear';
+  if(!ruleAction && requested===it.status && st!=='accepted' && !it.conflict) return;
   if($('#drRule') && $('#drRule').checked && st!=='open' && st!=='clear'){ undoFull('rule from finding'); } else undoItems(`status of "${it.lastTitle.slice(0,40)}"`, [CUR]);
   if(st==='clear'){ setStatus([CUR],'clear'); if(F.queue && AUTONEXT) nextReview(); return; }
   const mkRule=$('#drRule') && $('#drRule').checked;
@@ -3348,8 +3953,8 @@ function fileRef(it){
   const u=editorUrl(it);
   return u ? `<a class="mono edlink" href="${esc(u)}" title="Open in editor">${txt}</a>` : `<span class="mono">${txt}</span>`;
 }
-$('#slaForm').onsubmit=e=>{ e.preventDefault(); const f=e.target; for(const k of ['crit','high','med','low','info']) S.settings.sla[k]=Math.min(3650,Math.max(0,int(f[k].value))); save(); rebuild(true); toast('Fix deadlines updated'); };
-$('#revForm').onsubmit=e=>{ e.preventDefault(); S.settings.reviewDays=Math.min(3650,Math.max(0,int(e.target.days.value))); save(); rebuild(true); toast(S.settings.reviewDays?`New accepted risks get a review date after ${S.settings.reviewDays} days`:'No review dates for new accepted risks'); };
+$('#slaForm').onsubmit=e=>{ e.preventDefault(); const f=e.target; const next={};for(const k of ['crit','high','med','low','info']) next[k]=Math.min(3650,Math.max(0,int(f[k].value)));if(JSON.stringify(next)===JSON.stringify(S.settings.sla))return;undoFull('fix deadlines');S.settings.sla=next; save(); rebuild(true); toast('Fix deadlines updated'); };
+$('#revForm').onsubmit=e=>{ e.preventDefault(); const days=Math.min(3650,Math.max(0,int(e.target.days.value)));if(days===S.settings.reviewDays)return;undoFull('risk review interval');S.settings.reviewDays=days; save(); rebuild(true); toast(S.settings.reviewDays?`New accepted risks get a review date after ${S.settings.reviewDays} days`:'No review dates for new accepted risks'); };
 function renderEditorSettings(){
   if(document.activeElement!==$('#revForm').days) $('#revForm').days.value=S.settings.reviewDays;
   for(const k of ['crit','high','med','low','info']){ const inp=$('#slaForm')[k]; if(document.activeElement!==inp) inp.value=S.settings.sla[k]; }
@@ -3362,7 +3967,7 @@ function renderEditorSettings(){
 $('#edForm').editor && $('#edForm').addEventListener('change',e=>{ if(e.target.name==='editor') $('#edForm').tpl.classList.toggle('hidden',e.target.value!=='custom'); });
 $('#edForm').onsubmit=e=>{
   e.preventDefault(); const f=e.target;
-  S.settings=Object.assign({}, S.settings, {editorBase:f.base.value.trim(), editor:has(EDITORS,f.editor.value)?f.editor.value:'vscode', editorTpl:f.tpl.value.trim()});
+  const next=Object.assign({}, S.settings, {editorBase:f.base.value.trim(), editor:has(EDITORS,f.editor.value)?f.editor.value:'vscode', editorTpl:f.tpl.value.trim()});if(JSON.stringify(next)===JSON.stringify(S.settings))return;undoFull('editor settings');S.settings=next;
   if(S.settings.editorBase && !editorUrl({file:'x',range:[1,1]})){ toast('Template does not produce a valid link'); }
   document.activeElement.blur(); save(); rebuild(true); toast('Editor link applied');
 };
@@ -3575,7 +4180,7 @@ function sanitizeSnap(o){
   const items=dict(); if(o.items && typeof o.items==='object') for(const k of Object.keys(o.items).slice(0,50000)) if(has(STATUS_BY_ID,o.items[k])) items[safeId(k)]=o.items[k];
   return {at:str(o.at), scans:(Array.isArray(o.scans)?o.scans:[]).map(x=>safeId(x)).slice(0,5000), items};
 }
-function takeSnapshot(){ const items=dict(); for(const d of D) items[d.it.id]=d.eff; S.reportSnap={at:new Date().toISOString(), scans:S.scans.map(s=>s.id), items}; save(); }
+function takeSnapshot(){ undoFull('report baseline');const items=dict(); for(const d of D) items[d.it.id]=d.eff; S.reportSnap={at:new Date().toISOString(), scans:S.scans.map(s=>s.id), items}; save(); }
 
 async function sha256Hex(text){
   try{ const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
@@ -3887,17 +4492,28 @@ async function exportReport(){
 }
 
 /* ---- Events ---- */
-document.addEventListener('click',e=>{
+document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-edit-reviewer]'); if(!b) return;
   e.stopPropagation();
   const it=S.items[b.dataset.editReviewer]; if(!it) return;
-  setFindingEditor(it.id,prompt('Assignee for this finding (leave empty to unassign):',it.editor||''));
+  if(!ensureEditor()) return;
+  const name=await chooseAssignee(it.editor||'');
+  if(name!==null) setFindingEditor(it.id,name);
 },true);
 
 $('#repForm').minSev.innerHTML=Array.from({length:11},(_,i)=>`<option value="${i}">${i===0?'any':i+'+'}</option>`).join('');
 $('#repGo').onclick=()=>exportReport();
 function pickScans(){ $('#fileScans').click(); }
+$('#importDismiss').onclick=()=>$('#importSummary').classList.add('hidden');
+$('#reviewersClose').onclick=()=>$('#reviewersDlg').close();
+$('#reviewerAddForm').onsubmit=e=>{e.preventDefault();const input=$('#reviewerAddName'),name=input.value.trim();if(!name)return;if(knownReviewers().includes(name)||(S.reviewers||[]).some(r=>r.name===name)){$('#reviewersMessage').textContent='That name already exists.';return;}undoFull('add reviewer');registerReviewer(name);input.value='';save();rebuild(true);renderReviewerManager();};
+$('#btnUndo').onclick=undo; $('#btnRedo').onclick=redo;
 $('#btnLoad').onclick=pickScans; $('#btnLoad2').onclick=pickScans;
+$('#btnTestExamples').onclick=loadTestExamples;
+$('#recoveryClose').onclick=()=>$('#recoveryDlg').close();
+$('#recoveryDeleteAll').onclick=confirmDeleteAll;
+$('#recoveryCreate').onclick=async()=>{ try{ await recordRecovery('Manual snapshot'); await renderRecovery(); $('#recoveryStatus').textContent=S.scans.length?'Snapshot saved.':'Load a project first.'; }catch(e){ $('#recoveryStatus').textContent='Snapshot failed: '+e.message; } };
+$('#reviewerForm').onsubmit=e=>{ e.preventDefault(); setReviewerName(); };
 $('#btnOpenProj2').onclick=()=>{ $('#fileProject').dataset.mode='open'; $('#fileProject').click(); };
 $('#fileScans').onchange=e=>{ readFiles(e.target.files); e.target.value=''; };
 $('#fileProject').onchange=async e=>{
@@ -3920,6 +4536,8 @@ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
         download(name.replace(/\.json$/,'.zip'),await projectZip(json,password));
         toast('Project saved as AES-256 encrypted ZIP.');
       }else download(name,json,'application/json');
+      // Compare the captured project, so edits made while ZIP encryption runs stay unexported.
+      const captured=JSON.parse(json);delete captured.tool;delete captured.appVersion;delete captured.exported;exportedState=JSON.stringify(captured);updateExportStatus();
     }catch(err){ alert('Could not save project: '+err.message); }
   }
   if(a==='openProject'){ $('#fileProject').dataset.mode='open'; $('#fileProject').click(); }
@@ -3928,7 +4546,10 @@ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
   if(a==='renameProject') renameProject();
   if(a==='changeEditor' && askEditor()) renderTable();
   if(a==='changePassword') chooseExportPassword(true);
-  if(a==='reset'){ if(confirm('Delete all scans, ratings and rules in the browser? Save the project file first if needed.')){ undoFull('reset'); S=emptyState(); SEL.clear(); try{localStorage.removeItem(LS_KEY);}catch(e){} rebuild(); toast('Everything reset', undoAction); } }
+  if(a==='reviewers') openReviewerManager();
+  if(a==='recovery') openRecovery();
+  if(a==='closeProject') await closeProject();
+  if(a==='reset') await confirmDeleteAll();
   if(!S.scans.length && a.startsWith('export')){ toast('Load scans first'); return; }
   if(a==='exportHtml') openReportDialog('html');
   if(a==='exportMd') openReportDialog('md');
@@ -3962,9 +4583,9 @@ $('#fEditor').addEventListener('change',e=>{ F.editor=e.target.value; filtersCha
 $('#fFolder').addEventListener('change',e=>{ F.folder=e.target.value; filtersChanged(); });
 $('#fExclude').addEventListener('change',e=>{ const v=e.target.value; if(v && !F.exclude.includes(v)){ F.exclude=F.exclude.concat([v]); if(F.folder!=='all' && (v===F.folder)) F.folder='all'; filtersChanged(); } });
 $('#fExclChips').addEventListener('click',e=>{ const b=e.target.closest('[data-fexcl]'); if(!b) return; F.exclude=F.exclude.filter(x=>x!==b.dataset.fexcl); filtersChanged(); });
-$('#cmpA').addEventListener('change',e=>{ CMP.a=e.target.value; filtersChanged(); });
-$('#cmpB').addEventListener('change',e=>{ CMP.b=e.target.value; filtersChanged(); });
-$('#cmpSwap').onclick=()=>{ CMP={a:CMP.b, b:CMP.a}; filtersChanged(); };
+$('#cmpA').addEventListener('change',e=>{ CMP_MANUAL=true; CMP.a=e.target.value; filtersChanged(); });
+$('#cmpB').addEventListener('change',e=>{ CMP_MANUAL=true; CMP.b=e.target.value; filtersChanged(); });
+$('#cmpSwap').onclick=()=>{ CMP_MANUAL=true; CMP={a:CMP.b, b:CMP.a}; filtersChanged(); };
 $('#cmpGrid').addEventListener('click',e=>{ const b=e.target.closest('[data-cmp]'); if(!b) return; F.cmp = F.cmp===b.dataset.cmp ? '' : b.dataset.cmp; filtersChanged();
   if(F.cmp) document.querySelector('.filters').scrollIntoView({block:'start', behavior:'smooth'}); });
 $('#fReset').onclick=()=>{ F=FDEF(); $('#fText').value=''; SUMFILTER=null; SEL.clear(); rebuild(true); };
@@ -4026,11 +4647,20 @@ $('#tbody').addEventListener('click',e=>{
 });
 $('#selAll').onchange=e=>{ VIEW.forEach(d=>e.target.checked?SEL.add(d.it.id):SEL.delete(d.it.id)); renderTable(); };
 const BULK_CONFIRM = 20;   // ask before bulk actions on this many findings or more
-$('#bulkSeg').onclick=e=>{ const b=e.target.closest('[data-bulk]'); if(!b) return; const n=SEL.size, lbl=STATUS_BY_ID[b.dataset.bulk].label;
-  if(n>=BULK_CONFIRM && !confirm(`Set ${n} findings to "${lbl}"?`)) return;
-  undoItems(`${n} finding${n===1?'':'s'} set to ${lbl}`, [...SEL]);
-  setStatus([...SEL], b.dataset.bulk); SEL.clear(); renderTable(); toast(`${n} finding${n===1?'':'s'}: ${lbl}`, undoAction); };
-$('#bulkEditor').onclick=()=>{ if(!SEL.size || !ensureEditor()) return; const name=prompt(`Assignee for ${SEL.size} findings (leave empty to unassign):`,activeEditor); if(name===null) return; setFindingEditors([...SEL],name); SEL.clear(); renderTable(); };
+$('#bulkSeg').onclick=e=>{
+  const b=e.target.closest('[data-bulk]');if(!b||!ensureEditor())return;
+  const status=b.dataset.bulk,ids=[...SEL].filter(id=>{
+    const it=S.items[id];if(!it)return false;
+    const val=status==='open'?(ruleFor(S,it)?'open':null):status;
+    return it.status!==val || status==='accepted' || !!it.conflict;
+  });
+  const n=ids.length,lbl=STATUS_BY_ID[status].label;
+  if(!n){toast('Selected findings already have that status');return;}
+  if(n>=BULK_CONFIRM&&!confirm(`Set ${n} findings to "${lbl}"?`))return;
+  undoItems(`${n} finding${n===1?'':'s'} set to ${lbl}`,ids);
+  setStatus(ids,status);SEL.clear();renderTable();toast(`${n} finding${n===1?'':'s'}: ${lbl}`,undoAction);
+};
+$('#bulkEditor').onclick=async()=>{ if(!SEL.size || !ensureEditor()) return; const ids=[...SEL]; const name=await chooseAssignee(activeEditor); if(name===null) return; setFindingEditors(ids,name); SEL.clear(); renderTable(); };
 $('#bulkClear').onclick=()=>{ SEL.clear(); renderTable(); };
 $('#bulkMerge').onclick=()=>{ if(SEL.size<2){ toast('Select at least two findings'); return; } doMerge([...SEL]); };
 $('#drClose').onclick=closeDrawer; $('#scrim').onclick=closeDrawer;
@@ -4040,7 +4670,25 @@ $('#drBody').addEventListener('change',e=>{
   if(!ensureEditor()){ renderDrawer(); return; }
   undoItems('review date', [CUR]); touchFinding(it); it.reviewAt = isDate(e.target.value) ? e.target.value : null; save(); rebuild(true);
 });
+$('#drBody').addEventListener('input',e=>{
+  if(!e.target.matches('[data-assignee-search]'))return;
+  const query=e.target.value.toLocaleLowerCase();
+  for(const button of $('#drBody').querySelectorAll('.assignee-buttons [data-assign-name]')){
+    button.hidden=!!button.dataset.assignName && !button.dataset.assignName.toLocaleLowerCase().includes(query);
+  }
+});
+$('#drBody').addEventListener('submit',e=>{
+  if(e.target.id!=='newAssigneeForm') return;
+  e.preventDefault();const input=$('#newAssigneeName'),name=input.value.trim();
+  if(!name){input.focus();return;}setFindingEditor(CUR,name);
+});
 $('#drBody').addEventListener('click',e=>{
+  const assign=e.target.closest('[data-assign-name]');
+  if(assign){setFindingEditor(CUR,assign.dataset.assignName);return;}
+  const add=e.target.closest('[data-add-assignee]');
+  if(add){$('#newAssigneeForm').classList.remove('hidden');add.setAttribute('aria-expanded','true');$('#newAssigneeName').focus();return;}
+  if(e.target.closest('[data-cancel-assignee]')){$('#newAssigneeForm').classList.add('hidden');$('#drBody').querySelector('[data-add-assignee]').setAttribute('aria-expanded','false');return;}
+
   const rvw=e.target.closest('[data-review]');
   if(rvw){ if(!ensureEditor()) return; const it=S.items[CUR]; if(!it) return; undoItems('review date', [CUR]);
     if(rvw.dataset.review==='renew'){ setStatus([CUR],'accepted'); toast(`Reviewed, next review ${it.reviewAt||'not set'}`, undoAction); if(F.queue && AUTONEXT) nextReview(); }
@@ -4062,6 +4710,7 @@ document.addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase(), typing = tag==='textarea'||tag==='input'||tag==='select'||e.target.isContentEditable;
   // Ctrl/Cmd+Z undoes the last triage action (text fields keep their own undo)
   if((e.ctrlKey||e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase()==='z' && !typing){ e.preventDefault(); undo(); return; }
+  if((e.ctrlKey||e.metaKey) && !e.altKey && !typing && ((e.shiftKey && e.key.toLowerCase()==='z') || (!e.shiftKey && e.key.toLowerCase()==='y'))){ e.preventDefault(); redo(); return; }
   if(!CUR) return;
   if(e.key==='Escape'){ closeDrawer(); return; }
   if(typing||e.ctrlKey||e.metaKey||e.altKey) return;
@@ -4111,8 +4760,8 @@ $('#autoNext').onchange=e=>{ AUTONEXT=e.target.checked; try{localStorage.setItem
 $('#appVersion').textContent='v'+APP_VERSION;
 $('#footVersion').textContent='v'+APP_VERSION;
 $('#projName').onclick=()=>renameProject();
-loadFilters();
-load().then(()=>{ if(S.scans.length) askEditor(); rebuild(); });
+// New sessions start without another project’s filters.
+load().then(()=>{ exportedState=S.scans.length?null:JSON.stringify(S);updateExportStatus();rebuild();requestReviewerAfterLoad(); });
 </script>
 </body>
 </html>
