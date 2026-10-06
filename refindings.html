@@ -97,7 +97,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4FeTmjxQkefSospQzeEtLoudjs5Pb/vxq+hm2lB62YE=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-HvnH4Tu38mOtIr4TnTdljGW9QIJZDYxkyoQQNh3CLDI='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-7AeEIpPg0e9bQGQrexRSOjZO4mvRY8p+bmiFkfT1f90=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-3QhuTTI/OMWJxkC3Sp6/vRFB3q7lW7wKsMSFu07b6i0='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Refindings 1.6.2</title>
 <style>
@@ -253,7 +253,8 @@ table.list tr.row{cursor:pointer;content-visibility:auto;contain-intrinsic-size:
 table.list tr.row:hover td{background:var(--sunk)}
 table.list tr.row.cur td{background:var(--sunk);box-shadow:inset 0 0 0 0 transparent}
 table.list tr.row.cur td:first-child{box-shadow:inset 3px 0 0 var(--focus)}
-.t-title{font-weight:500;line-height:1.35}
+.t-title{font-weight:500;line-height:1.35;overflow-wrap:anywhere}
+.sg-facts{margin-top:18px}.sg-facts dd{white-space:pre-wrap;overflow-wrap:anywhere}.sg-description{line-height:1.65}.sg-description code{background:var(--sunk);padding:2px 4px;border-radius:4px;overflow-wrap:anywhere}.sg-references{margin-top:16px}.sg-references summary{cursor:pointer;font-weight:500}.sg-references li{margin:8px 0;overflow-wrap:anywhere}
 .t-meta{color:var(--muted);font-size:12.5px;margin-top:2px;word-break:break-all}
 .t-meta .cat{color:var(--ink);opacity:.8}
 .mono{font-family:var(--mono);font-size:12.5px}
@@ -406,7 +407,7 @@ a.edlink:hover{text-decoration-color:currentColor}
   <section id="emptyState" class="panel">
     <div class="empty">
       <h2>No scans loaded yet</h2>
-      <p>Load one or more scan results: <b>SARIF</b> (<span class="mono">.sarif</span> from Semgrep, CodeQL, Snyk, Checkov, Trivy, KICS, 2ms, Bearer, Metis …), JSON from <b>Semgrep</b>, <b>Bandit</b>, <b>Gitleaks</b>, <b>Trivy</b>, <b>KICS</b>, <b>2ms</b>, <b>Bearer</b>, <b>Checkmarx One</b>, <b>Metis</b>, <b>Gito</b>, <b>Claude Code Security Review</b>, <b>promptfoo</b>, <b>vulnerability-agent</b>, the <b>GitLab SAST</b>, <b>SonarQube</b>, <b>Code Climate</b> and <b>reviewdog</b> formats, the <b>CxSAST</b> XML report, <b>joern-scan</b> and <b>codescan</b> console output saved as <span class="mono">.txt</span>, <span class="mono">vulnhuntr.log</span>, and <b>FalconEYE</b> results (<span class="mono">*_result.json</span>, report <span class="mono">.json</span> / <span class="mono">.html</span>). The format is detected from the content. Several tools can live in one project. Identical findings are recognised by file, category and the flagged code, even when the scanner words the title differently each time. Ratings are kept in the browser and can be saved as a project file.</p>
+      <p>Load one or more scan results: <b>SARIF</b> (<span class="mono">.sarif</span> from Semgrep, CodeQL, Snyk, Checkov, Trivy, KICS, 2ms, Bearer, Metis …), JSON from <b>Semgrep</b>, <b>Bandit</b>, <b>Gitleaks</b>, <b>Trivy</b>, <b>KICS</b>, <b>2ms</b>, <b>Bearer</b>, <b>Checkmarx One</b>, <b>Metis</b>, <b>Gito</b>, <b>Claude Code Security Review</b>, <b>promptfoo</b>, <b>vulnerability-agent</b>, the <b>GitLab SAST</b>, <b>SonarQube</b>, <b>Code Climate</b> and <b>reviewdog</b> formats, the <b>CxSAST</b> XML report, <b>joern-scan</b> and <b>codescan</b> console output saved as <span class="mono">.txt</span>, <span class="mono">vulnhuntr.log</span>, and <b>FalconEYE</b> results (<span class="mono">*_result.json</span>, report <span class="mono">.json</span> / <span class="mono">.html</span>). <b>Flowtrace</b> JSON, HTML and <span class="mono">.refindings</span>, plus <b>JSpringGuard</b> JSON, HTML and SARIF reports are also supported. The format is detected from the content. Several tools can live in one project. Identical findings are recognised by file, category and the flagged code, even when the scanner words the title differently each time. Ratings are kept in the browser and can be saved as a project file.</p>
       <div class="drop" id="dropZone">
         <p style="margin:0 0 12px">Drop files here or</p>
         <button class="btn primary" id="btnLoad2">Choose scans</button>
@@ -591,7 +592,7 @@ a.edlink:hover{text-decoration-color:currentColor}
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
 const TOOL_VERSION = 3;          // project file schema
-const APP_VERSION = '1.8.0';     // program version, increase with every change
+const APP_VERSION = '1.8.3';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
@@ -762,6 +763,7 @@ function normalizeInput(json, fileName){
       _lines: ls ? [ls, Math.max(ls,le)] : null,
       // set by the importers of other scanners
       cwe: Array.isArray(f.cwe) ? f.cwe.map(n=>int(n)).filter(n=>n>0).slice(0,10) : [],
+      _flowtrace_identity: str(f._flowtrace_identity).slice(0,2000),
       rule: str(f.rule).slice(0,200), _fpx: str(f._fpx).slice(0,40), _cat: has(CAT_LABEL, str(f._cat)) ? str(f._cat) : '', _sup: str(f._sup).slice(0,300), _fk: f._fk==='self' ? 'self' : '', _alt: str(f._alt).slice(0,400),
     };
   });
@@ -869,6 +871,13 @@ function sarifText(m, rule){
 }
 const SECRET_TOOLS = /^(2ms|gitleaks|trufflehog|detect-secrets|betterleaks|ggshield|kingfisher)$/i;
 function fromSarif(j){
+  // A single Flowtrace run carries the same complete records as JSON and HTML.
+  // Mixed-tool SARIF continues through the existing generic importer.
+  const runs=Array.isArray(j.runs)?j.runs:[];
+  if(runs.length===1 && /^flowtrace$/i.test(str(runs[0]?.tool?.driver?.name))){
+    const envelope=runs[0]?.properties?.flowtrace_import;
+    if(envelope) return fromFlowtrace(checkFlowtraceEnvelope(envelope));
+  }
   const findings=[], tools=[]; let started='', base='';
   for(const run of Array.isArray(j.runs)?j.runs:[]){
     if(!run || typeof run!=='object') continue;
@@ -926,7 +935,8 @@ function fromSarif(j){
         location: {file_path: uriToPath(uri), line_start: ls, line_end: le},
         found_snippet: secretTool ? snipOf(ls, ls, snipText) : snipOf(ls, le, snipText, int(ctx.startLine,0), ctx.snippet && ctx.snippet.text),
         cwe, rule: rid, tool: tname, ...(secretTool ? {_cat:'SECRET'} : /^kics$/i.test(tname) ? {_cat: catPref(title, cwe, 'CONFIG')} : {}),
-        _sup: sup ? 'suppressed by tool ('+(str(sup.kind)||'suppression')+')'+(sup.justification?': '+str(sup.justification).slice(0,200):'')
+        _fpx: tname==='JSpringGuard'?str((r.partialFingerprints||{})['xxeCheck/v1']):'',
+        _sup: tname==='JSpringGuard' && /^HARDENED:/.test(msg) ? 'JSpringGuard assessment: HARDENED' : sup ? 'suppressed by tool ('+(str(sup.kind)||'suppression')+')'+(sup.justification?': '+str(sup.justification).slice(0,200):'')
             : tri==='invalid' ? 'rejected by Metis triage'+(resP.metisTriageReason?': '+str(resP.metisTriageReason).slice(0,200):'') : '',
         _fk: !sup && tri==='invalid' ? 'self' : '',
         _alt: rid+' '+(secretTool && reg.snippet && reg.snippet.text ? fnv(str(reg.snippet.text)) : msg),
@@ -941,8 +951,10 @@ function fromSemgrep(j){
     const code = /^\s*requires login\s*$/i.test(str(ex.lines)) ? '' : str(ex.lines);
     const ls=int(r.start && r.start.line,0), le=Math.max(ls, int(r.end && r.end.line, ls));
     const msg=str(ex.message);
+    const values=v=>(Array.isArray(v)?v:[v]).map(x=>str(x)).filter(Boolean);
+    const fields=[['Rule',r.check_id],['Scanner severity',ex.severity],['Confidence',md.confidence],['Impact',md.impact],['Likelihood',md.likelihood],['Technology',values(md.technology).join(', ')],['CWE',values(md.cwe).join('\n')],['OWASP',values(md.owasp).join('\n')],['Vulnerability class',values(md.vulnerability_class).join(', ')],['References',[...new Set([...values(md.references),...values(md.source),...values(md.shortlink)])].join('\n')]];
     return { issue: firstLine(msg) || str(r.check_id), severity: sevOf(md['security-severity'], ex.severity),
-      reasoning: msg !== firstLine(msg) ? msg : '', mitigation: ex.fix ? 'Suggested fix: '+str(ex.fix) : '',
+      reasoning: [msg,...fields.filter(([,v])=>v).map(([k,v])=>k+': '+v)].join('\n\n'), mitigation: ex.fix ? 'Suggested fix: '+str(ex.fix) : '',
       confidence: str(md.confidence), location:{file_path: uriToPath(r.path), line_start: ls, line_end: le},
       found_snippet: snipOf(ls, le, code), cwe: cweList(md.cwe), rule: str(r.check_id), tool:'Semgrep',
       _sup: ex.is_ignored ? 'suppressed by tool (nosemgrep)' : '', _alt: str(r.check_id)+' '+msg };
@@ -1487,10 +1499,20 @@ function detectText(text){
 /* Recognise the format; null = not a foreign format (FalconEYE and similar go through normalizeInput directly) */
 const SEV_KEYS = new Set(['critical','high','medium','low','warning']);
 /* Flowtrace JSON and its .refindings interchange format. */
+function checkFlowtraceEnvelope(j){
+  if(!j || j.import_schema_version!==1 || str(j.tool).toLowerCase()!=='flowtrace' ||
+     !/^FT-S-[a-zA-Z0-9-]+$/.test(str(j.scan_id)) || !Array.isArray(j.findings))
+    throw new Error('Unsupported or malformed Flowtrace import data');
+  const ids=j.findings.map(f=>str(f?.id));
+  if(ids.some(id=>!id) || new Set(ids).size!==ids.length)
+    throw new Error('Flowtrace import data contains missing or duplicate finding IDs');
+  return j;
+}
 function fromFlowtrace(j){
+  if(j.import_schema_version!==undefined) checkFlowtraceEnvelope(j);
   const meta=j.meta||{};
   const details=v=>typeof v==='string'?v:v?JSON.stringify(v):'';
-  return {tool:'Flowtrace',started:str(j.generated||meta.generated),codebase:str(j.root||meta.root),
+  return {tool:'Flowtrace',scan_id:str(j.scan_id||meta.scan_id),started:str(j.generated||meta.generated),codebase:str(j.root||meta.root).replace(/\/+$/,''),
     findings:j.findings.filter(f=>f&&typeof f==='object').map(f=>{
       const ft=f.flowtrace||f, sink=ft.sink||{}, source=ft.source||{}, llm=ft.llm||{};
       const file=str(sink.file||f.file), line=int(sink.line||f.line_start||f.line), code=str(sink.code||f.code);
@@ -1506,12 +1528,14 @@ function fromFlowtrace(j){
         found_snippet:code?{[line]:{identifier:'>',line:code}}:dict(),
         reasoning,mitigation:details(f.mitigation||f.remediation||ft.remediation||ft.fix),confidence:str(f.confidence??llm.confidence),
         cwe:cweList(f.cwe||ft.cwe),rule:str(f.rule||f.kind),tool:'Flowtrace',
-        _alt:str(f.title||f.kind),_fpx:str(f.id||f.fingerprint),
-        _sup:llm.verdict==='not_vulnerable'?'Flowtrace LLM: '+str(llm.reason||llm.verdict):'',_fk:'self'};
+        _alt:str(f.title||f.kind),_fpx:str(f.id||f.fingerprint),_flowtrace_id:str(f.id),
+        _sup:('import_schema_version' in j)?str(f._sup):llm.verdict==='not_vulnerable'&&!f.review_data?'Flowtrace LLM: '+str(llm.reason||llm.verdict):'',_fk:str(f._fk||'self')};
     })};
 }
 /* Read only the DOM; never execute scripts or event handlers from imported reports. */
 function flowtraceHtmlToJson(doc){
+  const data=doc.querySelector('script#flowtrace-import[type="application/json"]');
+  if(data) return checkFlowtraceEnvelope(JSON.parse(data.textContent));
   const txt=(n,s)=>str(n.querySelector(s)?.textContent).trim();
   const meta={};
   for(const row of doc.querySelectorAll('header .meta > div')){
@@ -1542,8 +1566,43 @@ function flowtraceHtmlToJson(doc){
   return {tool:'flowtrace',root:meta.project||'',generated:meta['scan date']?new Date(meta['scan date'].replace(' ','T')).toISOString():'',findings};
 }
 
+/* JSpringGuard JSON and HTML exports; scanner assessments stay separate from manual ratings. */
+function fromJSpringGuard(j){
+  const list=v=>(Array.isArray(v)?v:[]).map(v=>str(v)).filter(Boolean);
+  return {tool:'JSpringGuard',started:str(j.generated_at||j.generated),codebase:str(j.root),findings:j.findings.filter(f=>f&&typeof f==='object').map(f=>{
+    const line=int(f.line), snippet=dict();
+    for(const row of Array.isArray(f.context)?f.context:[]) if(Array.isArray(row)&&int(row[0])>0) snippet[int(row[0])]={identifier:int(row[0])===line?'>':'|',line:str(row[1])};
+    if(f.code) snippet[line]={identifier:'>',line:str(f.code)};
+    const status=str(f.status).toUpperCase();
+    return {issue:str(f.rule_name||f.rule_id),severity:sevNum(f.severity),rule:str(f.rule_id),tool:'JSpringGuard',cwe:cweList(f.cwe),
+      location:{file_path:uriToPath(f.file),line_start:line,line_end:line},found_snippet:snippet,
+      reasoning:[status?'Scanner assessment: '+status:'',f.method?'Method: '+str(f.method):'',f.variable?'Variable: '+str(f.variable):'',
+        list(f.guards_found).length?'Guards found: '+list(f.guards_found).join(', '):'',
+        list(f.guards_missing).length?'Guards missing: '+list(f.guards_missing).join(', '):'',
+        list(f.taint).length?'External input: '+list(f.taint).join(', '):'',
+        list(f.flow).length?'Data flow:\n'+list(f.flow).join('\n'):'',f.is_test?'Test code':'',str(f.note)].filter(Boolean).join('\n\n'),
+      mitigation:str(f.fix),confidence:'',_fpx:str(f.fingerprint),_alt:str(f.rule_id)+' '+str(f.rule_name),
+      _sup:status==='HARDENED'?'JSpringGuard assessment: HARDENED':'',_fk:''};
+  })};
+}
+function jspringguardHtmlToJson(doc){
+  const txt=(n,selector)=>str(n.querySelector(selector)?.textContent).trim();
+  return {tool:'JSpringGuard',findings:[...doc.querySelectorAll('.card')].filter(n=>n.querySelector('.card-title')).map(n=>{
+    const title=txt(n,'.card-title'),split=title.indexOf(' – '),loc=/^(.*):(\d+)(?:\s*·\s*(.*))?$/.exec(txt(n,'.loc'));
+    if(!loc) throw new Error('JSpringGuard finding has no valid file/line location');
+    const line=+loc[2],source=txt(n,'.source-context'),context=[];
+    for(const row of source.split('\n')){const m=/^\s*(>)?\s*(\d+)\s*\|\s?(.*)$/.exec(row);if(m) context.push([+m[2],m[3]]);}
+    return {file:loc[1],line,method:loc[3]||'',rule_id:split<0?title:title.slice(0,split),rule_name:split<0?title:title.slice(split+3),
+      severity:txt(n,'.card-head .badge'),status:txt(n,'.card-status').replace(/[()]/g,''),fingerprint:txt(n,'.fp'),context,
+      code:context.length?(context.find(row=>row[0]===line)||[])[1]||'':source,
+      note:[...n.querySelectorAll('.meta-line')].map(x=>x.textContent.trim()).filter(Boolean).join('\n'),
+      guards_missing:[...n.querySelectorAll('.missing li')].map(x=>x.textContent.trim()),fix:txt(n,'.fix pre')};
+  })};
+}
+
 function detectForeign(j){
   if(!j || typeof j!=='object') return null;
+  if(str(j.tool).toLowerCase()==='jspringguard' && Array.isArray(j.findings)) return 'jspringguard';
   if(str(j.tool).toLowerCase()==='flowtrace' && Array.isArray(j.findings)) return 'flowtrace';
   const first = a => (Array.isArray(a) ? a : []).find(r=>r && typeof r==='object');
   if(Array.isArray(j)){
@@ -1579,15 +1638,19 @@ function detectForeign(j){
   if(keys.length && keys.every(k=>SEV_KEYS.has(k) && Array.isArray(j[k])) && keys.some(k=>{ const r=first(j[k]); return r && 'id' in r && ('filename' in r || 'line_number' in r); })) return 'bearer';
   return null;
 }
-const IMPORTERS = {flowtrace:fromFlowtrace, sarif:fromSarif, semgrep:fromSemgrep, bandit:fromBandit, gitleaks:fromGitleaks, trivy:fromTrivy, kics:fromKics, '2ms':from2ms,
+const IMPORTERS = {jspringguard:fromJSpringGuard,flowtrace:fromFlowtrace, sarif:fromSarif, semgrep:fromSemgrep, bandit:fromBandit, gitleaks:fromGitleaks, trivy:fromTrivy, kics:fromKics, '2ms':from2ms,
   gitlab:fromGitlab, sonar:fromSonar, codeclimate:fromCodeClimate, rdjson:fromRdjson, bearer:fromBearer, metis:fromMetis, gito:fromGito,
   promptfoo:fromPromptfoo, vulnagent:fromVulnAgent, ccsr:fromCcsr, cxone:fromCxOne};
 function adaptForeign(j, fileName, mtime){
   const kind = detectForeign(j); if(!kind) return null;
-  return finishForeign(IMPORTERS[kind](j), kind, fileName, mtime);
+  const adapted=IMPORTERS[kind](j);
+  return finishForeign(adapted,adapted.tool==='JSpringGuard'?'jspringguard':kind,fileName,mtime);
 }
 /* XML (CxSAST) and text reports (joern-scan, codescan, vulnhuntr.log); null = not recognised */
 function adaptTextReport(text, fileName, mtime){
+  if(/<h1[^>]*>\s*JSpringGuard\s*<\/h1>/i.test(text)){
+    return adaptForeign(jspringguardHtmlToJson(new DOMParser().parseFromString(text,'text/html')),fileName,mtime);
+  }
   if(/<h1[^>]*>\s*flowtrace\s*<\/h1>/i.test(text)){
     const doc=new DOMParser().parseFromString(text,'text/html');
     return adaptForeign(flowtraceHtmlToJson(doc),fileName,mtime);
@@ -1625,10 +1688,11 @@ function finishForeign(A, kind, fileName, mtime){
   const baseDir = normPath(A.codebase).replace(/\/*$/,'/');
   for(const f of A.findings){
     if(baseDir.length>1 && f.location.file_path.startsWith(baseDir)) f.location.file_path=f.location.file_path.slice(baseDir.length);
-    f._fpx = kind==='flowtrace' && f._fpx ? f._fpx : '|L'+int(f.location.line_start);
+    f._fpx = kind==='jspringguard' ? 'jsp-'+fnv(str(f._fpx)+'|'+str(f.rule)+'|'+str(f.location.file_path)+'|'+int(f.location.line_start)) : kind==='flowtrace' && f._fpx ? f._fpx : '|L'+int(f.location.line_start);
+    if(A.tool==='Flowtrace' && f._flowtrace_id) f._flowtrace_identity=normPath(A.codebase).replace(/\/+$/,'')+'|'+f._flowtrace_id;
     const meta=[f.rule && !str(f.reasoning).includes(f.rule) ? `${f.tool||A.tool} rule: ${f.rule}` : '', f.cwe.length ? f.cwe.map(n=>'CWE-'+n).join(', ') : ''].filter(Boolean).join(' · ');
     if(meta) f.reasoning = (str(f.reasoning) ? f.reasoning+'\n\n' : '') + meta; }
-  const id = kind==='flowtrace' ? 'scan-flowtrace-'+fnv(A.codebase+'|'+Math.floor(ts(started)/60000)+'|'+A.findings.map(f=>f._fpx).sort().join('|')) : 'scan-'+A.tool.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,20)+'-'+fnv(started+'|'+A.findings.length+'|'+A.findings.map(f=>f.rule+'@'+f.location.file_path+':'+f.location.line_start).join('|'));
+  const id = A.scan_id ? str(A.scan_id) : ['flowtrace','jspringguard'].includes(kind) ? 'scan-'+kind+'-'+fnv(A.codebase+'|'+Math.floor(ts(started)/60000)+'|'+A.findings.map(f=>f._fpx).sort().join('|')) : 'scan-'+A.tool.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,20)+'-'+fnv(started+'|'+A.findings.length+'|'+A.findings.map(f=>f.rule+'@'+f.location.file_path+':'+f.location.line_start).join('|'));
   return {tool:{name:A.tool}, foreign:kind, review:{id, started_at:started, codebase_path:A.codebase, label, tool:A.tool}, findings:A.findings};
 }
 
@@ -1708,7 +1772,7 @@ function sanitizeState(raw){
     try{ globToRe(r.glob); }catch(e){ continue; }
     S.rules.push({glob:str(r.glob).trim(), cat: r.cat==='*'||has(CAT_LABEL,r.cat)?r.cat:'*', status:r.status, note:str(r.note), at:str(r.at), reviewAt: r.status==='accepted' && isDate(r.reviewAt) ? str(r.reviewAt) : null});
   }
-  S.roots=(Array.isArray(raw.roots)?raw.roots:[]).map(str).filter(Boolean);
+  S.roots=(Array.isArray(raw.roots)?raw.roots:[]).map(v=>str(v)).filter(Boolean);
   S.reportSnap=sanitizeSnap(raw.reportSnap);
   const st = raw.settings && typeof raw.settings==='object' ? raw.settings : {};
   S.settings = {editorBase:str(st.editorBase), editor: has(EDITORS,st.editor)?st.editor:'vscode', editorTpl:str(st.editorTpl), projectName:str(st.projectName).trim().slice(0,80), reviewDays: st.reviewDays===undefined ? 90 : Math.min(3650,Math.max(0,int(st.reviewDays))),
@@ -1727,7 +1791,7 @@ function sigEntries(it){
 /* Same scan in another format? Same ID, or same start second and same number of findings (the HTML report has no ID) */
 function findSameScan(state, id, started, count){
   const sec = Math.floor(ts(started)/1000);
-  return state.scans.find(s=>s.id===id || (sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count)) || null;
+  return state.scans.find(s=>s.id===id || (!str(id).startsWith('FT-S-') && !str(s.id).startsWith('FT-S-') && sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count)) || null;
 }
 /* Replace a substitute ID (HTML report without ID) by the real scan ID once a format with ID is loaded */
 function renameScan(state, scan, newId){
@@ -1775,7 +1839,7 @@ function recordsFromInput(N, R){
     const cat = x._cat || (x.cwe && x.cwe.length || x.rule ? catFor(p.title, x.cwe, x.rule) : categorize(p.title));
     // other tools: the line is part of the fingerprint (identical code at two places = two findings); a moved line
     // is still matched by the token similarity
-    recs.push({f:file, c:cat, t:p.title, s:p.sev, k:p.tokens, r:p.range, p:fnv(file+'|'+cat+'|'+p.codeNorm+(x._fpx||'')),
+    recs.push({f:file, c:cat, t:p.title, s:p.sev, k:p.tokens, r:p.range, p:x._flowtrace_identity ? fnv('flowtrace|'+x._flowtrace_identity) : fnv(file+'|'+cat+'|'+p.codeNorm+(x._fpx||'')),
       x:p.scannerFiltered?1:0, fk:p.filterKind, fr:p.filterReason, h:fileHashes[file]||'',
       re:p.reasoning, mi:p.mitigation, co:p.confidence, sn:p.snip.slice(0,60)});
   }
@@ -3061,7 +3125,7 @@ function renderTable(){
       <td><input type="checkbox" data-sel="${esc(it.id)}" ${SEL.has(it.id)?'checked':''} aria-label="Select"></td>
       <td class="c-strip">${stripHtml(d)}</td>
       <td><span class="sev" style="background:${sevColor(d.sevMax)}">${d.sevMax}</span></td>
-      <td><div class="t-title">${esc(it.lastTitle)}${variants>1?` <span style="color:var(--faint);font-weight:400;font-size:12.5px">+${variants-1} wording${variants>2?'s':''}</span>`:''}</div>
+      <td><div class="t-title" title="${esc(it.lastTitle)}">${esc(findingDisplayTitle(it))}${variants>1?` <span style="color:var(--faint);font-weight:400;font-size:12.5px">+${variants-1} wording${variants>2?'s':''}</span>`:''}</div>
           <div class="t-meta"><span class="cat">${esc(CAT_LABEL[it.cat])}</span>${it.note?`  <span title="${esc(it.note)}">note</span>`:''}${F.cmp?cmpText(d):''}</div>${F.queue?`<div class="queue-reason">${esc(queueReasons(d))}</div>`:''}</td>
       <td>${fileCell(it)}</td>
       <td class="c-seen num">${d.nSeen}/${d.span}</td>
@@ -3124,12 +3188,30 @@ function flowtraceDetails(it){
   }
   return `<div class="dr-sec"><h4>Flowtrace analysis${it.confidence?' · Confidence '+esc(it.confidence):''}</h4><dl class="kv ft-summary">${fields.join('')}</dl>${sections.join('')}</div>`;
 }
+function findingDisplayTitle(it){
+  if(!/\n\nRule: /.test(it.reasoning||'')) return it.lastTitle;
+  const first=it.lastTitle.split(/(?<=[.!?])\s/)[0];
+  return first.length>130?first.slice(0,127).replace(/\s+\S*$/,'')+'…':first;
+}
+function semgrepDetails(it){
+  const fields=[],description=[],links=[];
+  const labels=new Set(['Rule','Scanner severity','Confidence','Impact','Likelihood','Technology','CWE','OWASP','Vulnerability class','References']);
+  for(const part of str(it.reasoning).split(/\n\n+/)){
+    const match=/^([^:\n]+): ([\s\S]*)$/.exec(part);
+    if(!match||!labels.has(match[1])){description.push(part);continue;}
+    if(match[1]==='References'){
+      for(const raw of match[2].split('\n')){try{const url=new URL(raw);if(['http:','https:'].includes(url.protocol)) links.push(`<li><a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer">${esc(url.hostname+url.pathname+url.hash)}</a></li>`);}catch{}}
+    }else fields.push(`<dt>${esc(match[1])}</dt><dd>${esc(match[2])}</dd>`);
+  }
+  const inline=t=>str(t).split(/(`[^`\n]+`)/).map(p=>p.startsWith('`')&&p.endsWith('`')?'<code>'+esc(p.slice(1,-1))+'</code>':esc(p)).join('');
+  return `<div class="dr-sec sg-analysis"><h4>Semgrep analysis</h4><div class="reason sg-description">${description.map(inline).join('\n\n')||esc(it.lastTitle)}</div><dl class="kv sg-facts">${fields.join('')}</dl>${links.length?`<details class="sg-references"><summary>References · ${links.length}</summary><ul>${links.join('')}</ul></details>`:''}</div>`;
+}
 function renderDrawer(){
   const d=D.find(x=>x.it.id===CUR); if(!d){ closeDrawer(); return; }
   const it=d.it, scans=S.scans;
   $('#drNext').textContent=F.queue?'Next finding':'↓';
   $('#drNext').title=F.queue?'Next finding in the review queue (j)':'Next (j)';
-  $('#drTitle').textContent=it.lastTitle;
+  $('#drTitle').textContent=findingDisplayTitle(it);
   const variants=Object.entries(it.titles).sort((a,b)=>b[1]-a[1]);
   const sevs=scans.filter(s=>it.seen[s.id]).map(s=>`<span title="${esc(fmtDT(s.started))}" style="border-color:${sevColor(it.seen[s.id].sev)}">${it.seen[s.id].sev}</span>`).join('');
   const lastSeen=scans[d.last], firstSeen=scans[d.first];
@@ -3163,6 +3245,7 @@ function renderDrawer(){
         <button class="btn small" data-act2="copyMd">Copy as Markdown</button>
       </div>
     </div>
+    ${d.tools.includes('Semgrep')?semgrepDetails(it):''}
     <div class="dr-sec">
       <h4>History</h4>
       ${stripHtml(d)}
@@ -3182,8 +3265,8 @@ function renderDrawer(){
     ${candHtml(d)}
     ${mergeLogHtml(it)}
     ${variants.length>1?`<div class="dr-sec"><h4>Scanner wordings (${variants.length})</h4><ul class="variants">${variants.map(([t,c])=>`<li>${esc(t)} <span class="c">${c}×</span></li>`).join('')}</ul></div>`:''}
-    <div class="dr-sec"><h4>Flagged code ${snipSrc}</h4><pre class="code">${snip||'<div>–</div>'}</pre></div>
-    ${d.tools.some(t=>t.toLowerCase()==='flowtrace')?flowtraceDetails(it):`<div class="dr-sec"><h4>Scanner reasoning ${snipSrc}${it.confidence?`, confidence ${esc(it.confidence)}`:''}</h4><div class="reason">${esc(it.reasoning)}</div></div>`}
+    <div class="dr-sec"><h4>Flagged code ${snipSrc}</h4><pre class="code">${snip||(d.tools.includes('Semgrep')?'<div>No code snippet included in this Semgrep export. Open the reported file at the indicated line to inspect the code.</div>':'<div>–</div>')}</pre></div>
+    ${d.tools.includes('Semgrep')?'':d.tools.some(t=>t.toLowerCase()==='flowtrace')?flowtraceDetails(it):`<div class="dr-sec"><h4>Scanner reasoning ${snipSrc}${it.confidence?`, confidence ${esc(it.confidence)}`:''}</h4><div class="reason">${esc(it.reasoning)}</div></div>`}
     ${it.mitigation?`<div class="dr-sec"><h4>Scanner recommendation</h4><div class="reason">${esc(it.mitigation)}</div></div>`:''}
     ${auditHtml(it)}
     ${it.hist.length?`<div class="dr-sec"><h4>Status changes</h4><ul class="hist">${it.hist.slice().reverse().map(h=>`<li>${esc(fmtDT(h.at))}: ${esc(STATUS_BY_ID[h.s]?STATUS_BY_ID[h.s].label:h.s)}${h.review?' (reviewed again)':''}${h.editor?' · '+esc(h.editor):''}${h.src?` <span style="color:var(--faint)">(${esc(h.src)})</span>`:''}</li>`).join('')}</ul></div>`:''}
