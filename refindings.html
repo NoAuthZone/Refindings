@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <!--
   Refindings (formerly Scan-Triage) — changelog · https://github.com/NoAuthZone/Refindings
+  2.1.1  Refresh CSP script hashes so the browser can start the application and bind all buttons.
+  2.1.0  Hardened category; Test Hardening / Demo Files statuses; file-value filters and manual category assignment;
+         complete JSpringGuard context, legacy snippet enrichment and persistent category review history.
   1.7.0  More scanners, detected from the file content: KICS JSON (search key keeps IaC findings stable when lines move),
          2ms JSON (secret masked like Gitleaks), Checkmarx CxSAST XML report and Checkmarx One JSON (SAST location is the
          sink, source and data flow go into the reasoning; "Not Exploitable" counts as suppressed by tool), joern-scan
@@ -97,9 +100,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yuD11mqemgxbNhZXRr8A4RxCsYbJ2mo1i37PQVwuOis=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-hVXPrcFT6eV2qYR+TjG3s+KoO0pb1gWwhruXZ+5Qtqk='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-GhqGI+06ayDKULhd8BWIAHlHjsNBJgOIuDT3v6Z1fdI=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-sqUR1OCL3dGQYa4nDnQqz/CcyCfOgT9kEBgKmEcGJ+w='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Refindings 1.6.2</title>
+<title>Refindings 2.4.0</title>
 <style>
 :root{
   --bg:#EEF1F4; --surface:#FFFFFF; --sunk:#F6F8FA; --ink:#18212C; --muted:#5A6573; --faint:#8A94A1; --line:#D6DCE3;
@@ -418,6 +421,18 @@ a.edlink:hover{text-decoration-color:currentColor}
 .assignee-buttons [hidden],#assigneeQuick [hidden]{display:none!important}
 .assignee-buttons button:disabled{cursor:default;color:var(--muted)}
 .inactive-label{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+#fileFilterControls{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}#fileFilterControls input{min-width:100px;width:100%}#fileFilterControls select{max-width:100%}.code{max-height:480px;overflow:auto;position:relative}
+:root{color-scheme:light} @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}} :root[data-theme="dark"]{color-scheme:dark}
+table.list th{vertical-align:top}
+.column-filter,#fileFilterControls{display:flex;flex-direction:column;gap:6px;margin-top:9px;white-space:normal;cursor:default}
+.column-filter input,.column-filter select,#fileFilterControls input,#fileFilterControls select{box-sizing:border-box;width:100%;min-width:0;max-width:100%;margin:0;padding:6px 7px;border:1px solid var(--line);border-radius:6px;background:var(--sunk);color:var(--ink);font:inherit;font-size:12px;line-height:1.4;letter-spacing:normal;text-transform:none}
+.column-filter input::placeholder{color:var(--muted);opacity:1}.column-filter option{background:var(--surface);color:var(--ink)}
+.column-filter input:focus-visible,.column-filter select:focus-visible{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
+.column-filter input:disabled{opacity:.5}
+
+.global-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:20px}.global-tags{display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow:auto;margin:12px 0}.global-tags .cat{padding:3px 7px;border:1px solid var(--line);border-radius:6px}.global-grid h3{font-size:14px;margin-top:16px}#globalSettings input{background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:6px}#globalSettings summary{cursor:pointer;font-weight:600}.scan-evidence{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}.evidence-card{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--sunk);overflow-wrap:anywhere}.evidence-card pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 var(--mono)}.evidence-card h5{margin:0 0 8px;color:var(--muted);font-size:12px;text-transform:uppercase}.scanner-verdict{padding:10px 12px;border-left:3px solid var(--s-new);background:var(--sunk);margin:12px 0}.scanner-verdict p{margin:6px 0;white-space:pre-wrap}.scanner-raw{max-height:360px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.rating-edit-list{display:grid;gap:10px;margin:12px 0}.rating-edit-row{display:flex;flex-wrap:wrap;gap:10px;align-items:end;border:1px solid var(--line);border-radius:7px;padding:10px}.rating-edit-row legend{font-size:12px;color:var(--muted)}.rating-edit-row label{display:grid;gap:4px;font-size:12px}.rating-edit-row label.rating-theme{display:flex;align-items:center;padding:7px 0}.rating-edit-row input[type=color]{width:44px;height:34px;padding:3px!important}
+.category-edit-list{display:grid;gap:8px;max-height:440px;overflow:auto;margin:12px 0}.category-edit-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px;border-bottom:1px solid var(--line)}.category-edit-row input{flex:1;min-width:160px}.category-edit-row small{color:var(--muted);width:100%}
 </style>
 </head>
 <body>
@@ -431,7 +446,7 @@ a.edlink:hover{text-decoration-color:currentColor}
       <button class="btn" id="btnUndo" aria-label="Undo" title="Undo (Ctrl/Cmd+Z)" disabled><span aria-hidden="true">↶</span></button>
       <button class="btn" id="btnRedo" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z or Ctrl+Y)" disabled><span aria-hidden="true">↷</span></button>
       <span style="display:flex;flex-direction:column;justify-content:center;font-size:12px;color:var(--muted)"><span id="saveStatus" role="status" style="align-self:center;font-size:12px;color:var(--muted)">Saved locally</span> <span id="exportStatus" aria-live="polite"></span></span>
-      <button class="btn primary" id="btnLoad">Load scans</button>
+      <button class="btn primary" id="btnLoad">Load scans / triage</button>
       <button class="btn" id="btnTestExamples" title="Open a separate demo project with 10 synthetic scans; current work stays recoverable">Load test examples</button>
       <div class="menu" id="projMenu">
         <button class="btn" data-menu>Project</button>
@@ -467,6 +482,20 @@ a.edlink:hover{text-decoration-color:currentColor}
   <input type="file" id="fileScans" accept=".refindings,.zip,.json,.sarif,.xml,.txt,.log,.jsonl,.ndjson,.html,.htm,.gz,application/json,application/sarif+json,application/xml,text/xml,text/plain,text/html,application/gzip" multiple class="hidden">
   <input type="file" id="fileProject" accept=".refindings,.zip,.json,.sarif,.xml,.txt,.log,.jsonl,.ndjson,.html,.htm,.gz,application/zip,application/json,application/sarif+json,application/xml,text/xml,text/plain,text/html,application/gzip" class="hidden">
 
+
+  <div id="scannerOverview" class="scan-evidence hidden" style="margin-bottom:14px"></div>
+  <details class="panel" id="globalSettings" style="padding:14px 16px;margin-bottom:14px">
+    <summary>Global settings · Categories, statuses &amp; review intervals</summary>
+    <p class="note">Applies to all projects in this browser. Existing categories and statuses stay available. Custom statuses are independent review labels; accepted-risk review dates and fixed/false-positive behavior remain tied to the built-in statuses. Category and status definitions travel with saved project files. Remove hides a value from new assignments; existing findings, filters and reports retain it. Restore makes it available again.</p>
+    <div class="global-grid">
+      <section><h3>Categories</h3><div id="globalCategories" class="category-edit-list"></div><form id="globalCategoryForm" class="rule-form"><label>New category <input name="label" required maxlength="80" placeholder="Category name"></label><button class="btn small" type="submit">Add category</button></form></section>
+      <section><h3>Statuses</h3><form id="ratingSettingsForm"><div id="globalStatuses" class="rating-edit-list"></div><button class="btn small" type="submit">Save rating buttons</button> <button class="btn small ghost" type="button" id="restoreRatingDefaults">Restore standard ratings</button></form><p class="note">Names, colors and shortcuts apply globally. The meaning of each status stays unchanged, including accepted-risk reviews. Leave a shortcut empty to disable it.</p><form id="globalStatusForm" class="rule-form"><label>New status <input name="label" required maxlength="80" placeholder="Status name"></label><label>Color <input name="color" type="color" value="#7086a3"></label><button class="btn small" type="submit">Add status</button></form></section>
+    </div>
+    <form id="globalReviewForm" class="rule-form"><label>Default review interval (days; 0 = none) <input name="days" type="number" min="0" max="3650" required></label><label>Quick choices (days, comma-separated) <input name="presets" required placeholder="30, 90, 180, 365"></label><button class="btn small" type="submit">Save review intervals</button><button class="btn small ghost" type="button" id="resetReviewDefaults">Restore 90-day default and quick choices</button></form>
+    <p class="note">Changing intervals affects future decisions only. Existing review dates stay unchanged. Global settings are saved separately from project Undo.</p><p id="globalSettingsMessage" role="status" aria-live="polite"></p>
+  </details>
+
+  <details id="springTriagePanel" class="panel hidden" style="padding:14px 16px"><summary id="springTriageTitle">JSpringGuard triage</summary><p>Finding decisions are matched by the original scanner fingerprint. Flow decisions stay separate from findings. Original statuses and notes are preserved; newer local reviews take precedence.</p><div id="springTriageRows" style="max-height:360px;overflow:auto"></div></details>
   <section id="importSummary" class="panel hidden" style="padding:14px 16px" aria-labelledby="importTitle">
     <div style="display:flex;justify-content:space-between;align-items:center"><h3 id="importTitle" style="margin:0">Import results</h3><button class="btn small ghost" id="importDismiss">Close</button></div>
     <ul id="importResults" style="padding-left:20px;margin-bottom:0"></ul>
@@ -545,6 +574,7 @@ a.edlink:hover{text-decoration-color:currentColor}
         <strong id="bulkCount"></strong>
         <span>Set status:</span>
         <span class="seg" id="bulkSeg"></span>
+        <label>Category <select id="bulkCategory" aria-label="Category for selected findings"></select></label><button class="btn small" id="bulkCategoryApply">Assign category</button>
         <button class="btn small" id="bulkMerge" title="Merge the selected findings into one; also applies to future scans">Merge</button>
         <button class="btn small" id="bulkEditor">Assign reviewer</button>
         <button class="btn small ghost" id="bulkClear">Clear selection</button>
@@ -557,13 +587,13 @@ a.edlink:hover{text-decoration-color:currentColor}
           <thead>
             <tr>
               <th data-col="sel"><input type="checkbox" id="selAll" aria-label="Select all filtered findings" title="Select all filtered findings"></th>
-              <th data-col="hist" class="c-strip">History</th>
-              <th data-col="sev" class="sortable" data-sort="sev">Sev.</th>
-              <th data-col="title" class="sortable" data-sort="title">Finding</th>
-              <th data-col="file" class="sortable" data-sort="file">File <button class="th-toggle" id="fullPathBtn" type="button" title="Show the full path as reported by the scanner (all locations if scans differ) instead of the path relative to the code base">full path</button></th>
-              <th data-col="seen" class="sortable c-seen" data-sort="seen">Seen</th>
-              <th data-col="status" class="sortable" data-sort="status">Status</th>
-              <th data-col="editor" class="sortable" data-sort="editor">Assignee</th>
+              <th data-col="hist" class="c-strip">History<div class="column-filter"><select id="colHistory" aria-label="Filter history"><option value="">All history</option><option value="latest">In latest scan</option><option value="gone">No longer reported</option><option value="regression">Regression</option></select></div></th>
+              <th data-col="sev" class="sortable" data-sort="sev">Sev.<div class="column-filter"><select id="colSeverityMode" aria-label="Severity comparison"><option value="gte">≥</option><option value="eq">=</option><option value="lte">≤</option></select><input id="colSeverity" type="number" placeholder="Severity" aria-label="Severity" min="0" step="1"></div></th>
+              <th data-col="title" class="sortable" data-sort="title">Finding<div class="column-filter"><select id="colTitleMode" aria-label="Finding match"><option value="contains">contains</option><option value="exact">equals</option><option value="not">does not contain</option></select><input id="colTitle" type="search" placeholder="Filter finding…" aria-label="Filter finding…"></div></th>
+              <th data-col="file" class="sortable" data-sort="file">File <button class="th-toggle" id="fullPathBtn" type="button" title="Show the full path as reported by the scanner (all locations if scans differ) instead of the path relative to the code base">full path</button><div id="fileFilterControls" class="column-filter"><select id="fileMode" aria-label="File filter match"><option value="contains">contains</option><option value="exact">equals</option><option value="prefix">starts with</option><option value="not">does not contain</option></select><input id="fileValue" type="search" list="fileValues" placeholder="Filter file path…" aria-label="Filter file path"><datalist id="fileValues"></datalist></div></th>
+              <th data-col="seen" class="sortable c-seen" data-sort="seen">Seen<div class="column-filter"><select id="colSeenMode" aria-label="Scan count comparison"><option value="gte">≥</option><option value="eq">=</option><option value="lte">≤</option></select><input id="colSeen" type="number" placeholder="Scans" aria-label="Scans" min="0" step="1"></div></th>
+              <th data-col="status" class="sortable" data-sort="status">Status<div class="column-filter"><select id="colStatus" aria-label="Filter status"><option value="">All statuses</option><option value="open">Open</option><option value="confirmed">Confirmed</option><option value="test-hardening">Test Hardening</option><option value="demo-files">Demo Files</option><option value="fp">False positive</option><option value="accepted">Accepted risk</option><option value="fixed">Fixed</option></select></div></th>
+              <th data-col="editor" class="sortable" data-sort="editor">Assignee<div class="column-filter"><select id="colEditorMode" aria-label="Assignee match"><option value="contains">contains</option><option value="exact">equals</option><option value="not">does not contain</option><option value="unassigned">Unassigned</option></select><input id="colEditor" type="search" placeholder="Filter assignee…" aria-label="Filter assignee…"></div></th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -577,7 +607,7 @@ a.edlink:hover{text-decoration-color:currentColor}
         <p class="note"><b>Review interval.</b> An accepted risk gets a review date this many days after it is accepted; when the date has passed it is flagged "review due" and no longer suppressed by the FalconEYE baseline. 0 = no review date.</p>
         <p class="note"><b>Fix deadlines (SLA).</b> Open or confirmed findings older than this (days since first seen) are flagged "SLA overdue" and listed in the report. 0 = no deadline.</p>
         <form class="rule-form" id="slaForm"><label>critical <input name="crit" type="number" min="0" max="3650" style="width:64px"></label><label>high <input name="high" type="number" min="0" max="3650" style="width:64px"></label><label>medium <input name="med" type="number" min="0" max="3650" style="width:64px"></label><label>low <input name="low" type="number" min="0" max="3650" style="width:64px"></label><label>info <input name="info" type="number" min="0" max="3650" style="width:64px"></label><span style="color:var(--muted);font-size:13px">days</span><button class="btn small" type="submit">Apply</button></form>
-        <form class="rule-form" id="revForm"><label>Review accepted risks after <input name="days" type="number" min="0" max="3650" step="1" style="width:80px"> days</label><button class="btn small" type="submit">Apply</button></form>
+        <form class="rule-form" id="revForm"><label>Global default: review accepted risks after <input name="days" type="number" min="0" max="3650" step="1" style="width:80px"> days</label><button class="btn small" type="submit">Apply</button></form>
         <p class="note"><b>Editor link.</b>
         With the local path to the code base, file references become links that open the file at the flagged line in your editor. The setting is stored in the project file.</p>
         <form class="rule-form" id="edForm">
@@ -721,7 +751,7 @@ a.edlink:hover{text-decoration-color:currentColor}
     <button class="btn small" id="drClose" title="Close (Esc)">Close</button>
   </div>
   <div class="dr-b" id="drBody"></div>
-  <div class="kbd-help">Keys: <b>o</b> open, <b>c</b> confirmed, <b>f</b> false positive, <b>a</b> accepted risk, <b>x</b> fixed, <b>j/k</b> next/previous, <b>Ctrl/Cmd+Z</b> undo, <b>Esc</b> close</div>
+  <div class="kbd-help">Keys: <b>o</b> open, <b>c</b> confirmed, <b>f</b> false positive, <b>a</b> accepted risk, <b>x</b> fixed, <b>t</b> test hardening, <b>d</b> demo files, <b>j/k</b> next/previous, <b>Ctrl/Cmd+Z</b> undo, <b>Esc</b> close</div>
 </aside>
 <div class="toast" id="toast"></div>
 <div class="dragover-overlay" id="dragOverlay">Drop scan or project files</div>
@@ -729,10 +759,12 @@ a.edlink:hover{text-decoration-color:currentColor}
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
 const TOOL_VERSION = 3;          // project file schema
-const APP_VERSION = '2.0.0';     // program version, increase with every change
+const APP_VERSION = '2.4.0';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
+  {id:'test-hardening',label:'Test Hardening',key:'t',color:'var(--s-new)'},
+  {id:'demo-files',label:'Demo Files',key:'d',color:'var(--muted)'},
   {id:'fp',        label:'False positive',     key:'f', color:'var(--s-fp)'},
   {id:'accepted',  label:'Accepted risk',      key:'a', color:'var(--s-accepted)'},
   {id:'fixed',     label:'Fixed',              key:'x', color:'var(--s-fixed)'},
@@ -740,6 +772,9 @@ const STATUSES = [
 const STATUS_BY_ID = Object.assign(Object.create(null), Object.fromEntries(STATUSES.map(s=>[s.id,s])));
 
 const CATS = [
+  ['HARDENED','Hardened',/(?!)/],
+  ['TEST_HARDENING','Test Hardening',/(?!)/],
+  ['DEMO_FILES','Demo Files',/(?!)/],
   ['SQLI','SQL injection',/\bsql|sqli/],
   ['CMDI','Command / code injection',/command inj|os command|\brce\b|remote code|code exec|eval\(|code inj|shell/],
   ['XSS','XSS / HTML injection',/xss|cross.site script|script (inj|tag)|dom.based|html (inj|attribute)|attribute inj|unescaped|output encoding|injection into html/],
@@ -766,6 +801,9 @@ const CATS = [
 const CAT_LABEL = Object.assign(Object.create(null), Object.fromEntries(CATS.map(c=>[c[0],c[1]])));
 /* Category → CWE (main first) and OWASP Top 10 2021 */
 const CAT_META = Object.assign(Object.create(null), {
+  HARDENED:{cwe:[],owasp:''},
+  TEST_HARDENING:{cwe:[],owasp:''},
+  DEMO_FILES:{cwe:[],owasp:''},
   SQLI:    {cwe:[89],        owasp:'A03:2021 Injection'},
   CMDI:    {cwe:[78,94],     owasp:'A03:2021 Injection'},
   XSS:     {cwe:[79],        owasp:'A03:2021 Injection'},
@@ -896,12 +934,13 @@ function normalizeInput(json, fileName){
       location: file,
       found_snippet: fsn,
       actual_snippet: Array.isArray(f.actual_snippet) ? f.actual_snippet : undefined,
+      _evidence:cleanEvidence(f._evidence || (meta.tool==='FalconEYE'?{tool:'FalconEYE',verifier:f.verifier_data?JSON.stringify(f.verifier_data,null,2):'',verdict:f.verifier_data?.hallucination?'Hallucination detected':f.verifier_data?.filtered?'Rejected by scanner':'',reason:f.verifier_data?.filter_reason}:null)),
       verifier_data: f.verifier_data && typeof f.verifier_data==='object' ? f.verifier_data : undefined,
       _lines: ls ? [ls, Math.max(ls,le)] : null,
       // set by the importers of other scanners
       cwe: Array.isArray(f.cwe) ? f.cwe.map(n=>int(n)).filter(n=>n>0).slice(0,10) : [],
       _flowtrace_identity: str(f._flowtrace_identity).slice(0,2000),
-      rule: str(f.rule).slice(0,200), _fpx: str(f._fpx).slice(0,40), _cat: has(CAT_LABEL, str(f._cat)) ? str(f._cat) : '', _sup: str(f._sup).slice(0,300), _fk: f._fk==='self' ? 'self' : '', _alt: str(f._alt).slice(0,400),
+      rule: str(f.rule).slice(0,200), _jfp:str(f._jfp).slice(0,200), _fpx: str(f._fpx).slice(0,40), _cat: has(CAT_LABEL, str(f._cat)) ? str(f._cat) : '', _sup: str(f._sup).slice(0,300), _fk: f._fk==='self' ? 'self' : '', _alt: str(f._alt).slice(0,400),
     };
   });
   if(!meta.label) meta.label = labelFromFile(fileName, meta.codebase_path);
@@ -945,6 +984,98 @@ const ts = s => { const t=Date.parse(s); return Number.isFinite(t) ? t : 0; };
 const num = (v,d=0) => (v!==null && v!=='' && Number.isFinite(+v)) ? +v : d;
 const int = (v,d=0) => Math.trunc(num(v,d));
 const str = (v,d='') => typeof v==='string' ? v : (v==null ? d : String(v));
+
+
+const BUILTIN_STATUS_IDS=new Set(STATUSES.map(s=>s.id));
+const BUILTIN_CATEGORY_IDS=new Set(CATS.map(c=>c[0]));
+const RATING_DEFAULTS=STATUSES.map(s=>({...s}));
+let RATING_OVERRIDES=[];
+let REMOVED={statuses:[],categories:[]},CATEGORY_OVERRIDES=[];
+const GLOBAL_KEY='refindings.global-settings.v1';
+const GLOBAL_DEFAULTS={reviewDays:90,reviewPresets:[30,90,180,365]};
+
+function cleanEvidence(v){
+ if(!v || !['Flowtrace','FalconEYE'].includes(v.tool))return null;
+ const text=x=>str(x).slice(0,200000);
+ const point=x=>({file:text(x?.file),line:Math.max(0,int(x?.line)),code:text(x?.code),description:text(x?.description),api:text(x?.api),kind:text(x?.kind)});
+ return {tool:v.tool,source:point(v.source),sink:point(v.sink),trace:(Array.isArray(v.trace)?v.trace:[]).slice(0,2000).map(point),route:text(v.route),entrypoint:text(v.entrypoint),verdict:text(v.verdict),reason:text(v.reason),protection:text(v.protection),exploit:text(v.exploit),reproduction:text(v.reproduction),verifier:text(v.verifier),interrupted:!!v.interrupted,incomplete:!!v.incomplete};
+}
+
+function cleanCatalog(raw){
+ const out={statuses:[],categories:[]};
+ for(const kind of ['statuses','categories']){
+  const seen=new Set();
+  for(const r of (Array.isArray(raw?.[kind])?raw[kind]:[]).slice(0,100)){
+   if(!r || !/^custom-[a-z0-9-]{1,70}$/.test(r.id) || seen.has(r.id))continue;
+   const label=str(r.label).trim().slice(0,80);if(!label)continue;seen.add(r.id);
+   out[kind].push({id:r.id,label,...(kind==='statuses'?{color:/^#[0-9a-f]{6}$/i.test(r.color)?r.color:'#7086a3'}:{})});
+  }
+ }
+ return out;
+}
+function registerCatalog(raw){
+ const c=cleanCatalog(raw);
+ for(const r of c.statuses)if(!has(STATUS_BY_ID,r.id)){const row={...r,key:''};STATUSES.push(row);STATUS_BY_ID[r.id]=row;}
+ for(const r of c.categories)if(!has(CAT_LABEL,r.id)){CATS.push([r.id,r.label,/(?!)/]);CAT_LABEL[r.id]=r.label;CAT_META[r.id]={cwe:[],owasp:''};}
+}
+function catalogSnapshot(){return {statuses:STATUSES.filter(s=>!BUILTIN_STATUS_IDS.has(s.id)).map(({id,label,color})=>({id,label,color})),categories:CATS.filter(c=>!BUILTIN_CATEGORY_IDS.has(c[0])).map(c=>({id:c[0],label:c[1]}))};}
+function cleanGlobal(raw){
+ return {reviewDays:Number.isInteger(raw?.reviewDays)&&raw.reviewDays>=0&&raw.reviewDays<=3650?raw.reviewDays:90,reviewPresets:Array.isArray(raw?.reviewPresets)&&raw.reviewPresets.every(n=>Number.isInteger(n)&&n>=1&&n<=3650)?[...new Set(raw.reviewPresets)].slice(0,12):[...GLOBAL_DEFAULTS.reviewPresets]};
+}
+let GLOBAL=cleanGlobal(null);
+try{const raw=JSON.parse(localStorage.getItem(GLOBAL_KEY)||'null');GLOBAL=cleanGlobal(raw);registerCatalog(raw);try{updateRatings(raw?.ratingOverrides||[]);}catch{}try{updateCategoryNames(raw?.categoryOverrides||[]);}catch{}REMOVED=cleanRemoved(raw?.removed);}catch{}
+function persistGlobal(){localStorage.setItem(GLOBAL_KEY,JSON.stringify({...GLOBAL,...catalogSnapshot(),ratingOverrides:RATING_OVERRIDES,categoryOverrides:CATEGORY_OVERRIDES,removed:REMOVED}));}
+
+
+function cleanRemoved(raw){return {statuses:(Array.isArray(raw?.statuses)?raw.statuses:[]).filter(id=>has(STATUS_BY_ID,id)),categories:(Array.isArray(raw?.categories)?raw.categories:[]).filter(id=>has(CAT_LABEL,id))};}
+function availableStatuses(){return STATUSES.filter(s=>!REMOVED.statuses.includes(s.id));}
+function availableCategories(){return CATS.filter(c=>!REMOVED.categories.includes(c[0]));}
+function setCatalogRemoved(kind,id,removed){
+ const valid=kind==='statuses'?has(STATUS_BY_ID,id):kind==='categories'&&has(CAT_LABEL,id);if(!valid)throw new Error('Unknown category or rating.');
+ REMOVED[kind]=REMOVED[kind].filter(v=>v!==id);if(removed)REMOVED[kind].push(id);
+}
+function updateCategoryNames(rows){
+ if(!Array.isArray(rows))throw new Error('Invalid category settings.');
+ const changes=new Map();
+ for(const row of rows){const label=str(row?.label).trim();if(!row||!has(CAT_LABEL,row.id)||changes.has(row.id)||!label||label.length>80)throw new Error('Category names must contain 1–80 characters.');changes.set(row.id,label);}
+ const names=new Set();for(const [id,label] of CATS){const name=(changes.get(id)||label).toLocaleLowerCase();if(names.has(name))throw new Error('Category names must be unique.');names.add(name);}
+ for(const [id,label] of changes){CAT_LABEL[id]=label;CATS.find(c=>c[0]===id)[1]=label;}
+ const saved=new Map(CATEGORY_OVERRIDES.map(r=>[r.id,r.label]));for(const [id,label] of changes)saved.set(id,label);CATEGORY_OVERRIDES=[...saved].map(([id,label])=>({id,label}));
+}
+
+function updateRatings(rows){
+ if(!Array.isArray(rows))throw new Error('Invalid rating settings.');
+ const seen=new Set(),changes=new Map();
+ for(const row of rows){
+  if(!row || !has(STATUS_BY_ID,row.id) || seen.has(row.id))throw new Error('Unknown or duplicate rating.');seen.add(row.id);
+  const label=str(row.label).trim(),key=str(row.key).trim().toLowerCase(),color=str(row.color).trim();
+  if(!label || label.length>80)throw new Error('Rating names must contain 1–80 characters.');
+  if(key && (!/^[a-z0-9]$/.test(key)||['j','k'].includes(key)))throw new Error('Use one letter or digit for a shortcut; j and k are reserved for navigation.');
+  if(color && !/^#[0-9a-f]{6}$/i.test(color))throw new Error('Choose a valid color or use the theme default.');
+  changes.set(row.id,{id:row.id,label,key,color});
+ }
+ const names=new Set(),keys=new Set();
+ for(const status of STATUSES){const row=changes.get(status.id)||status,name=row.label.toLocaleLowerCase();if(names.has(name))throw new Error('Rating names must be unique.');names.add(name);if(row.key){if(keys.has(row.key))throw new Error('Each shortcut can only be assigned once.');keys.add(row.key);}}
+ for(const [id,row] of changes){const target=STATUS_BY_ID[id],base=RATING_DEFAULTS.find(s=>s.id===id);Object.assign(target,{label:row.label,key:row.key,color:row.color||base?.color||'#7086a3'});}
+ RATING_OVERRIDES=STATUSES.map(s=>({id:s.id,label:s.label,key:s.key,color:/^#[0-9a-f]{6}$/i.test(s.color)?s.color:''}));
+}
+function restoreRatingDefaults(){
+ REMOVED.statuses=REMOVED.statuses.filter(id=>!BUILTIN_STATUS_IDS.has(id));
+ const keys=new Set(RATING_DEFAULTS.map(s=>s.key));
+ updateRatings(STATUSES.map(status=>{const base=RATING_DEFAULTS.find(s=>s.id===status.id);return base?{...base,color:''}:{...status,key:keys.has(status.key)?'':status.key,color:/^#[0-9a-f]{6}$/i.test(status.color)?status.color:''};}));
+}
+
+function addCatalogEntry(kind,label,color){
+ label=str(label).trim();if(!['statuses','categories'].includes(kind)||!label||label.length>80)throw new Error('Enter a name of 1–80 characters.');
+ if((kind==='statuses'?STATUSES.map(s=>s.label):CATS.map(c=>c[1])).some(n=>n.toLocaleLowerCase()===label.toLocaleLowerCase()))throw new Error('That name already exists.');
+ if(catalogSnapshot()[kind].length>=100)throw new Error('Up to 100 custom entries are supported.');
+ const id='custom-'+crypto.randomUUID();registerCatalog({[kind]:[{id,label,color}]});return id;
+}
+function reviewPresetDays(text){
+ const values=str(text).split(',').map(s=>s.trim()).filter(Boolean);
+ if(!values.length||values.length>12||values.some(n=>!/^\d+$/.test(n)||+n<1||+n>3650))throw new Error('Enter 1–12 intervals, from 1 to 3650 days, separated by commas.');
+ return [...new Set(values.map(Number))];
+}
 
 /* ---- Other scanners ----
    SARIF 2.1.0 (Semgrep, CodeQL, Snyk Code, Checkov, Trivy, ESLint, Bandit …), Semgrep JSON, Bandit JSON, Gitleaks JSON
@@ -1070,10 +1201,11 @@ function fromSarif(j){
         mitigation: help && help!==msg && help!==fullD && help!==shortD ? help : '',
         confidence: str(rp.precision || resP.confidence || ''),
         location: {file_path: uriToPath(uri), line_start: ls, line_end: le},
-        found_snippet: secretTool ? snipOf(ls, ls, snipText) : snipOf(ls, le, snipText, int(ctx.startLine,0), ctx.snippet && ctx.snippet.text),
+        found_snippet: secretTool ? snipOf(ls, ls, snipText) : snipOf(ls, le, tname==='JSpringGuard' && int(ctx.startLine)>0 && ctx.snippet?.text && ls>=int(ctx.startLine) && ls<int(ctx.startLine)+str(ctx.snippet.text).split('\n').length ? '' : snipText, int(ctx.startLine,0), ctx.snippet && ctx.snippet.text),
         cwe, rule: rid, tool: tname, ...(secretTool ? {_cat:'SECRET'} : /^kics$/i.test(tname) ? {_cat: catPref(title, cwe, 'CONFIG')} : {}),
         _fpx: tname==='JSpringGuard'?str((r.partialFingerprints||{})['xxeCheck/v1']):'',
-        _sup: tname==='JSpringGuard' && /^HARDENED:/.test(msg) ? 'JSpringGuard assessment: HARDENED' : sup ? 'suppressed by tool ('+(str(sup.kind)||'suppression')+')'+(sup.justification?': '+str(sup.justification).slice(0,200):'')
+        ...(tname==='JSpringGuard' && /^HARDENED:/.test(msg) ? {_cat:'HARDENED'} : {}),
+        _sup: sup ? 'suppressed by tool ('+(str(sup.kind)||'suppression')+')'+(sup.justification?': '+str(sup.justification).slice(0,200):'')
             : tri==='invalid' ? 'rejected by Metis triage'+(resP.metisTriageReason?': '+str(resP.metisTriageReason).slice(0,200):'') : '',
         _fk: !sup && tri==='invalid' ? 'self' : '',
         _alt: rid+' '+(secretTool && reg.snippet && reg.snippet.text ? fnv(str(reg.snippet.text)) : msg),
@@ -1666,6 +1798,7 @@ function fromFlowtrace(j){
         found_snippet:code?{[line]:{identifier:'>',line:code}}:dict(),
         reasoning,mitigation:details(f.mitigation||f.remediation||ft.remediation||ft.fix),confidence:str(f.confidence??llm.confidence),
         cwe:cweList(f.cwe||ft.cwe),rule:str(f.rule||f.kind),tool:'Flowtrace',
+        _evidence:cleanEvidence({tool:'Flowtrace',source,sink,trace:ft.trace,route:ft.route,entrypoint:ft.entrypoint,verdict:llm.verdict,reason:llm.reason,protection:llm.protection_location,exploit:llm.exploit_hint,reproduction:details(ft.reproduction),interrupted:j.interrupted,incomplete:(j.analysis||meta.analysis||{}).complete===false}),
         _alt:str(f.title||f.kind),_fpx:str(f.id||f.fingerprint),_flowtrace_id:str(f.id),
         _sup:('import_schema_version' in j)?str(f._sup):llm.verdict==='not_vulnerable'&&!f.review_data?'Flowtrace LLM: '+str(llm.reason||llm.verdict):'',_fk:str(f._fk||'self')};
     })};
@@ -1710,7 +1843,7 @@ function fromJSpringGuard(j){
   return {tool:'JSpringGuard',started:str(j.generated_at||j.generated),codebase:str(j.root),findings:j.findings.filter(f=>f&&typeof f==='object').map(f=>{
     const line=int(f.line), snippet=dict();
     for(const row of Array.isArray(f.context)?f.context:[]) if(Array.isArray(row)&&int(row[0])>0) snippet[int(row[0])]={identifier:int(row[0])===line?'>':'|',line:str(row[1])};
-    if(f.code) snippet[line]={identifier:'>',line:str(f.code)};
+    if(f.code && !has(snippet,line)) snippet[line]={identifier:'>',line:str(f.code)};
     const status=str(f.status).toUpperCase();
     return {issue:str(f.rule_name||f.rule_id),severity:sevNum(f.severity),rule:str(f.rule_id),tool:'JSpringGuard',cwe:cweList(f.cwe),
       location:{file_path:uriToPath(f.file),line_start:line,line_end:line},found_snippet:snippet,
@@ -1720,7 +1853,7 @@ function fromJSpringGuard(j){
         list(f.taint).length?'External input: '+list(f.taint).join(', '):'',
         list(f.flow).length?'Data flow:\n'+list(f.flow).join('\n'):'',f.is_test?'Test code':'',str(f.note)].filter(Boolean).join('\n\n'),
       mitigation:str(f.fix),confidence:'',_fpx:str(f.fingerprint),_alt:str(f.rule_id)+' '+str(f.rule_name),
-      _sup:status==='HARDENED'?'JSpringGuard assessment: HARDENED':'',_fk:''};
+      _cat:status==='HARDENED'?'HARDENED':'',_sup:'',_fk:''};
   })};
 }
 function jspringguardHtmlToJson(doc){
@@ -1826,6 +1959,7 @@ function finishForeign(A, kind, fileName, mtime){
   const baseDir = normPath(A.codebase).replace(/\/*$/,'/');
   for(const f of A.findings){
     if(baseDir.length>1 && f.location.file_path.startsWith(baseDir)) f.location.file_path=f.location.file_path.slice(baseDir.length);
+    if(kind==='jspringguard' || (kind==='sarif' && A.tool==='JSpringGuard')) f._jfp=str(f._fpx);
     f._fpx = kind==='jspringguard' ? 'jsp-'+fnv(str(f._fpx)+'|'+str(f.rule)+'|'+str(f.location.file_path)+'|'+int(f.location.line_start)) : kind==='flowtrace' && f._fpx ? f._fpx : '|L'+int(f.location.line_start);
     if(A.tool==='Flowtrace' && f._flowtrace_id) f._flowtrace_identity=normPath(A.codebase).replace(/\/+$/,'')+'|'+f._flowtrace_id;
     const meta=[f.rule && !str(f.reasoning).includes(f.rule) ? `${f.tool||A.tool} rule: ${f.rule}` : '', f.cwe.length ? f.cwe.map(n=>'CWE-'+n).join(', ') : ''].filter(Boolean).join(' · ');
@@ -1834,7 +1968,60 @@ function finishForeign(A, kind, fileName, mtime){
   return {tool:{name:A.tool}, foreign:kind, review:{id, started_at:started, codebase_path:A.codebase, label, tool:A.tool}, findings:A.findings};
 }
 
-function emptyState(){ return {version:TOOL_VERSION, projectId:crypto.randomUUID(), reviewers:[], scans:[], items:dict(), rules:[], roots:[], settings:{editorBase:'', editor:'vscode', editorTpl:'', projectName:'', reviewDays:90, sla:{crit:7, high:30, med:90, low:180, info:0}}}; }
+
+/* Keep external review records independently of scans, including unmatched flow controls. */
+function sanitizeSpringTriage(rows){
+ return (Array.isArray(rows)?rows:[]).filter(r=>r && ['triage','flow-control-triage'].includes(r.kind) && typeof r.key==='string').map(r=>({kind:r.kind,key:r.key.slice(0,4000),status:str(r.status).slice(0,100),note:str(r.note).slice(0,100000),at:ts(r.at)?str(r.at):'',file:str(r.file),line:int(r.line),entrypoint:str(r.entrypoint),control:str(r.control)}));
+}
+function parseSpringTriage(j){
+ if(j?.tool!=='JSpringGuard' || !['triage','flow-control-triage'].includes(j.kind)) return null;
+ if(j.version!==1 || !j.entries || typeof j.entries!=='object' || Array.isArray(j.entries)) throw new Error('Unsupported JSpringGuard triage version or entries');
+ const rows=[];
+ for(const [key,v] of Object.entries(j.entries)){
+  if(!v || typeof v!=='object' || typeof v.status!=='string' || (v.note!=null && typeof v.note!=='string')) throw new Error('Invalid JSpringGuard triage entry: '+key);
+  rows.push({kind:j.kind,key,status:v.status,note:v.note||'',at:v.ts||v.updated||j.exported,file:v.file,line:v.line,entrypoint:v.entrypoint,control:v.control});
+ }
+ return sanitizeSpringTriage(rows);
+}
+function mergeSpringTriage(state,rows){
+ state.jspringTriage=state.jspringTriage||[];
+ for(const row of rows){
+  const old=state.jspringTriage.find(r=>r.kind===row.kind && r.key===row.key);
+  if(!old) state.jspringTriage.push({...row});
+  else if(ts(row.at)>ts(old.at)) Object.assign(old,row);
+  else if(ts(row.at)===ts(old.at) && JSON.stringify(row)!==JSON.stringify(old)){
+   // Retain conflicting versions instead of silently losing either decision.
+   if(!state.jspringTriage.some(r=>JSON.stringify(r)===JSON.stringify(row))) state.jspringTriage.push({...row});
+  }
+ }
+}
+function springMatches(state,row){
+ if(row.kind!=='triage') return [];
+ const fps=new Set(state.scans.flatMap(s=>(s.rec||[]).filter(q=>q.jfp===row.key).map(q=>q.p)));
+ return Object.values(state.items).filter(it=>it.fps.some(fp=>fps.has(fp)));
+}
+function springStatus(row){return ({'false-positive':'fp','confirmed':'confirmed','accepted':'accepted','fixed':'fixed','open':'open'})[row.status]||null;}
+function applySpringTriage(state){
+ let applied=0;
+ for(const row of state.jspringTriage||[]){
+  const status=springStatus(row);
+  if(!status || !row.at || state.jspringTriage.some(r=>r!==row && r.kind===row.kind && r.key===row.key && r.at===row.at && JSON.stringify(r)!==JSON.stringify(row))) continue;
+  for(const it of springMatches(state,row)){
+   const latest=Math.max(ts(it.statusAt),ts(it.editedAt));
+   if(latest>=ts(row.at)) continue;
+   const before=it.status||'open';
+   it.status=status;it.statusAt=row.at;
+   // Keep existing independent notes, while retaining the original note in the triage panel.
+   if(row.note && !it.note) it.note=row.note;
+   it.hist=(it.hist||[]).concat({at:row.at,s:status,editor:'JSpringGuard'}).slice(-100);
+   it.audit=(it.audit||[]).concat({id:'jspring-'+row.key+'-'+row.at,at:row.at,actor:'JSpringGuard',field:'status',before,after:status}).slice(-100);
+   applied++;
+  }
+ }
+ return applied;
+}
+
+function emptyState(){ return {version:TOOL_VERSION, projectId:crypto.randomUUID(), catalog:catalogSnapshot(), reviewers:[], jspringTriage:[], scans:[], items:dict(), rules:[], roots:[], settings:{editorBase:'', editor:'vscode', editorTpl:'', projectName:'', reviewDays:90, sla:{crit:7, high:30, med:90, low:180, info:0}}}; }
 /* Review dates for accepted risks: plain local dates (YYYY-MM-DD) */
 const isDate = s => /^\d{4}-\d\d-\d\d$/.test(str(s)) && !isNaN(Date.parse(s));
 const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -1862,11 +2049,11 @@ function sanitizeItem(v, key, depth){
   const titles=dict();
   if(v.titles && typeof v.titles==='object') for(const t of Object.keys(v.titles)) titles[t]=Math.max(1,int(v.titles[t],1));
   const id=safeId(v.id||key);
-  const it = { id, file:str(v.file), cat:cat(v.cat), sig:sig(v.sig), range:range(v.range),
+  const it = { evidence:cleanEvidence(v.evidence), id, file:str(v.file), cat:cat(v.cat), scanCat:has(CAT_LABEL,v.scanCat)?v.scanCat:null, categoryAt:str(v.categoryAt), sig:sig(v.sig), range:range(v.range),
     fps:(Array.isArray(v.fps)?v.fps:[]).map(str).slice(-60), titles, seen,
     alts:(Array.isArray(v.alts)?v.alts:[]).filter(a=>a&&typeof a==='object').slice(0,50).map(a=>({file:str(a.file), cat:cat(a.cat), sig:sig(a.sig), range:range(a.range)})),
     lastTitle:str(v.lastTitle,'(untitled)'), lastDate:str(v.lastDate), reasoning:str(v.reasoning), mitigation:str(v.mitigation), confidence:str(v.confidence),
-    snip:(Array.isArray(v.snip)?v.snip:[]).filter(Array.isArray).slice(0,60).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]),
+    snip:(Array.isArray(v.snip)?v.snip:[]).filter(Array.isArray).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]),
     editor:str(v.editor).slice(0,120), editorAssigned:!!v.editorAssigned, editedAt:!isNaN(Date.parse(v.editedAt))?str(v.editedAt):'',
     snipScan:str(v.snipScan), status:validStatus(v.status), statusAt: v.statusAt?str(v.statusAt):null, note:str(v.note),
     audit:sanitizeAudit(v.audit),
@@ -1887,11 +2074,18 @@ function sanitizeItem(v, key, depth){
         before:{seen:bseen, titles:btitles, fps:(Array.isArray(b.fps)?b.fps:[]).map(str), alts:(Array.isArray(b.alts)?b.alts:[]).filter(a=>a&&typeof a==='object').map(a=>({file:str(a.file), cat:cat(a.cat), sig:sig(a.sig), range:range(a.range)}))}});
     }
   }
+  if(it.filterReason==='JSpringGuard assessment: HARDENED'){
+    if(!it.categoryAt) it.cat='HARDENED';
+    if(it.scanCat) it.scanCat='HARDENED';
+    it.scannerFiltered=false;it.filterReason='';it.filterKind='';
+    for(const seen of Object.values(it.seen)) seen.flt=false;
+  }
   return it;
 }
 
 /* Validate and type the project file / stored state: blocks broken or crafted data (XSS, pollution) */
 function sanitizeState(raw){
+  registerCatalog(raw?.catalog);
   const S = emptyState(); if(!raw || typeof raw!=='object') return S;S.projectId=projectIdentity(raw);
   const validStatus = s => has(STATUS_BY_ID,s) ? s : null;
   for(const s of Array.isArray(raw.scans)?raw.scans:[]){
@@ -1911,6 +2105,7 @@ function sanitizeState(raw){
     S.rules.push({glob:str(r.glob).trim(), cat: r.cat==='*'||has(CAT_LABEL,r.cat)?r.cat:'*', status:r.status, note:str(r.note), at:str(r.at), reviewAt: r.status==='accepted' && isDate(r.reviewAt) ? str(r.reviewAt) : null});
   }
   S.roots=(Array.isArray(raw.roots)?raw.roots:[]).map(v=>str(v)).filter(Boolean);
+  S.jspringTriage=sanitizeSpringTriage(raw.jspringTriage);
   S.reportSnap=sanitizeSnap(raw.reportSnap);
   const st = raw.settings && typeof raw.settings==='object' ? raw.settings : {};
   S.settings = {editorBase:str(st.editorBase), editor: has(EDITORS,st.editor)?st.editor:'vscode', editorTpl:str(st.editorTpl), projectName:str(st.projectName).trim().slice(0,80), reviewDays: st.reviewDays===undefined ? 90 : Math.min(3650,Math.max(0,int(st.reviewDays))),
@@ -1921,7 +2116,7 @@ function sanitizeState(raw){
 
 /* Signature entries of an item: primary (file + category) and aliases from merges */
 function sigEntries(it){
-  const out=[{it, alt:-1, file:it.file, cat:it.cat, sig:it.sig, range:it.range}];
+  const out=[{it, alt:-1, file:it.file, cat:it.scanCat||it.cat, sig:it.sig, range:it.range}];
   (it.alts||[]).forEach((a,i)=>out.push({it, alt:i, file:a.file, cat:a.cat, sig:a.sig, range:a.range}));
   return out;
 }
@@ -1936,12 +2131,19 @@ function scanDetailsCompatible(a,b){
   const left=order(a),right=order(b);
   return left.every((q,i)=>['mi','co','re','fr','fk'].every(k=>!q[k] || !right[i][k] || q[k]===right[i][k]));
 }
+function legacyHardenedRecordsMatch(oldRows,newRows){
+  if(!Array.isArray(oldRows)||!Array.isArray(newRows)||oldRows.length!==newRows.length||!oldRows.some(q=>q.fr==='JSpringGuard assessment: HARDENED'))return false;
+  const pool=new Map();
+  const key=q=>JSON.stringify([q.f,q.t,q.r,q.s]);
+  for(const row of newRows){const k=key(row);if(!pool.has(k))pool.set(k,[]);pool.get(k).push(row);}
+  return oldRows.every(q=>{const rows=pool.get(key(q))||[];const legacy=q.fr==='JSpringGuard assessment: HARDENED';const i=rows.findIndex(m=>(legacy?m.c==='HARDENED'&&!m.x:m.c===q.c&&m.p===q.p&&m.x===q.x)&&['mi','co','re'].every(k=>!q[k]||!m[k]||q[k]===m[k]));if(i<0)return false;rows.splice(i,1);return true;});
+}
 function findSameScan(state,id,started,count,tool='FalconEYE',records){
   const sec=Math.floor(ts(started)/1000),key=scanContentKey(records);
   return state.scans.find(s=>{
     if(toolOf(s).toLowerCase()!==str(tool||'FalconEYE').toLowerCase()) return false;
     const sameContent=key!==null && key===scanContentKey(s.rec) && scanDetailsCompatible(records,s.rec);
-    if(s.id===id) return sameContent || key===null || !Array.isArray(s.rec);
+    if(s.id===id) return sameContent || key===null || !Array.isArray(s.rec) || (tool==='JSpringGuard' && Math.floor(ts(s.started)/1000)===sec && legacyHardenedRecordsMatch(s.rec,records));
     return sameContent && !str(id).startsWith('FT-S-') && !str(s.id).startsWith('FT-S-') && sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count;
   })||null;
 }
@@ -1992,8 +2194,8 @@ function recordsFromInput(N, R){
     // other tools: the line is part of the fingerprint (identical code at two places = two findings); a moved line
     // is still matched by the token similarity
     recs.push({f:file, c:cat, t:p.title, s:p.sev, k:p.tokens, r:p.range, p:x._flowtrace_identity ? fnv('flowtrace|'+x._flowtrace_identity) : fnv(file+'|'+cat+'|'+p.codeNorm+(x._fpx||'')),
-      x:p.scannerFiltered?1:0, fk:p.filterKind, fr:p.filterReason, h:fileHashes[file]||'',
-      re:p.reasoning, mi:p.mitigation, co:p.confidence, sn:p.snip.slice(0,60)});
+      ev:cleanEvidence(x._evidence), jfp:x._jfp||'', x:p.scannerFiltered?1:0, fk:p.filterKind, fr:p.filterReason, h:fileHashes[file]||'',
+      re:p.reasoning, mi:p.mitigation, co:p.confidence, sn:p.snip});
   }
   return {recs, fileHashes};
 }
@@ -2001,11 +2203,11 @@ function sanitizeRecords(a){
   if(!Array.isArray(a)) return null;
   const rng = r => Array.isArray(r)&&r.length===2&&r.every(x=>Number.isFinite(+x)) ? [int(r[0]),int(r[1])] : null;
   return a.filter(r=>r&&typeof r==='object').slice(0,20000).map(r=>({
-    f:str(r.f), c:has(CAT_LABEL,r.c)?r.c:'OTHER', t:str(r.t,'(untitled)'), s:Math.min(10,Math.max(0,num(r.s))),
-    k:(Array.isArray(r.k)?r.k:[]).map(str).slice(0,400), r:rng(r.r), p:str(r.p), x:r.x?1:0,
+    ev:cleanEvidence(r.ev), jfp:str(r.jfp).slice(0,200), f:str(r.f), c:r.fr==='JSpringGuard assessment: HARDENED'?'HARDENED':has(CAT_LABEL,r.c)?r.c:'OTHER', t:str(r.t,'(untitled)'), s:Math.min(10,Math.max(0,num(r.s))),
+    k:(Array.isArray(r.k)?r.k:[]).map(str).slice(0,400), r:rng(r.r), p:str(r.p), x:r.fr==='JSpringGuard assessment: HARDENED'?0:r.x?1:0,
     fk: ['hall','self','sup'].includes(r.fk) ? r.fk : '', fr:str(r.fr), h:str(r.h),
     re:str(r.re), mi:str(r.mi), co:str(r.co),
-    sn:(Array.isArray(r.sn)?r.sn:[]).filter(Array.isArray).slice(0,60).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]) }));
+    sn:(Array.isArray(r.sn)?r.sn:[]).filter(Array.isArray).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]) }));
 }
 const hasAllRecords = state => state.scans.length>0 && state.scans.every(s=>Array.isArray(s.rec));
 
@@ -2044,7 +2246,7 @@ function applyRecords(state, scanId, started, recs, strict){
     if(!s.fh && q.h) s.fh=q.h;
     if(ts(started) >= ts(it.lastDate)){
       if(it.lastDate!==started || q.s>=it.sevLast){
-        it.lastTitle=q.t; it.reasoning=q.re; it.mitigation=q.mi; it.confidence=q.co; it.snip=q.sn; it.snipScan=scanId; it.sevLast=q.s;
+        it.evidence=cleanEvidence(q.ev); it.lastTitle=q.t; it.reasoning=q.re; it.mitigation=q.mi; it.confidence=q.co; it.snip=q.sn; it.snipScan=scanId; it.sevLast=q.s;
         // Update the signature of the matched entry (code may move)
         if(entry.alt<0){ it.sig=q.k; it.range=q.r; } else { it.alts[entry.alt].sig=q.k; it.alts[entry.alt].range=q.r; }
         entry.sig=q.k; entry.range=q.r;
@@ -2160,7 +2362,11 @@ function ingestScan(state, json, fileName){
       // combine what each format has, matched by fingerprint: verifier verdict and file hashes come from the raw
       // result, recommendation and confidence from the FalconEYE report (JSON/HTML)
       const pool=new Map(); for(const q of recs){ if(!pool.has(q.p)) pool.set(q.p,[]); pool.get(q.p).push(q); }
-      for(const q of same.rec){ const m=(pool.get(q.p)||[]).shift(); if(!m) continue;
+      for(const q of same.rec){ const m=(pool.get(q.p)||[]).shift() || (q.fr==='JSpringGuard assessment: HARDENED' ? recs.find(m=>m.c==='HARDENED' && m.f===q.f && m.t===q.t && JSON.stringify(m.r)===JSON.stringify(q.r)) : null); if(!m) continue;
+        if(m.ev && (!q.ev || JSON.stringify(m.ev).length>JSON.stringify(q.ev).length)){q.ev=m.ev;enriched=true;}
+        if(m.jfp && !q.jfp){q.jfp=m.jfp;enriched=true;}
+        if(m.sn.length>q.sn.length){q.sn=m.sn;enriched=true;}
+        if(q.fr==='JSpringGuard assessment: HARDENED'){q.c='HARDENED';q.x=0;q.fk='';q.fr='';enriched=true;}
         if(N.rich && (m.x!==q.x || (!q.h && m.h) || m.fk!==q.fk)){ q.x=m.x; q.fk=m.fk; q.fr=m.fr; if(m.h) q.h=m.h; enriched=true; }
         if(!q.mi && m.mi){ q.mi=m.mi; enriched=true; }
         if(!q.co && m.co){ q.co=m.co; enriched=true; }
@@ -2205,7 +2411,7 @@ function mergeInto(state, target, src){
   for(const t of Object.keys(src.titles)) target.titles[t]=(target.titles[t]||0)+src.titles[t];
   for(const f of src.fps) if(!target.fps.includes(f)) target.fps.push(f);
   target.fps=target.fps.slice(-60);
-  target.alts=(target.alts||[]).concat([{file:src.file,cat:src.cat,sig:src.sig,range:src.range}], src.alts||[]).slice(0,50);
+  target.alts=(target.alts||[]).concat([{file:src.file,cat:src.scanCat||src.cat,sig:src.sig,range:src.range}], src.alts||[]).slice(0,50);
   if(!target.status && src.status){ target.status=src.status; target.statusAt=src.statusAt; }
   if(src.note && !target.note.includes(src.note)) target.note = target.note ? target.note+'\n'+src.note : src.note;
   carryEditor(target,src);
@@ -2313,7 +2519,7 @@ function slaInfo(it, eff, sevMax, firstTs){
 /* Comparison per scan */
 function perScanStats(state, derived){
   const scans=state.scans;
-  const rows = scans.map(s=>({scan:s, total:0, open:0, confirmed:0, fp:0, accepted:0, fixed:0, regression:0, newN:0, goneN:0}));
+  const rows = scans.map(s=>({...Object.fromEntries(STATUSES.map(s=>[s.id,0])),scan:s, total:0, open:0, confirmed:0, fp:0, accepted:0, fixed:0, 'test-hardening':0, 'demo-files':0, regression:0, newN:0, goneN:0}));
   for(const d of derived){
     for(const i of d.seenIdx){ const r=rows[i]; r.total++; r[d.eff]++; if(d.regression && ts(scans[i].started) > ts(d.it.statusAt)) r.regression++; if(i===d.first && i>0) r.newN++; }
     for(let i=1;i<scans.length;i++){ if(d.it.seen[scans[i-1].id] && !d.it.seen[scans[i].id]) rows[i].goneN++; }
@@ -2424,7 +2630,7 @@ function setReviewerName(){
 }
 function touchFinding(it){ if(!it.editorAssigned){ logFindingChange(it,'editor',it.editor,activeEditor); it.editor=activeEditor; } it.editedAt=new Date().toISOString(); }
 function sanitizeAudit(entries){
-  return (Array.isArray(entries)?entries:[]).filter(e=>e && ['editor','status','note'].includes(e.field))
+  return (Array.isArray(entries)?entries:[]).filter(e=>e && ['editor','status','note','category'].includes(e.field))
     .slice(-100).map(e=>({id:str(e.id).slice(0,100),at:str(e.at),actor:str(e.actor).slice(0,120),field:e.field,before:str(e.before).slice(0,10000),after:str(e.after).slice(0,10000)}));
 }
 function logFindingChange(it,field,before,after){
@@ -2520,6 +2726,9 @@ function setFindingEditor(id,name){
 }
 
 function carryEditor(target, source){
+  if(source.categoryAt && (!target.categoryAt || ts(source.categoryAt)>ts(target.categoryAt) || (ts(source.categoryAt)===ts(target.categoryAt) && source.cat.localeCompare(target.cat)>0))){
+    target.scanCat=target.scanCat||target.cat;target.cat=source.cat;target.categoryAt=source.categoryAt;
+  }
   const audit=new Map();
   for(const e of [...(target.audit||[]),...(source.audit||[])]) audit.set(e.id||JSON.stringify(e),e);
   target.audit=[...audit.values()].sort((a,b)=>ts(a.at)-ts(b.at)).slice(-100);
@@ -2657,7 +2866,7 @@ async function automaticRecovery(now=Date.now()){
 window.addEventListener('beforeunload',e=>{if(exportChanged){e.preventDefault();e.returnValue='';}});
 setInterval(()=>automaticRecovery().catch(()=>{}),30000);
 function storageStatus(text){ const el=$('#saveStatus'); if(el) el.textContent=text; }
-function save(){ if(REDO.length && redoState!==JSON.stringify(S)){REDO.length=0;updateHistoryButtons();} updateExportStatus(); DIRTY=true; storageStatus('Unsaved changes'); clearTimeout(save._t); save._t=setTimeout(persist,400); }
+function save(){ S.catalog=catalogSnapshot(); if(REDO.length && redoState!==JSON.stringify(S)){REDO.length=0;updateHistoryButtons();} updateExportStatus(); DIRTY=true; storageStatus('Unsaved changes'); clearTimeout(save._t); save._t=setTimeout(persist,400); }
 async function persist(){
   clearTimeout(save._t); if(saving) return saving; if(!DIRTY) return;
   DIRTY=false; const data=JSON.stringify(S),key=stateKey(); storageStatus('Saving…');
@@ -2817,7 +3026,7 @@ function validateProjectFile(json){
   for(const [key,item] of Object.entries(json.items)){
     if(!item || typeof item!=='object' || Array.isArray(item)) fail('finding '+key+' is not an object.');
     const id=safeId(item.id||key);if(itemIds.has(id))fail('duplicate finding ID: '+id);itemIds.add(id);
-    if(item.status!=null && !has(STATUS_BY_ID,item.status))fail('unknown status in finding '+key+'.');
+    if(item.status!=null && !has(STATUS_BY_ID,item.status) && !cleanCatalog(json.catalog).statuses.some(s=>s.id===item.status))fail('unknown status in finding '+key+'.');
     if(item.seen!==undefined && (!item.seen || typeof item.seen!=='object' || Array.isArray(item.seen)))fail('invalid scan references in finding '+key+'.');
     for(const scanId of Object.keys(item.seen||{}))if(!ids.has(safeId(scanId)))fail('finding '+key+' refers to a missing scan.');
   }
@@ -2886,7 +3095,7 @@ async function readFiles(files,projectMode='ask'){
 }
 async function importFiles(files, projectMode='ask'){
   let added=0, skipped=0, enriched=0, errors=[];
-  const scans=[], results=[];
+  const scans=[], results=[], triages=[];
   for(const f of [...files]){
     try{
       const text=await fileText(f);
@@ -2916,6 +3125,8 @@ async function importFiles(files, projectMode='ask'){
         continue;
       }
       if(projectMode==='merge' || projectMode==='mergeFull') throw new Error('Please select a project file; import scan reports with Load scans.');
+      const triage=parseSpringTriage(json);
+      if(triage){triages.push({f,rows:triage});continue;}
       // Plain JSON reports use the same adapters from every file picker and drag/drop.
       const foreign = adaptForeign(json, f.name, f.lastModified);
       scans.push({f, json:foreign||json});
@@ -2938,6 +3149,11 @@ async function importFiles(files, projectMode='ask'){
       results.push({file:f.name,status:!r.skipped?'New':r.enriched?'Enriched':'Already present'});
     }catch(e){S=sanitizeState(JSON.parse(before));errors.push(f.name+': '+e.message);results.push({file:f.name,status:'Error',detail:e.message});}
   }
+  const beforeTriage=JSON.stringify(S);
+  for(const {f,rows} of triages){mergeSpringTriage(S,rows);results.push({file:f.name,status:'Triage imported',detail:rows.length+' review records preserved'});}
+  if((added||enriched) && hasAllRecords(S)) replay(S);
+  applySpringTriage(S);
+  if(JSON.stringify(S)!==beforeTriage){if(beforeImport===null)beforeImport=beforeTriage;changed=true;}
   if(changed){pushUndo({kind:'full',label:'scan import',json:beforeImport});recordRecovery('Before scan import',beforeImport).catch(()=>toast('Recovery snapshot could not be saved.'));}
   // Regroup everything chronologically: loading order (e.g. an older scan added later) no longer matters
   if((added||enriched) && hasAllRecords(S)) replay(S);
@@ -3010,6 +3226,7 @@ function mergeExact(src){
   toast(`Merged: ${scansAdded} new scan${scansAdded===1?'':'s'}, ${scansShared} shared, ${Object.keys(S.items).length} findings (was ${before}), ${rulesAdded} rule${rulesAdded===1?'':'s'}${conflicts?`, ${conflicts} rating conflict${conflicts===1?'':'s'} (newer rating kept, see flag "rating conflict")`:''}`);
 }
 function mergeRulesAndSettings(src){
+  mergeSpringTriage(S,src.jspringTriage||[]);
   for(const r of src.reviewers||[]){ S.reviewers=S.reviewers||[]; if(!S.reviewers.some(x=>x.name===r.name)) S.reviewers.push({...r}); }
   let rulesAdded=0;
   for(const r of src.rules) if(!S.rules.some(x=>x.glob===r.glob && x.cat===r.cat)){ S.rules.push(r); rulesAdded++; }
@@ -3114,12 +3331,12 @@ function mergeProjectJson(json){
   save(); rebuild(); toast(`${n} ratings imported`);
 }
 
-const defaultReviewDate = () => S.settings.reviewDays>0 ? addDays(S.settings.reviewDays) : null;
+const defaultReviewDate = () => GLOBAL.reviewDays>0 ? addDays(GLOBAL.reviewDays) : null;
 
 /* ---- Undo ----
    Small actions store only the touched findings; large ones (merges, scan removal, project merge) store a full snapshot. */
 const UNDO=[], REDO=[]; const UNDO_MAX=30, UNDO_FULL_MAX=3;
-const annot = it => ({audit:(it.audit||[]).map(e=>({...e})), editor:it.editor, editorAssigned:it.editorAssigned, editedAt:it.editedAt, status:it.status, statusAt:it.statusAt, hist:it.hist.slice(), conflict:it.conflict||null, reviewAt:it.reviewAt||null, note:it.note});
+const annot = it => ({cat:it.cat,scanCat:it.scanCat||null,categoryAt:it.categoryAt||'',audit:(it.audit||[]).map(e=>({...e})), editor:it.editor, editorAssigned:it.editorAssigned, editedAt:it.editedAt, status:it.status, statusAt:it.statusAt, hist:it.hist.slice(), conflict:it.conflict||null, reviewAt:it.reviewAt||null, note:it.note});
 function pushUndo(entry){
   if(entry.kind==='full' && entry.editor===undefined) entry.editor=activeEditor;
   REDO.length=0;
@@ -3164,6 +3381,7 @@ const undoAction = {label:'Undo', run:()=>undo()};
 
 /* ---- Set status ---- */
 function setStatus(ids, status){
+  if(REMOVED.statuses.includes(status))return;
   if(!ensureEditor()) return;
   const now=new Date().toISOString();
   for(const id of ids){
@@ -3190,7 +3408,9 @@ function setStatus(ids, status){
 
 /* ---- Filter/Sort ---- */
 /* ---- Filter state and facets ---- */
-const FDEF = () => ({q:'', queue:false, mine:false, editor:'all', cats:[], tools:[], sevs:[], freq:'all', scanIn:[], scanOut:[], folder:'all', exclude:[], changed:'all', verdict:'hide', statuses:[], flags:[], cmp:''});
+const COLUMN_DEFAULTS={history:'',severity:'',severityMode:'gte',title:'',titleMode:'contains',seen:'',seenMode:'gte',status:'',editor:'',editorMode:'contains'};
+const COLUMN_IDS={history:'colHistory',severity:'colSeverity',severityMode:'colSeverityMode',title:'colTitle',titleMode:'colTitleMode',seen:'colSeen',seenMode:'colSeenMode',status:'colStatus',editor:'colEditor',editorMode:'colEditorMode'};
+const FDEF = () => ({columns:{...COLUMN_DEFAULTS},fileValue:'',fileMode:'contains',q:'', queue:false, mine:false, editor:'all', cats:[], tools:[], sevs:[], freq:'all', scanIn:[], scanOut:[], folder:'all', exclude:[], changed:'all', verdict:'hide', statuses:[], flags:[], cmp:''});
 /* Severity buckets, same bands as the severity colours (FalconEYE: critical 10, high 8, medium 5, low 1, info 0) */
 const SEV_BUCKETS = [
   {id:'crit', label:'critical 9–10', min:9, max:10, color:'var(--sev-hi)'},
@@ -3269,8 +3489,41 @@ function hayOf(d, field){
   return d._hay || (d._hay=(it.lastTitle+' '+Object.keys(it.titles).join(' ')+' '+it.file+' '+(it.note||'')+' '+CAT_LABEL[it.cat]+' '+it.cat).toLowerCase());
 }
 /* skip: facet that is ignored when counting matches for this facet */
+function fileValueMatches(it,value,mode){
+  const norm=t=>str(t).replace(/\\/g,'/').toLowerCase();const query=norm(value).trim();if(!query)return true;
+  const paths=[it.file,...(it.alts||[]).map(a=>a.file),...fullPaths(it).map(x=>x.path)].map(norm);
+  const hit=paths.some(p=>mode==='exact'?p===query:mode==='prefix'?p.startsWith(query):p.includes(query));
+  return mode==='not'?!hit:hit;
+}
+function categoryOptions(selected){return CATS.filter(c=>!REMOVED.categories.includes(c[0])||c[0]===selected).map(([id,label])=>'<option value="'+id+'"'+(id===selected?' selected':'')+(REMOVED.categories.includes(id)?' disabled':'')+'>'+esc(label)+(REMOVED.categories.includes(id)?' (removed)':'')+'</option>').join('');}
+function setCategory(ids,category){
+  if(!has(CAT_LABEL,category)||REMOVED.categories.includes(category)||!ensureEditor())return;
+  ids=ids.filter(id=>S.items[id]&&S.items[id].cat!==category);if(!ids.length)return;
+  if(ids.length>=20&&!confirm('Assign '+ids.length+' findings to '+CAT_LABEL[category]+'?'))return;
+  undoItems('Category: '+CAT_LABEL[category],ids);
+  for(const id of ids){const it=S.items[id];touchFinding(it);logFindingChange(it,'category',CAT_LABEL[it.cat],CAT_LABEL[category]);it.scanCat=it.scanCat||it.cat;it.cat=category;it.categoryAt=new Date().toISOString();}
+  save();rebuild(true);toast(ids.length+' findings assigned to '+CAT_LABEL[category],undoAction);
+}
+function cleanColumnFilters(raw={}){
+  raw=raw && typeof raw==='object'?raw:{};
+  const out={...COLUMN_DEFAULTS};for(const key of ['title','editor'])out[key]=str(raw[key]);
+  for(const key of ['severity','seen'])out[key]=str(raw[key]).trim()!=='' && Number.isFinite(Number(raw[key])) && Number(raw[key])>=0 ? str(raw[key]):'';
+  for(const key of ['severityMode','seenMode'])if(['gte','eq','lte'].includes(raw[key]))out[key]=raw[key];
+  for(const key of ['titleMode','editorMode'])if(['contains','exact','not',...(key==='editorMode'?['unassigned']:[])].includes(raw[key]))out[key]=raw[key];
+  if(['latest','gone','regression'].includes(raw.history))out.history=raw.history;
+  if(has(STATUS_BY_ID,raw.status))out.status=raw.status;return out;
+}
+function columnFilterCount(c){return ['history','severity','title','seen','status'].filter(k=>str(c[k]).trim()!=='').length+(c.editorMode==='unassigned'||str(c.editor).trim()!==''?1:0);}
+function columnMatches(d,c){
+  const text=(value,query,mode)=>{query=str(query).trim().toLowerCase();if(!query)return true;value=str(value).toLowerCase();const hit=mode==='exact'?value===query:value.includes(query);return mode==='not'?!hit:hit;};
+  const number=(value,query,mode)=>{if(str(query).trim()==='')return true;const n=Number(query);if(!Number.isFinite(n)||n<0)return false;return mode==='eq'?value===n:mode==='lte'?value<=n:value>=n;};
+  if(c.history==='latest'&&!d.inLatest||c.history==='gone'&&!d.gone||c.history==='regression'&&!d.regression)return false;
+  return number(d.sevMax,c.severity,c.severityMode)&&number(d.nSeen,c.seen,c.seenMode)&&text(d.it.lastTitle,c.title,c.titleMode)&&(!c.status||d.eff===c.status)&&(c.editorMode==='unassigned'?!d.it.editor:text(d.it.editor,c.editor,c.editorMode));
+}
 function passes(d, skip, Q){
   const it=d.it;
+  if(!columnMatches(d,F.columns)) return false;
+  if(!fileValueMatches(it,F.fileValue,F.fileMode)) return false;
   if(F.queue && (!queueEligible(d) || reviewedIds().has(it.id))) return false;
   if(F.mine && (!activeEditor || it.editor!==activeEditor || d.eff!=='open')) return false;
   if(skip!=='editor' && F.editor!=='all' && (F.editor==='none' ? !!it.editor : it.editor!==F.editor.slice(5))) return false;
@@ -3309,8 +3562,8 @@ function changedMatch(d, v){
   return !!lc && lc>=from;
 }
 function activeFilterCount(){
-  let n=0;
-  if(F.queue) n++; if(F.mine) n++; if(F.editor!=='all') n++; if(F.q.trim()) n++; if(F.folder!=='all') n++; if(F.freq!=='all') n++; if(F.changed!=='all') n++; if(verdictMode()!=='hide') n++; if(F.cmp) n++;
+  let n=columnFilterCount(F.columns);
+  if(F.fileValue.trim()) n++; if(F.queue) n++; if(F.mine) n++; if(F.editor!=='all') n++; if(F.q.trim()) n++; if(F.folder!=='all') n++; if(F.freq!=='all') n++; if(F.changed!=='all') n++; if(verdictMode()!=='hide') n++; if(F.cmp) n++;
   return n + F.statuses.length + F.flags.length + F.exclude.length + F.cats.length + F.tools.length + F.sevs.length + F.scanIn.length + F.scanOut.length;
 }
 function saveFilters(){ try{ localStorage.setItem(LS_KEY+'.filters', JSON.stringify({F, sort:SORT, cmpScans:CMP})); }catch(e){} }
@@ -3319,7 +3572,7 @@ function loadFilters(){
     const f=o.F||{}, d=FDEF();
     const arr = (v, ok) => (Array.isArray(v)?v:[]).map(str).filter(ok).slice(0,50);
     let freq = str(f.freq,'all'); if(freq==='multi') freq='min:2';
-    F={ q:str(f.q), queue:!!f.queue, mine:!!f.mine, editor:str(f.editor,'all'),
+    F={ columns:cleanColumnFilters(f.columns),fileValue:str(f.fileValue),fileMode:['contains','exact','prefix','not'].includes(f.fileMode)?f.fileMode:'contains',q:str(f.q), queue:!!f.queue, mine:!!f.mine, editor:str(f.editor,'all'),
         cats: arr(f.cats, c=>has(CAT_LABEL,c)), tools: arr(f.tools, Boolean), sevs: arr(f.sevs, s=>SEV_BUCKETS.some(b=>b.id===s)),
         freq: (['all','latest','frequent','rare'].includes(freq)||/^min:\d+$/.test(freq)) ? freq : 'all',
         scanIn: arr(f.scanIn, Boolean), scanOut: arr(f.scanOut, Boolean),
@@ -3336,6 +3589,10 @@ function loadFilters(){
   }catch(e){}
 }
 function syncFilterInputs(){
+  for(const [key,id]of Object.entries(COLUMN_IDS)){const el=$('#'+id);if(document.activeElement!==el)el.value=F.columns[key];}
+  $('#colEditor').disabled=F.columns.editorMode==='unassigned';
+  if(document.activeElement!==$('#fileValue')) $('#fileValue').value=F.fileValue;
+  $('#fileMode').value=F.fileMode;
   if(document.activeElement!==$('#fText')) $('#fText').value=F.q;
 }
 
@@ -3371,7 +3628,7 @@ function applyView(){
   const Q=parseQuery(F.q);
   for(const d of BASE) d._hay=null;
   VIEW = BASE.filter(d=>passes(d,null,Q));
-  const order={open:0,confirmed:1,fixed:2,accepted:3,fp:4};
+  const order=Object.fromEntries(STATUSES.map((s,i)=>[s.id,i]));
   const k=SORT.k, dir=SORT.dir;
   VIEW.sort((a,b)=>{
     if(F.queue) return queueOrder(a,b);
@@ -3389,7 +3646,48 @@ function applyView(){
 }
 
 /* ---- Render ---- */
+
+
+
+function renderCategoryEditor(){
+ if($('#globalCategories').contains(document.activeElement))return;
+ $('#globalCategories').innerHTML=CATS.map(([id,label])=>{const removed=REMOVED.categories.includes(id);return `<div class="category-edit-row" data-category-id="${id}"><input aria-label="Category name" data-category-label maxlength="80" value="${esc(label)}"><button type="button" class="btn small" data-category-save="${id}">Save</button><button type="button" class="btn small ghost" data-category-remove="${id}" data-removed="${removed}">${removed?'Restore':'Remove'}</button>${removed?'<small>Removed from new assignments</small>':''}</div>`;}).join('');
+}
+
+function renderRatingEditor(force=false){
+ const form=$('#ratingSettingsForm');if(!force && form.contains(document.activeElement))return;
+ $('#globalStatuses').innerHTML=STATUSES.map(s=>{const base=RATING_DEFAULTS.find(r=>r.id===s.id),theme=!/^#[0-9a-f]{6}$/i.test(s.color);let color=s.color;if(theme){color=typeof getComputedStyle==='function'?getComputedStyle(document.documentElement).getPropertyValue(s.color.slice(4,-1)).trim():'';if(!/^#[0-9a-f]{6}$/i.test(color))color='#7086a3';}return `<fieldset class="rating-edit-row" data-rating-id="${s.id}"><legend>${esc(base?.label||'Custom status')}</legend><label>Name<input data-rating-label value="${esc(s.label)}" maxlength="80" required></label><label>Color<input type="color" data-rating-color value="${color}"></label><label>Shortcut<input data-rating-key value="${esc(s.key)}" maxlength="1" pattern="[A-Za-z0-9]?" style="width:55px"></label><label class="rating-theme"><input type="checkbox" data-rating-theme ${theme?'checked':''}>Theme color</label><button type="button" class="btn small ghost" data-rating-remove="${s.id}" data-removed="${REMOVED.statuses.includes(s.id)}">${REMOVED.statuses.includes(s.id)?'Restore':'Remove'}</button>${REMOVED.statuses.includes(s.id)?'<small>Removed from new assignments</small>':''}</fieldset>`;}).join('');
+}
+
+function renderGlobalSettings(){
+ renderCategoryEditor();
+ renderRatingEditor();
+ const f=$('#globalReviewForm');if(!f.contains(document.activeElement)){f.days.value=GLOBAL.reviewDays;f.presets.value=GLOBAL.reviewPresets.join(', ');}
+ S.catalog=catalogSnapshot();
+}
+function saveGlobalSettings(){
+ try{persistGlobal();$('#globalSettingsMessage').textContent='Global settings saved.';}catch{$('#globalSettingsMessage').textContent='Browser storage is unavailable. Settings apply for this session only.';}
+ S.catalog=catalogSnapshot();save();rebuild(true);
+}
+function setReviewDays(ids,days){
+ if(!Number.isInteger(days)||days<1||days>3650||!ensureEditor())return;
+ const accepted=ids.filter(id=>S.items[id]?.status==='accepted');if(!accepted.length)return;
+ undoItems('review interval',accepted);
+ for(const id of accepted){const it=S.items[id];touchFinding(it);it.reviewAt=addDays(days);}
+ save();rebuild(true);toast(`Next review in ${days} days`,undoAction);
+}
+function reviewButtons(){return GLOBAL.reviewPresets.map(days=>`<button type="button" class="btn small" data-review-days="${days}" title="Review on ${addDays(days)}">${days} days</button>`).join('');}
+
+function renderSpringTriage(){
+ const rows=S.jspringTriage||[],panel=$('#springTriagePanel');panel.classList.toggle('hidden',!rows.length);
+ const matched=rows.filter(r=>springMatches(S,r).length).length;
+ $('#springTriageTitle').textContent=`JSpringGuard triage: ${rows.length} records (${matched} matched, ${rows.length-matched} unassigned)`;
+ $('#springTriageRows').innerHTML=rows.map(r=>{const hits=springMatches(S,r);return `<article style="border-top:1px solid var(--line);padding:10px 0"><strong>${esc(r.kind==='triage'?'Finding':'Flow / control')} · ${esc(r.status)}</strong> — ${hits.length?'Matched to '+hits.length+' finding(s)':'Unassigned'}${!springStatus(r)?' · Original status retained':''}<div style="overflow-wrap:anywhere">${esc(r.file||r.key)}${r.line?':'+r.line:''} ${esc(r.entrypoint)} ${esc(r.control)}</div><time>${esc(r.at)}</time><p style="white-space:pre-wrap">${esc(r.note)}</p></article>`;}).join('');
+}
 function rebuild(keepDrawer){
+  renderGlobalSettings();
+  if(!S.scans.length)$('#scannerOverview').classList.add('hidden');
+  renderSpringTriage();
   updateHistoryButtons();
   requestReviewerAfterLoad();
   D = derive(S);
@@ -3402,7 +3700,7 @@ function rebuild(keepDrawer){
   if(!any){ closeDrawer(); $('#subtitle').textContent='Track and triage findings from recurring scans over time'; return; }
   const latest=S.scans[S.scans.length-1];
   $('#subtitle').textContent = `${S.scans.length} scan${S.scans.length>1?'s':''}, latest on ${fmtDT(latest.started)}${latest.codebase?' for '+latest.codebase:''}`;
-  renderFilterOptions(); renderSummary(); renderTimeline(); renderTable(); renderRules(); renderScans(); renderEditorSettings();
+  renderScannerOverview(); renderFilterOptions(); renderSummary(); renderTimeline(); renderTable(); renderRules(); renderScans(); renderEditorSettings();
   if(keepDrawer && CUR) renderDrawer(); else if(CUR && !S.items[CUR]) closeDrawer();
 }
 
@@ -3465,7 +3763,7 @@ function renderFacets(){
   const count = (list, key) => { const m={}; for(const d of list){ const k=key(d); m[k]=(m[k]||0)+1; } return m; };
   // status (OR)
   const sc=count(pool('status'), d=>d.eff);
-  $('#fStatusChips').innerHTML=STATUSES.map(s=>chipHtml('status', s.id, F.statuses.includes(s.id), sc[s.id]||0, s.label, s.color, {dot:true})).join('');
+  $('#fStatusChips').innerHTML=STATUSES.map(s=>chipHtml('status', s.id, F.statuses.includes(s.id), sc[s.id]||0, esc(s.label), s.color, {dot:true})).join('');
   // severity (OR)
   const sv=count(pool('sev'), d=>sevBucket(d.sevMax));
   $('#fSevChips').innerHTML=SEV_BUCKETS.map(b=>chipHtml('sev', b.id, F.sevs.includes(b.id), sv[b.id]||0, b.label, b.color, {dot:true})).join('');
@@ -3546,14 +3844,20 @@ function renderFacets(){
   const n=activeFilterCount(); const rb=$('#fReset'); rb.classList.toggle('hidden',!n); rb.textContent=`Reset filters (${n})`;
 }
 function renderFilterOptions(){
+  {const value=F.columns.status;$('#colStatus').innerHTML='<option value="">All statuses</option>'+STATUSES.map(s=>`<option value="${s.id}">${esc(s.label)}</option>`).join('');$('#colStatus').value=value;}
+  {const selected=$('#bulkCategory').value;$('#bulkCategory').innerHTML=categoryOptions();if(!REMOVED.categories.includes(selected))$('#bulkCategory').value=selected;}
+  const paths=new Set();for(const it of Object.values(S.items)){paths.add(it.file);for(const p of fullPaths(it))paths.add(p.path);}
+  $('#fileValues').innerHTML=[...paths].sort().slice(0,500).map(p=>'<option value="'+esc(p)+'"></option>').join('');
   renderFacets();
   const rf=$('#ruleForm');
-  if(!rf.cat.options.length){
-    rf.cat.innerHTML=`<option value="*">All categories</option>`+CATS.map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('');
-    rf.status.innerHTML=STATUSES.filter(s=>s.id!=='open').map(s=>`<option value="${s.id}">${s.label}</option>`).join('');
+  {
+    const oldCat=rf.cat.value,oldStatus=rf.status.value;
+    rf.cat.innerHTML=`<option value="*">All categories</option>`+availableCategories().map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('');
+    rf.status.innerHTML=availableStatuses().filter(s=>s.id!=='open').map(s=>`<option value="${s.id}">${esc(s.label)}</option>`).join('');
+    if(oldCat&&!REMOVED.categories.includes(oldCat))rf.cat.value=oldCat;if(oldStatus&&!REMOVED.statuses.includes(oldStatus))rf.status.value=oldStatus;
   }
-  if(!$('#bulkSeg').children.length){
-    $('#bulkSeg').innerHTML=STATUSES.map(s=>`<button class="btn small" data-bulk="${s.id}" style="color:${s.color}">${s.label}</button>`).join('');
+  {
+    $('#bulkSeg').innerHTML=availableStatuses().map(s=>`<button class="btn small" data-bulk="${s.id}" style="color:${s.color}">${esc(s.label)}</button>`).join('');
   }
 }
 
@@ -3574,13 +3878,14 @@ function renderSummary(){
     {k:'goneChanged', n:BASE.filter(d=>d.goneFile==='changed' && (d.eff==='open'||d.eff==='confirmed')).length, l:'probably fixed', col:'var(--s-fixed)', sub:'gone, file changed'},
     {k:'regression', n:BASE.filter(d=>d.regression).length, l:'Regression', col:'var(--s-regression)'},
   ];
+  for(const cell of cells)if(cell.k.startsWith('st:')){const status=STATUS_BY_ID[cell.k.slice(3)];cell.l=esc(status.label);cell.col=status.color;}
   $('#summary').innerHTML=cells.map(x=>`<button class="sum${SUMFILTER===x.k?' active':''}" data-sum="${x.k}"><span class="d" style="background:${x.col}"></span><div class="n">${x.n}</div><div class="l">${x.l}</div>${x.sub?`<div class="l" style="color:var(--faint);font-size:12px">${x.sub}</div>`:''}</button>`).join('');
 }
 
 function renderTimeline(){
   const rows=perScanStats(S,BASE);
-  const segs=[['open','var(--s-open)'],['confirmed','var(--s-confirmed)'],['fixed','var(--s-fixed)'],['accepted','var(--s-accepted)'],['fp','var(--s-fp)']];
-  $('#legend').innerHTML=segs.map(([k,c])=>`<span><i class="sw" style="background:${c}"></i>${STATUS_BY_ID[k].label}</span>`).join('')+`<span><i class="sw" style="background:var(--s-new)"></i>new</span><span style="color:var(--muted)">− no longer found</span>`;
+  const segs=STATUSES.map(s=>[s.id,s.color]);
+  $('#legend').innerHTML=segs.map(([k,c])=>`<span><i class="sw" style="background:${c}"></i>${esc(STATUS_BY_ID[k].label)}</span>`).join('')+`<span><i class="sw" style="background:var(--s-new)"></i>new</span><span style="color:var(--muted)">− no longer found</span>`;
   const max=Math.max(1,...rows.map(r=>r.total));
   const colW=Math.max(56, Math.min(110, Math.floor(((document.querySelector('#timeline').clientWidth||900)-50)/Math.max(rows.length,1))));
   const H=150, top=18, W=Math.max(rows.length*colW+40, 300);
@@ -3589,7 +3894,7 @@ function renderTimeline(){
   rows.forEach((r,i)=>{
     const x=36+i*colW, bw=Math.min(40,colW-18);
     let y=top+H;
-    for(const [k,c] of segs){ const h=H*r[k]/max; if(h>0){ y-=h; svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${c}"><title>${STATUS_BY_ID[k].label}: ${r[k]}</title></rect>`; } }
+    for(const [k,c] of segs){ const h=H*r[k]/max; if(h>0){ y-=h; svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" fill="${c}"><title>${esc(STATUS_BY_ID[k].label)}: ${r[k]}</title></rect>`; } }
     svg+=`<text x="${x+bw/2}" y="${y-5}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${r.total}</text>`;
     // scan name: click (or Enter) to rename; unnamed scans show a faint placeholder
     const maxCh=Math.max(6, Math.floor(colW/6.6));
@@ -3637,7 +3942,7 @@ function stripHtml(d){
 }
 function statusHtml(d){
   const s=STATUS_BY_ID[d.eff];
-  let h=`<span class="pill" style="color:${s.color}">${s.label}</span>`;
+  let h=`<span class="pill" style="color:${s.color}">${esc(s.label)}</span>`;
   if(d.rule) h+=` <span class="rule-mark" title="Rule: ${esc(d.rule.glob)}">by rule</span>`;
   const flags=[];
   if(d.regression) flags.push(`<span class="flag" style="color:var(--s-regression)">Regression</span>`);
@@ -3715,7 +4020,7 @@ function step(dir){
   const n=NAV[i]; if(n){ CUR=n; renderDrawer(); markCur(); const tr=document.querySelector(`tr.row[data-id="${CSS.escape(CUR)}"]`); if(tr) tr.scrollIntoView({block:'nearest'}); }
 }
 function auditEntriesHtml(it){
-  const labels={editor:'Assignee',status:'Status',note:'Note'};
+  const labels={editor:'Assignee',status:'Status',note:'Note',category:'Category'};
   const value=(field,text)=>{
     if(field==='status'){
       const status=STATUS_BY_ID[text]||STATUS_BY_ID.open;
@@ -3731,6 +4036,32 @@ function auditEntriesHtml(it){
   }).join('')||'<li class="audit-empty">No changes recorded yet.</li>';
 }
 function auditHtml(it){return `<section class="dr-sec audit-panel" aria-label="Change history"><h4>Change history</h4><ol class="audit-log" id="findingAudit">${auditEntriesHtml(it)}</ol></section>`;}
+
+function evidencePoint(title,p){
+ const location=p.file?`${p.file}${p.line?':'+p.line:''}`:'';
+ return `<section class="evidence-card"><h5>${esc(title)}</h5>${p.api?`<strong>${esc(p.api)}</strong>`:''}${location?`<div class="ft-location">${esc(location)}</div>`:''}${p.description?`<p>${esc(p.description)}</p>`:''}${p.code?`<pre>${esc(p.code)}</pre>`:''}${!location&&!p.description&&!p.code&&!p.api?'<p class="note">Not included in this export.</p>':''}</section>`;
+}
+function structuredFlowtraceDetails(it){
+ const v=it.evidence;if(!v || v.tool!=='Flowtrace')return flowtraceDetails(it);
+ const section=(title,text)=>text?`<details class="ft-section"><summary>${esc(title)}</summary><pre class="ft-code">${esc(text)}</pre></details>`:'';
+ return `<section class="dr-sec scanner-panel"><h4>Flowtrace · Source → sink</h4>${v.interrupted||v.incomplete?'<p class="scanner-verdict">Incomplete analysis'+(v.interrupted?' · Run interrupted':'')+'</p>':''}
+ <dl class="scanner-facts">${v.route?`<dt>Route</dt><dd>${esc(v.route)}</dd>`:''}${v.entrypoint?`<dt>Entrypoint</dt><dd>${esc(v.entrypoint)}</dd>`:''}${it.confidence?`<dt>Confidence</dt><dd>${esc(it.confidence)}</dd>`:''}</dl>
+ <div class="scan-evidence">${evidencePoint('Source',v.source)}${evidencePoint('Sink',v.sink)}</div>
+ ${v.verdict||v.reason?`<div class="scanner-verdict"><strong>Scanner assessment${v.verdict?' · '+esc(v.verdict.replaceAll('_',' ')):''}</strong><p>${esc(v.reason)}</p><small>This is the scanner assessment; your review status is separate.</small></div>`:''}
+ <details class="ft-section" open><summary>Data flow · ${v.trace.length} steps</summary>${v.trace.length?`<ol class="ft-trace">${v.trace.map(t=>`<li class="ft-step">${evidencePoint(t.kind||'Step',t)}</li>`).join('')}</ol>`:'<p class="note">No trace steps included in this export.</p>'}</details>
+ ${section('Protection',v.protection)}${section('Exploit example',v.exploit)}${section('Reproduction',v.reproduction)}
+ <details class="ft-section"><summary>Full scanner explanation</summary><div class="reason">${esc(it.reasoning)}</div></details></section>`;
+}
+function falconeyeDetails(it,source){
+ const v=it.evidence;
+ return `<section class="dr-sec scanner-panel"><h4>FalconEYE · Verification</h4><p class="scanner-meta">${source}</p><div class="scanner-verdict"><strong>${esc(v?.verdict || (it.scannerFiltered?'Rejected by scanner':v?.verifier?'Verifier data available':'No explicit verifier verdict included'))}</strong>${v?.reason||it.filterReason?`<p>${esc(v?.reason||it.filterReason)}</p>`:''}<small>Scanner verification and your review status are separate.</small></div><dl class="scanner-facts">${it.confidence?`<dt>Confidence</dt><dd>${esc(it.confidence)}</dd>`:''}<dt>Code context</dt><dd>${it.snip.length} lines · ${it.snip.filter(r=>r[1]).length} flagged</dd></dl>${v?.verifier?`<details class="ft-section"><summary>Original verifier details</summary><pre class="scanner-raw">${esc(v.verifier)}</pre></details>`:''}</section>${scannerReasoningHtml(it,'').replace('Scanner analysis','FalconEYE · Explanation')}`;
+}
+function renderScannerOverview(){
+ const tools=[...new Set(S.scans.map(toolOf))].filter(t=>['Flowtrace','FalconEYE'].includes(t));
+ $('#scannerOverview').innerHTML=tools.map(tool=>{const scans=S.scans.filter(s=>toolOf(s)===tool),items=D.filter(d=>d.tools.includes(tool)),latest=scans[scans.length-1];return `<article class="evidence-card"><h3>${esc(tool)}</h3><p>${scans.length} scans · ${items.length} findings · ${items.filter(d=>d.scannerFiltered||d.it.scannerFiltered).length} scanner-filtered</p><p class="note">Latest: ${esc(fmtDT(latest.started))}<br>${esc(latest.label||latest.file)}</p><p class="note">${tool==='Flowtrace'?'Inspect entrypoints, sources, sinks and numbered trace steps.':'Inspect flagged source code, verifier results and recommendations.'}</p><button type="button" class="btn small" data-scanner-filter="${esc(tool)}">Show ${esc(tool)} findings</button></article>`;}).join('');
+ $('#scannerOverview').classList.toggle('hidden',!tools.length);
+}
+
 function flowtraceDetails(it){
   const fields=[], sections=[];
   for(const part of String(it.reasoning||'').split(/\n\n+/).filter(Boolean)){
@@ -3821,18 +4152,19 @@ function renderDrawer(){
     ${F.queue?`<div class="dr-sec queue-info"><div><h4>Review priority</h4><p>${esc(queueReasons(d))}</p>${reviewedIds().has(it.id)?'<p>Reviewed in this session. Choose “Next finding” to continue.</p>':''}</div></div>`:''}
     ${it.conflict?`<div class="dr-sec conflict"><h4 style="color:var(--s-regression)">Rating conflict</h4>
       <p style="font-size:13.5px;margin:0 0 8px">The merged projects rated this finding differently. The newer rating is active; pick one to resolve the conflict.</p>
-      ${it.conflict.options.map((o,i)=>`<div class="cand"><div><span class="pill" style="color:${STATUS_BY_ID[o.s].color}">${STATUS_BY_ID[o.s].label}</span>${o.s===it.status?' <span class="rule-mark">(active)</span>':''}
+      ${it.conflict.options.map((o,i)=>`<div class="cand"><div><span class="pill" style="color:${STATUS_BY_ID[o.s].color}">${esc(STATUS_BY_ID[o.s].label)}</span>${o.s===it.status?' <span class="rule-mark">(active)</span>':''}
         <div class="t-meta">${o.src?'from '+esc(o.src)+', ':''}${o.at?'rated '+esc(fmtDT(o.at)):'no date'}${o.note?'<br>'+esc(o.note).replace(/\n/g,'<br>'):''}</div></div>
         <button class="btn small" data-resolve="${i}">${o.s===it.status?'Keep this':'Use this'}</button></div>`).join('')}
     </div>`:''}
     <div class="dr-sec">
       <h4>Assignee</h4><span id="findingEditor" class="hidden">${esc(it.editor||'Unassigned')}</span>
       ${assigneeButtonsHtml(it)}
-      <h4 style="margin-top:18px">Rating</h4>
-      <div class="seg" id="drSeg">${STATUSES.map(s=>`<button data-st="${s.id}" style="color:${s.color}" class="${d.eff===s.id?'sel':''}">${s.label}<span class="k">${s.key}</span></button>`).join('')}</div>
+      <h4 style="margin-top:18px">Rating <button type="button" class="btn small ghost" data-act2="editRatings">Edit globally</button></h4>
+      <div class="seg" id="drSeg">${availableStatuses().map(s=>`<button data-st="${s.id}" style="color:${s.color}" class="${d.eff===s.id?'sel':''}">${esc(s.label)}<span class="k">${s.key}</span></button>`).join('')}</div>
       ${rule&&!it.status?`<p style="font-size:13px;color:var(--muted);margin:8px 0 0">Status comes from the rule <span class="mono">${esc(rule.glob)}</span>. An individual rating takes precedence.</p>`:''}
       ${it.status&&ruleFor(S,it)?`<p style="font-size:13px;color:var(--muted);margin:8px 0 0">Individual rating overrides the rule <span class="mono">${esc(ruleFor(S,it).glob)}</span>. <button class="btn small ghost" data-st="clear">Follow the rule again</button></p>`:''}
       ${d.eff==='accepted' && it.status==='accepted' ? `<div class="review-row"><label>Review on <input type="date" id="drReview" value="${esc(it.reviewAt||'')}"></label>
+        ${reviewButtons()}
         <button class="btn small ghost" data-review="renew" title="Mark as reviewed today and set the next date">Reviewed now</button>
         <button class="btn small ghost" data-review="none">No review date</button>
         ${d.reviewDue?`<span style="color:var(--s-regression);font-weight:500">Review is due</span>`:''}</div>` : ''}
@@ -3855,7 +4187,7 @@ function renderDrawer(){
         <dt>Last seen</dt><dd>${esc(fmtDT(lastSeen.started))}${d.inLatest?' (latest scan)':''}</dd>
         <dt>Severities</dt><dd><div class="sevline">${sevs}</div></dd>
         <dt>File</dt><dd>${fileRef(it)}<ul class="fullpaths">${fullPaths(it).map(x=>`<li>${esc(x.path)} <span>(${esc(x.scans.map(s=>s.label||fmtDate(s.started)).join(', '))})</span></li>`).join('')}</ul></dd>
-        <dt>Category</dt><dd>${esc(CAT_LABEL[it.cat])}${cweText(it.cat)?` <span style="color:var(--muted)">(${esc(cweText(it.cat))}${owaspText(it.cat)?', OWASP '+esc(owaspText(it.cat)):''})</span>`:''}</dd>
+        <dt>Category</dt><dd><select id="drCategory" aria-label="Finding category">${categoryOptions(it.cat)}</select>${cweText(it.cat)?` <span style="color:var(--muted)">(${esc(cweText(it.cat))}${owaspText(it.cat)?', OWASP '+esc(owaspText(it.cat)):''})</span>`:''}</dd>
         <dt>Age</dt><dd>${d.ageDays} days since first seen${d.slaDays&&(d.eff==='open'||d.eff==='confirmed')?`, deadline ${d.slaDays} days${d.slaDue?` <b style="color:var(--s-regression)">(overdue by ${d.slaOver} days)</b>`:''}`:''}${d.fixDays!=null?`, fixed after ${d.fixDays} days`:''}</dd>
         ${it.scannerFiltered?`<dt>Scanner</dt><dd>${({hall:'hallucination detected', self:'refuted by the LLM itself', sup:'suppressed in the tool'})[kindOf(it)]}: ${esc(it.filterReason)}</dd>`:''}
         <dt>Reported by</dt><dd>${esc(d.tools.join(', '))}</dd>
@@ -3866,11 +4198,13 @@ function renderDrawer(){
     ${mergeLogHtml(it)}
     ${variants.length>1?`<div class="dr-sec"><h4>Scanner wordings (${variants.length})</h4><ul class="variants">${variants.map(([t,c])=>`<li>${esc(t)} <span class="c">${c}×</span></li>`).join('')}</ul></div>`:''}
     <div class="dr-sec scanner-panel"><h4>Flagged code</h4><p class="scanner-meta">${snipSrc}</p><pre class="code">${snip||(d.tools.includes('Semgrep')?'<div>No code snippet included in this Semgrep export. Open the reported file at the indicated line to inspect the code.</div>':'<div>–</div>')}</pre></div>
-    ${d.tools.includes('Semgrep')?'':d.tools.some(t=>t.toLowerCase()==='flowtrace')?flowtraceDetails(it):scannerReasoningHtml(it,snipSrc)}
+    ${d.tools.includes('Semgrep')?'':d.tools.some(t=>t.toLowerCase()==='flowtrace')?structuredFlowtraceDetails(it):d.tools.includes('FalconEYE')?falconeyeDetails(it,snipSrc):scannerReasoningHtml(it,snipSrc)}
     ${it.mitigation?`<section class="dr-sec scanner-panel scanner-recommendation"><h4>Recommendation</h4><div class="reason">${esc(it.mitigation)}</div></section>`:''}
     ${auditHtml(it)}
     ${it.hist.length?`<div class="dr-sec"><h4>Status changes</h4><ul class="hist">${it.hist.slice().reverse().map(h=>`<li>${esc(fmtDT(h.at))}: ${esc(STATUS_BY_ID[h.s]?STATUS_BY_ID[h.s].label:h.s)}${h.review?' (reviewed again)':''}${h.editor?' · '+esc(h.editor):''}${h.src?` <span style="color:var(--faint)">(${esc(h.src)})</span>`:''}</li>`).join('')}</ul></div>`:''}
   `;
+  const codeBlock=$('#drBody .code'),hit=codeBlock?.querySelector('.hit');
+  if(hit) codeBlock.scrollTop=Math.max(0,hit.offsetTop-codeBlock.clientHeight/2);
   // correct selection
   let noteEditId=null;
   $('#drNote').addEventListener('input',e=>{
@@ -3930,12 +4264,18 @@ function editorUrl(it){
 const pathHtml = s => String(s).split(/(?<=\/)/).map(seg=>`<span class="pseg${seg.length>40?' long':''}">${esc(seg)}</span>`).join('<wbr>');
 /* Full path = the prefix FalconEYE reported for that scan (stored as scan.root) + the relative path */
 let FULLPATH=false; try{ FULLPATH=localStorage.getItem(LS_KEY+'.fullpath')==='1'; }catch(e){}
+function sourceRoot(scan,file){
+  if(/^(?:[A-Za-z]:\/|\/)/.test(normPath(file)))return '';
+  if(scan?.root)return scan.root;
+  const base=normPath(scan?.codebase||'');
+  return /^(?:[A-Za-z]:\/|\/)/.test(base)?base.replace(/\/+$/,'')+'/':'';
+}
 function fullPaths(it){
   const m=new Map();
-  for(const s of S.scans){ if(!it.seen[s.id]) continue; const fp=(s.root||'')+it.file; if(!m.has(fp)) m.set(fp,[]); m.get(fp).push(s); }
+  for(const s of S.scans){ if(!it.seen[s.id]) continue; const fp=sourceRoot(s,it.file)+it.file; if(!m.has(fp)) m.set(fp,[]); m.get(fp).push(s); }
   return [...m.entries()].map(([path,scans])=>({path, scans}));
 }
-function latestRoot(it){ const s=latestSeenScan(S,it); return s && s.root ? s.root : ''; }
+function latestRoot(it){ const s=latestSeenScan(S,it); return sourceRoot(s,it.file); }
 /* File column: folder muted, file name emphasised, line range; merged findings list their other files */
 function fileCell(it){
   const i=it.file.lastIndexOf('/'), dir=i>=0?it.file.slice(0,i+1):'', base=i>=0?it.file.slice(i+1):it.file;
@@ -3954,9 +4294,9 @@ function fileRef(it){
   return u ? `<a class="mono edlink" href="${esc(u)}" title="Open in editor">${txt}</a>` : `<span class="mono">${txt}</span>`;
 }
 $('#slaForm').onsubmit=e=>{ e.preventDefault(); const f=e.target; const next={};for(const k of ['crit','high','med','low','info']) next[k]=Math.min(3650,Math.max(0,int(f[k].value)));if(JSON.stringify(next)===JSON.stringify(S.settings.sla))return;undoFull('fix deadlines');S.settings.sla=next; save(); rebuild(true); toast('Fix deadlines updated'); };
-$('#revForm').onsubmit=e=>{ e.preventDefault(); const days=Math.min(3650,Math.max(0,int(e.target.days.value)));if(days===S.settings.reviewDays)return;undoFull('risk review interval');S.settings.reviewDays=days; save(); rebuild(true); toast(S.settings.reviewDays?`New accepted risks get a review date after ${S.settings.reviewDays} days`:'No review dates for new accepted risks'); };
+$('#revForm').onsubmit=e=>{e.preventDefault();GLOBAL.reviewDays=Math.min(3650,Math.max(0,int(e.target.days.value)));saveGlobalSettings();};
 function renderEditorSettings(){
-  if(document.activeElement!==$('#revForm').days) $('#revForm').days.value=S.settings.reviewDays;
+  if(document.activeElement!==$('#revForm').days) $('#revForm').days.value=GLOBAL.reviewDays;
   for(const k of ['crit','high','med','low','info']){ const inp=$('#slaForm')[k]; if(document.activeElement!==inp) inp.value=S.settings.sla[k]; }
   const f=$('#edForm'), st=S.settings;
   if(!f.editor.options.length) f.editor.innerHTML=Object.entries(EDITORS).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join('');
@@ -4161,7 +4501,7 @@ const REPORT_SECTIONS = [
   ['rules',     'Rules'],
   ['appendix',  'Appendix (inputs, checksum, decision log)'],
 ];
-const RO_DEF = () => ({format:'html', scope:'all', statuses:['open','confirmed','fixed','accepted','fp'], minSev:0,
+const RO_DEF = () => ({format:'html', scope:'all', statuses:STATUSES.map(s=>s.id), minSev:0,
   sections:Object.fromEntries(REPORT_SECTIONS.map(([k])=>[k,true])), code:true, cards:'key', paths:'relative', redact:true, markReported:true});
 let RO = RO_DEF();
 try{ const o=JSON.parse(localStorage.getItem(LS_KEY+'.report')||'null'); if(o){ const d=RO_DEF();
@@ -4245,10 +4585,10 @@ async function buildReport(o){
     return {b, sla:S.settings.sla[b.id], active:act.length, avgAge:avg(act.map(d=>d.ageDays)), maxAge:act.length?Math.max(...act.map(d=>d.ageDays)):null, overdue:act.filter(d=>d.slaDue).length, fixed:fx.length, avgFix:avg(fx.map(d=>d.fixDays))}; });
   // details
   // detail cards: key findings, or every finding grouped regression → confirmed → open → fixed → accepted → false positive
-  const grpOrder = d => d.regression ? 0 : ({confirmed:1, open:2, fixed:3, accepted:4, fp:5})[d.eff];
+  const grpOrder = d => d.regression ? 0 : 1+STATUSES.findIndex(s=>s.id===d.eff);
   const details = (o.cards==='all' ? list.slice() : list.filter(d=>d.eff==='confirmed' || d.regression))
     .sort((a,b)=>grpOrder(a)-grpOrder(b) || b.sevMax-a.sevMax || a.it.file.localeCompare(b.it.file) || (a.it.range?a.it.range[0]:0)-(b.it.range?b.it.range[0]:0));
-  const grpName = d => d.regression ? 'Regressions' : ({confirmed:'Confirmed', open:'Open', fixed:'Fixed', accepted:'Accepted risk', fp:'False positives'})[d.eff];
+  const grpName = d => d.regression ? 'Regressions' : statusLabel(d.eff);
   // appendix
   const hashInput=JSON.stringify({scans:S.scans.map(s=>({id:s.id, started:s.started, raw:s.raw, rec:(s.rec||[]).map(r=>r.p)})), items:Object.values(S.items).map(it=>[it.id,it.status,it.statusAt,it.note,it.reviewAt,it.editor,it.editedAt,it.audit]), rules:S.rules});
   const checksum=await sha256Hex(hashInput);
@@ -4277,9 +4617,10 @@ function reportFileName(ext){ return `${fileSlug()}_report_v${APP_VERSION}_${sta
 /* ---------------- HTML report ---------------- */
 function renderHtmlReport(M){
   const o=M.o, e=s=>esc(M.red(s)), sec=o.sections, pn=projectName();
-  const col={open:'#A86A12',confirmed:'#C2410C',fp:'#6F63A0',accepted:'#1F7A8A',fixed:'#3A8340'};
+  const col={open:'#A86A12',confirmed:'#C2410C',fp:'#6F63A0',accepted:'#1F7A8A',fixed:'#3A8340','test-hardening':'#376DA6','demo-files':'#626B78'};
+  for(const status of STATUSES)if(/^#[0-9a-f]{6}$/i.test(status.color))col[status.id]=status.color;
   const sevCol={crit:'#C0262D',high:'#C2410C',med:'#A86A12',low:'#6E7A88',info:'#8A94A1'};
-  const segs=['open','confirmed','fixed','accepted','fp'].filter(k=>o.statuses.includes(k));
+  const segs=STATUSES.map(s=>s.id).filter(k=>o.statuses.includes(k));
   const toc=[], parts=[];
   const section=(id, title, body, open=true)=>{ toc.push([id,title]); parts.push(`<section id="${id}"><details${open?' open':''}><summary><h2>${esc(title)}</h2></summary>${body}</details></section>`); };
   const sevBadge = v => `<span class="sev" style="background:${sevCol[sevBucket(v)]}">${v}</span>`;
@@ -4287,14 +4628,14 @@ function renderHtmlReport(M){
   const fileCell = d => `<span class="mono">${e(M.pathOf(d.it))}${d.it.range?':'+esc(fmtRange(d.it.range)):''}</span>`;
   const table = arr => arr.length ? `<table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>Category</th><th>File</th><th class="c">Seen</th><th>Last seen</th><th>Note</th></tr></thead><tbody>${arr.map(d=>`<tr><td class="c">${sevBadge(d.sevMax)}</td><td>${M.cardsAll&&sec.details?`<a href="#f-${esc(d.it.id)}">${e(d.it.lastTitle)}</a>`:e(d.it.lastTitle)}${flagsText(d).length?`<div class="m">${flagsText(d).map(f=>`<span class="tag${/regression|overdue|due|conflict/.test(f)?' warn':''}">${e(f)}</span>`).join(' ')}</div>`:''}</td><td>${catCell(d.it.cat)}</td><td>${fileCell(d)}</td><td class="c">${d.nSeen}/${d.span}</td><td>${esc(fmtDate(M.scans[d.last].started))}</td><td class="note">${e(d.it.note||(d.rule&&d.rule.note)||'')}</td></tr>`).join('')}</tbody></table>` : '<p class="m">None.</p>';
   // 1 summary
-  if(sec.summary) section('summary','Summary', `<div class="kpi">${segs.map(k=>`<div style="border-color:${col[k]}"><b>${M.facts.cnt[k]}</b>${statusLabel(k)}</div>`).join('')}<div style="border-color:#C0262D"><b>${M.facts.regressions}</b>regressions</div><div style="border-color:#C0262D"><b>${M.facts.slaDue}</b>SLA overdue</div><div style="border-color:#2458A6"><b>${M.facts.isNew}</b>new in latest scan</div></div>
+  if(sec.summary) section('summary','Summary', `<div class="kpi">${segs.map(k=>`<div style="border-color:${col[k]}"><b>${M.facts.cnt[k]}</b>${esc(statusLabel(k))}</div>`).join('')}<div style="border-color:#C0262D"><b>${M.facts.regressions}</b>regressions</div><div style="border-color:#C0262D"><b>${M.facts.slaDue}</b>SLA overdue</div><div style="border-color:#2458A6"><b>${M.facts.isNew}</b>new in latest scan</div></div>
     <div class="summary">${M.summary.map(s=>`<p>${e(s)}</p>`).join('')}</div>`);
   // 2 changes
   if(sec.changes){
     const c=M.changes;
     section('changes','Changes since last report', !c ? '<p class="m">No earlier report on record. The next report will list what changed since this one.</p>' :
       `<p class="m">Last report: ${esc(fmtDT(c.at))}. ${c.newScans.length} new scan${c.newScans.length===1?'':'s'}${c.newScans.length?': '+c.newScans.map(s=>e(scanName(s))).join(', '):''}; ${c.added.length} new finding${c.added.length===1?'':'s'}; ${c.changed.length} status change${c.changed.length===1?'':'s'}${c.vanished?`; ${c.vanished} finding${c.vanished===1?'':'s'} no longer in the project (scan removed or regrouped)`:''}.</p>
-      ${c.changed.length?`<h3>Status changes</h3><table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>File</th><th>Before</th><th>Now</th></tr></thead><tbody>${c.changed.sort((a,b)=>b.d.sevMax-a.d.sevMax).map(x=>`<tr><td class="c">${sevBadge(x.d.sevMax)}</td><td>${e(x.d.it.lastTitle)}</td><td>${fileCell(x.d)}</td><td>${statusLabel(x.from)}</td><td><b>${statusLabel(x.d.eff)}</b></td></tr>`).join('')}</tbody></table>`:''}
+      ${c.changed.length?`<h3>Status changes</h3><table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>File</th><th>Before</th><th>Now</th></tr></thead><tbody>${c.changed.sort((a,b)=>b.d.sevMax-a.d.sevMax).map(x=>`<tr><td class="c">${sevBadge(x.d.sevMax)}</td><td>${e(x.d.it.lastTitle)}</td><td>${fileCell(x.d)}</td><td>${esc(statusLabel(x.from))}</td><td><b>${esc(statusLabel(x.d.eff))}</b></td></tr>`).join('')}</tbody></table>`:''}
       ${c.added.length?`<h3>New findings</h3>${table(c.added.sort((a,b)=>b.sevMax-a.sevMax))}`:''}`);
   }
   // 3 scan history
@@ -4304,15 +4645,15 @@ function renderHtmlReport(M){
     M.rows.forEach((r,i)=>{ const x=20+i*cw; let y=22+H; for(const k of segs){ const hh=H*r[k]/max; if(hh>0){ y-=hh; svg+=`<rect x="${x}" y="${y}" width="40" height="${hh}" fill="${col[k]}"/>`; } }
       svg+=`<text x="${x+20}" y="${y-4}" font-size="11" text-anchor="middle" font-weight="600">${r.total}</text><text x="${x+20}" y="${H+40}" font-size="10.5" text-anchor="middle" fill="#5A6573">${esc(fmtDate(r.scan.started))}</text>${r.scan.label?`<text x="${x+20}" y="${H+54}" font-size="10.5" text-anchor="middle" font-weight="600">${e(r.scan.label.length>13?r.scan.label.slice(0,12)+'…':r.scan.label)}</text>`:''}`; });
     svg+='</svg>';
-    section('scans','Scan history', `<div class="legend">${segs.map(k=>`<span><i class="sw" style="background:${col[k]}"></i>${statusLabel(k)}</span>`).join('')}</div>${svg}
-      <table><thead><tr><th>Scan</th><th class="c">Raw findings</th><th class="c">Findings</th><th class="c">New</th><th class="c">No longer found</th>${segs.map(k=>`<th class="c">${statusLabel(k)}</th>`).join('')}<th class="c">Regression</th></tr></thead><tbody>
+    section('scans','Scan history', `<div class="legend">${segs.map(k=>`<span><i class="sw" style="background:${col[k]}"></i>${esc(statusLabel(k))}</span>`).join('')}</div>${svg}
+      <table><thead><tr><th>Scan</th><th class="c">Raw findings</th><th class="c">Findings</th><th class="c">New</th><th class="c">No longer found</th>${segs.map(k=>`<th class="c">${esc(statusLabel(k))}</th>`).join('')}<th class="c">Regression</th></tr></thead><tbody>
       ${M.rows.map((r,i)=>`<tr><td>${r.scan.label?'<b>'+e(r.scan.label)+'</b>, ':''}${esc(fmtDT(r.scan.started))}</td><td class="c">${r.scan.raw}</td><td class="c">${r.total}</td><td class="c">${i?r.newN:'–'}</td><td class="c">${i?r.goneN:'–'}</td>${segs.map(k=>`<td class="c">${r[k]}</td>`).join('')}<td class="c">${r.regression}</td></tr>`).join('')}</tbody></table>
       <p class="m">Status per scan reflects today's rating of the findings reported in that scan. "Regression" only counts scans after the finding was marked fixed.</p>`);
   }
   // 4 comparison
   if(M.cmp){
     const [A,B]=M.cmp, g=cmpGroups(M.list), both=M.list.filter(d=>cmpMatch(d,'both')).length;
-    const row=d=>{ const c=cmpInfo(d); return `<tr><td class="c">${c.sevA??'–'} → ${c.sevB??'–'}</td><td>${e(d.it.lastTitle)}<div class="m">${esc(CAT_LABEL[d.it.cat])}, ${statusLabel(d.eff)}${c.file==='changed'?', file changed':c.file==='same'?', file unchanged':''}</div></td><td>${fileCell(d)}</td></tr>`; };
+    const row=d=>{ const c=cmpInfo(d); return `<tr><td class="c">${c.sevA??'–'} → ${c.sevB??'–'}</td><td>${e(d.it.lastTitle)}<div class="m">${esc(CAT_LABEL[d.it.cat])}, ${esc(statusLabel(d.eff))}${c.file==='changed'?', file changed':c.file==='same'?', file unchanged':''}</div></td><td>${fileCell(d)}</td></tr>`; };
     section('comparison',`Comparison: ${M.red(scanName(A))} → ${M.red(scanName(B))}`, `<p class="m">${g[0][1].length} new, ${g[1][1].length} gone, ${both} in both, severity up ${g[2][1].length}, down ${g[3][1].length}.</p>
       ${g.filter(([,l])=>l.length).map(([k,l])=>`<h3>${esc(CMP_MODES[k].label)} (${l.length})</h3><table><thead><tr><th class="c">Sev. A → B</th><th>Finding</th><th>File</th></tr></thead><tbody>${l.map(row).join('')}</tbody></table>`).join('')}`);
   }
@@ -4329,13 +4670,13 @@ function renderHtmlReport(M){
   if(sec.sla) section('sla','Age and fix deadlines', `<table><thead><tr><th>Severity</th><th class="c">Deadline</th><th class="c">Open / confirmed</th><th class="c">Avg. age</th><th class="c">Oldest</th><th class="c">Overdue</th><th class="c">Fixed</th><th class="c">Avg. time to fix</th></tr></thead><tbody>
       ${M.slaRows.map(r=>`<tr><td>${esc(r.b.label)}</td><td class="c">${r.sla?r.sla+' d':'–'}</td><td class="c">${r.active}</td><td class="c">${r.avgAge!=null?r.avgAge+' d':'–'}</td><td class="c">${r.maxAge!=null?r.maxAge+' d':'–'}</td><td class="c">${r.overdue?'<b class="warn">'+r.overdue+'</b>':'0'}</td><td class="c">${r.fixed}</td><td class="c">${r.avgFix!=null?r.avgFix+' d':'–'}</td></tr>`).join('')}</tbody></table>
       <p class="m">Age = days since the finding was first seen in a scan. Time to fix = first seen until marked fixed. Deadlines are set under Settings in Refindings.</p>
-      ${M.slaDue.length?`<h3>Past the deadline (${M.slaDue.length})</h3><table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>File</th><th>Status</th><th class="c">Age</th><th class="c">Overdue</th></tr></thead><tbody>${M.slaDue.map(d=>`<tr><td class="c">${sevBadge(d.sevMax)}</td><td>${e(d.it.lastTitle)}</td><td>${fileCell(d)}</td><td>${statusLabel(d.eff)}</td><td class="c">${d.ageDays} d</td><td class="c"><b class="warn">+${d.slaOver} d</b></td></tr>`).join('')}</tbody></table>`:'<p class="m">No finding is past its deadline.</p>'}`);
+      ${M.slaDue.length?`<h3>Past the deadline (${M.slaDue.length})</h3><table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>File</th><th>Status</th><th class="c">Age</th><th class="c">Overdue</th></tr></thead><tbody>${M.slaDue.map(d=>`<tr><td class="c">${sevBadge(d.sevMax)}</td><td>${e(d.it.lastTitle)}</td><td>${fileCell(d)}</td><td>${esc(statusLabel(d.eff))}</td><td class="c">${d.ageDays} d</td><td class="c"><b class="warn">+${d.slaOver} d</b></td></tr>`).join('')}</tbody></table>`:'<p class="m">No finding is past its deadline.</p>'}`);
   // 7 detail cards
   if(sec.details) section('details', M.cardsAll ? `All findings in detail (${M.details.length})` : `Confirmed findings and regressions (${M.details.length})`, M.details.length ? M.details.map((d,i)=>{
     const it=d.it, note=it.note||(d.rule&&d.rule.note)||'', lines=o.code?codeLines(it):[];
     const g=M.grpName(d), head = M.cardsAll && (i===0 || M.grpName(M.details[i-1])!==g) ? `<h3 class="grp">${esc(g)} (${M.details.filter(x=>M.grpName(x)===g).length})</h3>` : '';
     return head+`<article class="card" id="f-${esc(it.id)}"><header><span class="num">${i+1}</span>${sevBadge(d.sevMax)}<h3>${e(it.lastTitle)}</h3></header>
-      <div class="tags"><span class="tag st" style="border-color:${col[d.eff]};color:${col[d.eff]}">${statusLabel(d.eff)}</span>${flagsText(d).map(f=>`<span class="tag${/regression|overdue|due|conflict/.test(f)?' warn':''}">${e(f)}</span>`).join('')}</div>
+      <div class="tags"><span class="tag st" style="border-color:${col[d.eff]};color:${col[d.eff]}">${esc(statusLabel(d.eff))}</span>${flagsText(d).map(f=>`<span class="tag${/regression|overdue|due|conflict/.test(f)?' warn':''}">${e(f)}</span>`).join('')}</div>
       <dl><dt>File</dt><dd class="mono">${e(M.pathOf(it))}${it.range?':'+esc(fmtRange(it.range)):''}</dd>
         <dt>Category</dt><dd>${esc(CAT_LABEL[it.cat])}${cweText(it.cat)?' · '+cweText(it.cat).split(', ').map(c=>`<a href="https://cwe.mitre.org/data/definitions/${c.slice(4)}.html">${c}</a>`).join(', '):''}${owaspText(it.cat)?' · OWASP '+esc(owaspText(it.cat)):''}</dd>
         <dt>Seen</dt><dd><span class="strip">${seenStrip(d)}</span> ${d.nSeen} of ${d.span} scans since ${esc(fmtDate(M.scans[d.first].started))}, last ${esc(fmtDate(M.scans[d.last].started))}; ${d.ageDays} days old${d.slaDays&&(d.eff==='open'||d.eff==='confirmed')?`, deadline ${d.slaDays} days`:''}${d.fixDays!=null?`, fixed after ${d.fixDays} days`:''}</dd>
@@ -4349,15 +4690,15 @@ function renderHtmlReport(M){
   if(sec.lists){
     const reg=M.list.filter(d=>d.regression);
     if(reg.length) section('regressions',`Regressions (${reg.length})`, table(reg));
-    for(const k of ['confirmed','open','fixed','accepted','fp']) if(o.statuses.includes(k)) section('list-'+k, `${k==='fp'?'False positives':statusLabel(k)} (${M.facts.cnt[k]})`, table(M.by(k)), !(k==='fp'||k==='fixed'));
+    for(const k of STATUSES.map(s=>s.id)) if(o.statuses.includes(k)) section('list-'+k, `${k==='fp'?'False positives':statusLabel(k)} (${M.facts.cnt[k]})`, table(M.by(k)), !(k==='fp'||k==='fixed'));
   }
   // 9 rules
-  if(sec.rules && S.rules.length) section('rules','Rules', `<table><thead><tr><th>Pattern</th><th>Category</th><th>Status</th><th>Reason</th><th>Review on</th></tr></thead><tbody>${S.rules.map(r=>`<tr><td class="mono">${e(r.glob)}</td><td>${r.cat==='*'?'all':esc(CAT_LABEL[r.cat])}</td><td>${statusLabel(r.status)}</td><td>${e(r.note||'')}</td><td>${esc(r.reviewAt||'–')}</td></tr>`).join('')}</tbody></table>`);
+  if(sec.rules && S.rules.length) section('rules','Rules', `<table><thead><tr><th>Pattern</th><th>Category</th><th>Status</th><th>Reason</th><th>Review on</th></tr></thead><tbody>${S.rules.map(r=>`<tr><td class="mono">${e(r.glob)}</td><td>${r.cat==='*'?'all':esc(CAT_LABEL[r.cat])}</td><td>${esc(statusLabel(r.status))}</td><td>${e(r.note||'')}</td><td>${esc(r.reviewAt||'–')}</td></tr>`).join('')}</tbody></table>`);
   // 10 appendix
   if(sec.appendix) section('appendix','Appendix', `<h3>Input scans</h3><table><thead><tr><th>#</th><th>Started</th><th>Tool</th><th>Label</th><th>File</th><th>Scan ID</th><th class="c">Raw findings</th><th class="c">Rejected by scanner</th></tr></thead><tbody>${M.scans.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(fmtDT(s.started))}</td><td>${esc(toolOf(s))}</td><td>${e(s.label||'')}</td><td class="mono">${e(s.file)}</td><td class="mono">${esc(s.id)}</td><td class="c">${s.raw}</td><td class="c">${s.filtered}</td></tr>`).join('')}</tbody></table>
       <h3>Integrity</h3><p>SHA-256 over scan IDs, raw finding fingerprints, ratings, notes and rules: <span class="mono">${esc(M.checksum)}</span></p>
-      <p class="m">Report settings: scope ${o.scope==='filtered'?'current filter':'all findings'}${verdictText()}; statuses ${o.statuses.map(statusLabel).join(', ')}${o.minSev?`; severity ≥ ${o.minSev}`:''}; paths ${o.paths==='full'?'full':'relative to the code base'}${o.redact?'; user names in paths redacted':''}.</p>
-      <h3>Decision log (${M.decisions.length})</h3>${M.decisions.length?`<table><thead><tr><th>Date</th><th>Finding</th><th>File</th><th>Decision</th><th>Source</th></tr></thead><tbody>${M.decisions.map(x=>`<tr><td>${esc(fmtDT(x.at))}</td><td>${e(x.d.it.lastTitle)}</td><td>${fileCell(x.d)}</td><td>${statusLabel(x.s)}${x.review?' (reviewed again)':''}</td><td>${e(x.src)}</td></tr>`).join('')}</tbody></table>`:'<p class="m">No ratings recorded.</p>'}`, false);
+      <p class="m">Report settings: scope ${o.scope==='filtered'?'current filter':'all findings'}${verdictText()}; statuses ${esc(o.statuses.map(statusLabel).join(', '))}${o.minSev?`; severity ≥ ${o.minSev}`:''}; paths ${o.paths==='full'?'full':'relative to the code base'}${o.redact?'; user names in paths redacted':''}.</p>
+      <h3>Decision log (${M.decisions.length})</h3>${M.decisions.length?`<table><thead><tr><th>Date</th><th>Finding</th><th>File</th><th>Decision</th><th>Source</th></tr></thead><tbody>${M.decisions.map(x=>`<tr><td>${esc(fmtDT(x.at))}</td><td>${e(x.d.it.lastTitle)}</td><td>${fileCell(x.d)}</td><td>${esc(statusLabel(x.s))}${x.review?' (reviewed again)':''}</td><td>${e(x.src)}</td></tr>`).join('')}</tbody></table>`:'<p class="m">No ratings recorded.</p>'}`, false);
 
   const title=`${pn}: Refindings report`;
   const footer=`${M.red(pn)} · Refindings report ${fmtDate(M.now)}`.replace(/["\\<>]/g,'');
@@ -4400,7 +4741,7 @@ ${parts.join('\n')}
 
 /* ---------------- Markdown report ---------------- */
 function renderMdReport(M){
-  const o=M.o, sec=o.sections, r=M.red, c_=s=>mdCell(r(s)), segs=['open','confirmed','fixed','accepted','fp'].filter(k=>o.statuses.includes(k));
+  const o=M.o, sec=o.sections, r=M.red, c_=s=>mdCell(r(s)), segs=STATUSES.map(s=>s.id).filter(k=>o.statuses.includes(k));
   const code = s => '`'+String(r(s)).replace(/`/g,'')+'`';
   const fileMd = d => code(M.pathOf(d.it)+(d.it.range?':'+fmtRange(d.it.range):''));
   const cwe = c => cweText(c) || '–';
@@ -4443,14 +4784,14 @@ function renderMdReport(M){
       if(it.mitigation) out.push('', '**Recommendation:** '+r(it.mitigation).replace(/</g,'&lt;'));
       out.push(''); }); }
   if(sec.lists){ const reg=M.list.filter(d=>d.regression); if(reg.length){ H('reg',`Regressions (${reg.length})`); out.push(table(reg), ''); }
-    for(const k of ['confirmed','open','fixed','accepted','fp']) if(o.statuses.includes(k)){ H('l'+k, `${k==='fp'?'False positives':statusLabel(k)} (${M.facts.cnt[k]})`); out.push(table(M.by(k)), ''); } }
+    for(const k of STATUSES.map(s=>s.id)) if(o.statuses.includes(k)){ H('l'+k, `${k==='fp'?'False positives':statusLabel(k)} (${M.facts.cnt[k]})`); out.push(table(M.by(k)), ''); } }
   if(sec.rules && S.rules.length){ H('rules','Rules'); out.push('| Pattern | Category | Status | Reason | Review on |', '|---|---|---|---|---|', ...S.rules.map(x=>`| ${code(x.glob)} | ${x.cat==='*'?'all':mdCell(CAT_LABEL[x.cat])} | ${statusLabel(x.status)} | ${c_(x.note||'')} | ${x.reviewAt||'–'} |`), ''); }
   if(sec.appendix){ H('appendix','Appendix');
     out.push('**Input scans**', '', '| # | Started | Tool | Label | File | Scan ID | Raw findings | Rejected |', '|---:|---|---|---|---|---|---:|---:|', ...M.scans.map((s,i)=>`| ${i+1} | ${fmtDT(s.started)} | ${mdCell(toolOf(s))} | ${c_(s.label||'')} | ${code(s.file)} | ${code(s.id)} | ${s.raw} | ${s.filtered} |`), '',
       `**Integrity:** SHA-256 over scan IDs, raw finding fingerprints, ratings, notes and rules: \`${M.checksum}\``, '',
-      `_Report settings: scope ${o.scope==='filtered'?'current filter':'all findings'}${verdictText()}; statuses ${o.statuses.map(statusLabel).join(', ')}${o.minSev?`; severity ≥ ${o.minSev}`:''}; paths ${o.paths==='full'?'full':'relative'}${o.redact?'; user names redacted':''}._`, '',
+      `_Report settings: scope ${o.scope==='filtered'?'current filter':'all findings'}${verdictText()}; statuses ${esc(o.statuses.map(statusLabel).join(', '))}${o.minSev?`; severity ≥ ${o.minSev}`:''}; paths ${o.paths==='full'?'full':'relative'}${o.redact?'; user names redacted':''}._`, '',
       `**Decision log (${M.decisions.length})**`, '');
-    out.push(M.decisions.length ? ['| Date | Finding | File | Decision | Source |', '|---|---|---|---|---|', ...M.decisions.map(x=>`| ${fmtDT(x.at)} | ${c_(x.d.it.lastTitle)} | ${fileMd(x.d)} | ${statusLabel(x.s)}${x.review?' (reviewed again)':''} | ${c_(x.src)} |`)].join('\n') : '_No ratings recorded._', ''); }
+    out.push(M.decisions.length ? ['| Date | Finding | File | Decision | Source |', '|---|---|---|---|---|', ...M.decisions.map(x=>`| ${fmtDT(x.at)} | ${c_(x.d.it.lastTitle)} | ${fileMd(x.d)} | ${esc(statusLabel(x.s))}${x.review?' (reviewed again)':''} | ${c_(x.src)} |`)].join('\n') : '_No ratings recorded._', ''); }
   if(toc.length>2) out.splice(4, 0, '**Contents:** '+toc.map(t=>mdEsc(t.replace(/\s*\(\d+\)$/,''))).join(' · '), '');
   out.push('---', `_Created with [Refindings](${REPO_URL}) ${APP_VERSION} · checksum ${M.checksum.slice(0,16)}…_`);
   return out.join('\n');
@@ -4465,7 +4806,7 @@ function openReportDialog(format){
   f.code.checked=RO.code; f.redact.checked=RO.redact; f.markReported.checked=RO.markReported; f.cards.value=RO.cards;
   const updCards=()=>{ const n=(f.scope.value==='filtered'?VIEW:BASE).length; $('#repCardsInfo').textContent = f.cards.value==='all' ? `${n} cards before the status and severity choice; the file can get large (roughly 3–5 KB per finding).` : ''; };
   f.cards.forEach(r=>r.onchange=updCards); f.scope.forEach(r=>r.addEventListener('change',updCards)); updCards();
-  $('#repStatuses').innerHTML=STATUSES.map(s=>`<label class="chk"><input type="checkbox" name="st" value="${s.id}" ${RO.statuses.includes(s.id)?'checked':''}> <span style="color:${s.color}">●</span> ${s.label}</label>`).join('');
+  $('#repStatuses').innerHTML=STATUSES.map(s=>`<label class="chk"><input type="checkbox" name="st" value="${s.id}" ${RO.statuses.includes(s.id)?'checked':''}> <span style="color:${s.color}">●</span> ${esc(s.label)}</label>`).join('');
   $('#repSections').innerHTML=REPORT_SECTIONS.map(([k,l])=>`<label class="chk"><input type="checkbox" name="sec" value="${k}" ${RO.sections[k]?'checked':''}> ${l}</label>`).join('');
   $('#repScopeInfo').textContent=`All: ${BASE.length} findings${verdictText()}. Current filter: ${VIEW.length}.`;
   $('#repLast').textContent = S.reportSnap ? `Last report marked: ${fmtDT(S.reportSnap.at)}` : 'No report marked yet';
@@ -4492,6 +4833,35 @@ async function exportReport(){
 }
 
 /* ---- Events ---- */
+
+$('#globalCategories').addEventListener('click',e=>{const saveButton=e.target.closest('[data-category-save]'),removeButton=e.target.closest('[data-category-remove]');if(!saveButton&&!removeButton)return;try{
+ if(saveButton){const row=saveButton.closest('[data-category-id]');updateCategoryNames([{id:saveButton.dataset.categorySave,label:row.querySelector('[data-category-label]').value}]);}
+ else setCatalogRemoved('categories',removeButton.dataset.categoryRemove,removeButton.dataset.removed!=='true');
+ if(document.activeElement?.blur)document.activeElement.blur();saveGlobalSettings();
+}catch(err){$('#globalSettingsMessage').textContent=err.message;}});
+$('#ratingSettingsForm').addEventListener('click',e=>{const button=e.target.closest('[data-rating-remove]');if(!button)return;try{setCatalogRemoved('statuses',button.dataset.ratingRemove,button.dataset.removed!=='true');saveGlobalSettings();renderRatingEditor(true);}catch(err){$('#globalSettingsMessage').textContent=err.message;}});
+
+
+$('#ratingSettingsForm').onsubmit=e=>{e.preventDefault();try{
+ const rows=[...e.target.querySelectorAll('[data-rating-id]')].map(row=>({id:row.dataset.ratingId,label:row.querySelector('[data-rating-label]').value,key:row.querySelector('[data-rating-key]').value,color:row.querySelector('[data-rating-theme]').checked?'':row.querySelector('[data-rating-color]').value}));
+ updateRatings(rows);saveGlobalSettings();renderRatingEditor(true);
+}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
+$('#ratingSettingsForm').addEventListener('input',e=>{if(e.target.matches('[data-rating-color]'))e.target.closest('[data-rating-id]').querySelector('[data-rating-theme]').checked=false;});
+$('#restoreRatingDefaults').onclick=()=>{try{restoreRatingDefaults();saveGlobalSettings();renderRatingEditor(true);}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
+
+$('#scannerOverview').addEventListener('click',e=>{const b=e.target.closest('[data-scanner-filter]');if(!b)return;F.tools=[b.dataset.scannerFilter];saveFilters();rebuild(true);});
+
+for(const [formId,kind] of [['globalCategoryForm','categories'],['globalStatusForm','statuses']]){
+ $('#'+formId).onsubmit=e=>{e.preventDefault();try{addCatalogEntry(kind,e.target.elements.label.value,e.target.elements.color?.value);e.target.reset();saveGlobalSettings();}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
+}
+$('#globalReviewForm').onsubmit=e=>{e.preventDefault();try{const days=Number(e.target.days.value);if(!Number.isInteger(days)||days<0||days>3650)throw new Error('Default interval must be between 0 and 3650 days.');const presets=reviewPresetDays(e.target.presets.value);GLOBAL={reviewDays:days,reviewPresets:presets};saveGlobalSettings();}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
+$('#resetReviewDefaults').onclick=()=>{GLOBAL=cleanGlobal(null);const f=$('#globalReviewForm');f.days.value=GLOBAL.reviewDays;f.presets.value=GLOBAL.reviewPresets.join(', ');saveGlobalSettings();};
+
+for(const el of document.querySelectorAll('.column-filter'))for(const name of ['click','keydown'])el.addEventListener(name,e=>e.stopPropagation());
+for(const [key,id]of Object.entries(COLUMN_IDS)){$('#'+id).addEventListener(['history','status'].includes(key)||key.endsWith('Mode')?'change':'input',()=>{F.columns[key]=$('#'+id).value;filtersChanged();});}
+$('#fileValue').addEventListener('input',()=>{F.fileValue=$('#fileValue').value;filtersChanged();});
+$('#fileMode').addEventListener('change',()=>{F.fileMode=$('#fileMode').value;filtersChanged();});
+$('#bulkCategoryApply').onclick=()=>{setCategory([...SEL],$('#bulkCategory').value);SEL.clear();renderTable();};
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-edit-reviewer]'); if(!b) return;
   e.stopPropagation();
@@ -4604,8 +4974,8 @@ $('#summary').onclick=e=>{
 /* ---- Resizable columns ----
    Drag the grip at a column's right edge; double-click resets it. "Finding" takes the remaining width, so dragging
    its edge resizes the File column instead. Widths are remembered per browser. */
-const COL_DEF = {sel:36, hist:96, sev:58, file:320, seen:76, status:200, editor:160};
-const COL_MIN = {sel:32, hist:50, sev:46, title:160, file:90, seen:56, status:110, editor:110};
+const COL_DEF = {sel:36, hist:145, sev:90, file:320, seen:90, status:200, editor:160};
+const COL_MIN = {sel:32, hist:100, sev:80, title:160, file:90, seen:80, status:125, editor:125};
 let COLW = {...COL_DEF};
 try{ const o=JSON.parse(localStorage.getItem(LS_KEY+'.cols')||'null'); if(o) for(const k of Object.keys(COL_DEF)) if(Number.isFinite(+o[k])) COLW[k]=Math.max(COL_MIN[k], Math.min(2000,+o[k])); }catch(e){}
 function applyCols(){
@@ -4666,6 +5036,7 @@ $('#bulkMerge').onclick=()=>{ if(SEL.size<2){ toast('Select at least two finding
 $('#drClose').onclick=closeDrawer; $('#scrim').onclick=closeDrawer;
 $('#drPrev').onclick=()=>step(-1); $('#drNext').onclick=()=>step(1);
 $('#drBody').addEventListener('change',e=>{
+  if(e.target.id==='drCategory'){setCategory([CUR],e.target.value);return;}
   if(e.target.id!=='drReview') return; const it=S.items[CUR]; if(!it) return;
   if(!ensureEditor()){ renderDrawer(); return; }
   undoItems('review date', [CUR]); touchFinding(it); it.reviewAt = isDate(e.target.value) ? e.target.value : null; save(); rebuild(true);
@@ -4689,6 +5060,7 @@ $('#drBody').addEventListener('click',e=>{
   if(add){$('#newAssigneeForm').classList.remove('hidden');add.setAttribute('aria-expanded','true');$('#newAssigneeName').focus();return;}
   if(e.target.closest('[data-cancel-assignee]')){$('#newAssigneeForm').classList.add('hidden');$('#drBody').querySelector('[data-add-assignee]').setAttribute('aria-expanded','false');return;}
 
+  const preset=e.target.closest('[data-review-days]');if(preset){setReviewDays([CUR],Number(preset.dataset.reviewDays));return;}
   const rvw=e.target.closest('[data-review]');
   if(rvw){ if(!ensureEditor()) return; const it=S.items[CUR]; if(!it) return; undoItems('review date', [CUR]);
     if(rvw.dataset.review==='renew'){ setStatus([CUR],'accepted'); toast(`Reviewed, next review ${it.reviewAt||'not set'}`, undoAction); if(F.queue && AUTONEXT) nextReview(); }
@@ -4698,11 +5070,12 @@ $('#drBody').addEventListener('click',e=>{
   if(rv){ if(!ensureEditor()) return; const it=S.items[CUR]; const o=it&&it.conflict&&it.conflict.options[+rv.dataset.resolve]; if(!o) return;
     undoItems('conflict resolution', [CUR]);
     if(o.s===it.status){ touchFinding(it); it.conflict=null; if(F.queue) reviewedIds().add(it.id); save(); rebuild(true); } else setStatus([CUR], o.s);
-    toast(`Conflict resolved: ${STATUS_BY_ID[o.s].label}`, undoAction); if(F.queue && AUTONEXT) nextReview(); return; }
+    toast(`Conflict resolved: ${esc(STATUS_BY_ID[o.s].label)}`, undoAction); if(F.queue && AUTONEXT) nextReview(); return; }
   const b=e.target.closest('[data-st]'); if(b){ drawerSet(b.dataset.st); return; }
   const m=e.target.closest('[data-merge]'); if(m){ doMerge([CUR, m.dataset.merge]); return; }
   if(e.target.closest('[data-unmerge]')){ undoFull('split'); const it=S.items[CUR]; const src=unmergeLast(S,it); save(); rebuild(true); if(src) toast('Merge undone', undoAction); return; }
   const a=e.target.closest('[data-act2]'); if(!a) return;
+  if(a.dataset.act2==='editRatings'){closeDrawer();$('#globalSettings').open=true;renderRatingEditor(true);$('#ratingSettingsForm').scrollIntoView({block:'center'});$('#ratingSettingsForm').querySelector('input').focus();return;}
   if(a.dataset.act2==='copyMd'){ const d=D.find(x=>x.it.id===CUR); copyText(itemMd(d, true)); }
   if(a.dataset.act2==='setupEditor'){ closeDrawer(); $('#settingsFold').open=true; $('#settingsFold').scrollIntoView({block:'center'}); $('#edForm').base.focus(); }
 });
@@ -4714,7 +5087,7 @@ document.addEventListener('keydown',e=>{
   if(!CUR) return;
   if(e.key==='Escape'){ closeDrawer(); return; }
   if(typing||e.ctrlKey||e.metaKey||e.altKey) return;
-  const s=STATUSES.find(x=>x.key===e.key.toLowerCase());
+  const s=availableStatuses().find(x=>x.key===e.key.toLowerCase());
   // a held-down status key must not rate one finding after another
   if(s){ e.preventDefault(); if(e.repeat) return; drawerSet(s.id); return; }
   if(e.key==='j'||e.key==='ArrowDown'){ e.preventDefault(); step(1); }
