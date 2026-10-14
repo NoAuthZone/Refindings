@@ -1,113 +1,18 @@
 <!DOCTYPE html>
 <!--
   Refindings (formerly Scan-Triage) — changelog · https://github.com/NoAuthZone/Refindings
-  2.1.1  Refresh CSP script hashes so the browser can start the application and bind all buttons.
-  2.1.0  Hardened category; Test Hardening / Demo Files statuses; file-value filters and manual category assignment;
-         complete JSpringGuard context, legacy snippet enrichment and persistent category review history.
-  1.7.0  More scanners, detected from the file content: KICS JSON (search key keeps IaC findings stable when lines move),
-         2ms JSON (secret masked like Gitleaks), Checkmarx CxSAST XML report and Checkmarx One JSON (SAST location is the
-         sink, source and data flow go into the reasoning; "Not Exploitable" counts as suppressed by tool), joern-scan
-         text output (score = severity), Bearer JSON (v1 and v2, description and remediation split), Metis JSON and SARIF
-         (triage "invalid" counts as self-refuted), Gito code-review-report.json, Claude Code Security Review JSON (findings
-         the review filter excluded are kept as self-refuted), vulnhuntr.log, codescan console output, promptfoo code-scans
-         JSON, vulnerability-agent JSON. Generic formats: GitLab SAST report (secret-detection extracts are never stored),
-         SonarQube generic issues, Code Climate and reviewdog rdjson (so kics --report-formats glsast/sonarqube/codeclimate
-         and bearer --format gitlab-sast/reviewdog work too). SARIF from secret scanners (2ms, Gitleaks …) no longer keeps
-         the secret from the snippet. Tools that write no scan time take it from a date in the file name
-         (bearer-2026-09-15.json), only then from the file date. File dialog also offers .xml, .txt, .log.
-         examples/ in the repository: sample reports of a fictional project for every supported format
-  1.6.2  Settings placeholder uses a neutral example path instead of a real one
-  1.6.1  GitHub link as a button in the header and in a page footer (with link to the issue tracker)
-  1.6.0  Other scanners besides FalconEYE: SARIF 2.1.0 (Semgrep, CodeQL, Snyk Code, Checkov, Trivy, ESLint, Bandit …),
-         Semgrep JSON, Bandit JSON, Gitleaks JSON (secret value is replaced by a short hash, never stored) and
-         Trivy JSON (vulnerable packages, misconfigurations, secrets). Category from the CWE the tool reports,
-         otherwise from title and rule id; new category "Vulnerable dependency". SARIF suppressions and nosemgrep
-         count as "suppressed by tool" (new scanner-verdict chip). Several tools in one project: "latest scan",
-         "new", "gone" and "in every scan" are judged per tool; new "Tool" filter and tool column in the scan list
-         and report appendix; drawer shows which tools reported a finding. Relative paths of other tools are kept
-         as they are. SARIF export now names Refindings as driver (source tools as extensions); the FalconEYE
-         baseline only contains findings FalconEYE reported. Repository linked in header, reports, SARIF, baseline
-  1.5.0  Renamed from Scan-Triage to Refindings (file refindings.html). Project files, baselines, SARIF and reports
-         carry the new name; project files written by Scan-Triage still open and merge, and the browser storage
-         keys are unchanged so existing data carries over. SARIF fingerprint key is now "refindingsId/v1"
-  1.4.2  When the same scan is loaded as raw result and as FalconEYE report, recommendation and confidence from the
-         report are added to the raw records (previously only the raw result was kept, which has no recommendation)
-  1.4.1  Report option "Every finding in the report, in full": a detail card (code, reasoning, recommendation,
-         history, CWE/OWASP, note) for each finding, grouped by status; list titles link to their cards
-  1.4.0  Reports reworked: export dialog (format, all findings or current filter, statuses, minimum severity,
-         sections, code snippets, relative or full paths, user-name redaction), generated summary, changes since
-         the last report, CWE and OWASP Top 10 2021 per category (also as SARIF tags), breakdowns (severity x
-         status, category x severity, OWASP, top files and modules), age and fix deadlines per severity (SLA
-         settings, "SLA overdue" flag), detail cards with code, reasoning and recommendation, table of contents,
-         collapsible sections, print layout with page footer, appendix with input scans, SHA-256 checksum and
-         decision log
-  1.3.1  Rename scans directly in the chart: click (or Enter on) the name under a bar, edit inline; unnamed scans
-         show "+ name" on hover. Renaming can be undone
-  1.3.0  All filters as chips with live counts: status, severity (critical/high/medium/low/info), flags,
-         category (multi-choice), frequency, reported in / not reported in (per scan, combinable), status changed,
-         scanner verdict. Less-used rows fold away under "More filters" (shown while active). Folder and
-         exclude-folder stay as tree dropdowns. Saved filters from older versions are migrated
-  1.2.2  Full path: "full path" toggle in the File column shows the path as the scanner reported it (prefix of the
-         latest sighting); detail view and Markdown list the full path per scan; file: search also matches full paths
-  1.2.1  Own "File" column (folder, file name, line range, other files of merged findings; sortable) and
-         resizable list columns: drag the column edge, double-click to reset; widths are remembered
-  1.2.0  Undo (Ctrl/Cmd+Z and "Undo" in the message) for ratings, bulk actions, rules, merges, scan removal, project
-         merge/open and reset; confirmation for bulk actions on 20+ findings; held-down status keys are ignored.
-         Compare any two scans (new, gone, gone with file changed/unchanged, in both, severity up/down) with list
-         filter and a comparison section in the HTML and Markdown reports. Review dates for accepted risks
-         (default interval in Settings, per finding and per rule, "review due" flag and tile; overdue risks are left
-         out of the FalconEYE baseline). Project files are saved gzip-compressed (.json.gz; plain JSON still
-         available) and the browser storage is compressed too; .gz scan files can be loaded directly.
-         Content-Security-Policy: the page and exported HTML reports cannot load or send anything over the network.
-         NOTE: the CSP allows the two inline scripts by their SHA-256 hash. After editing either script, update the
-         hashes in the Content-Security-Policy meta tag, otherwise the browser refuses to run the page.
-  1.1.2  Rating conflicts from merged projects are kept: flag "rating conflict" (filter, list, reports), all competing
-         ratings with project, date and note in the detail view, resolved with one click or any new rating.
-         Status history shows which project an entry came from
-  1.1.1  Exact project merge: each scan keeps compact raw records and findings are regrouped by replaying all
-         records chronologically, so merging projects, removing a scan or loading an older scan later gives the
-         same result as loading all scans fresh. Ratings, notes, history and manual merges are carried over via
-         fingerprints. Older project files without records still merge approximately; reloading their raw scans
-         adds the records.
-  1.1.0  User interface and exports translated to English. Project name can be set (header, exports, file names).
-         Merge projects: combine scans, findings and ratings from another project file.
-  1.0.8  Import of further FalconEYE formats: report as JSON (review/location/code_snippet, severity as word)
-         and as HTML, plus slightly different variants (other field names, findings as bare array). The same scan
-         in several formats is detected and only enriched (file hashes, verifier verdict). Scan label from the
-         file name (e.g. "mlx", "CoderNEXT"), editable under "Loaded scans", shown in chart, filters and reports.
-         Scanner recommendation (mitigation) and confidence in detail view and Markdown
-  1.0.7  New filters: folder (with subfolders and counts), exclude folder (path or folder name anywhere,
-         e.g. help/), flags "severity varies", "many wordings", "unrated", frequency "in at least N scans",
-         "status changed" (today / 7 / 30 days / never); "Worklist" tile (open, unrated, in at least 2 scans)
-  1.0.6  List shows all matches at once (no "Show more"); "Select all" covers all filtered findings;
-         off-screen rows are rendered lazily by the browser
-  1.0.5  Filters reworked: status and flags as combinable toggles with counts (facets), filter by scan
-         (reported in / only in), frequency separate from flags, minimum severity 0–10, search with multiple
-         terms, exclusion (-term), phrases and fields (file:, note:, cat:), reset button with number of active
-         filters, filters persist across reloads, pre-first-seen boxes visible in dark mode
-  1.0.4  "Scanner verdict" filter instead of hide toggle: all / hide rejected / only rejected /
-         only hallucinations / only self-refuted. Kind of rejection stored and shown per finding
-  1.0.3  CSV export removed. New: FalconEYE baseline export (with Python counterpart), SARIF 2.1.0 export,
-         Markdown report and Markdown per finding, merge/split findings (mapping kept for future scans),
-         code change detection via file content, jump to editor
-  1.0.2  Export review: CSV IDs and line ranges no longer converted by Excel, sortable date format, rule reason
-         in CSV and report, own file name for filtered CSV, regressions only in scans after the fixed mark,
-         multi-line notes in report, line ranges in report, version shown in UI, project file, CSV and report
-  1.0.1  Security and logic fixes (prototype pollution, XSS via project files, CSV injection, stable matching,
-         time zones, rule override, IndexedDB instead of localStorage, no external requests)
-  1.0.0  First version
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-GhqGI+06ayDKULhd8BWIAHlHjsNBJgOIuDT3v6Z1fdI=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-sqUR1OCL3dGQYa4nDnQqz/CcyCfOgT9kEBgKmEcGJ+w='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-afvlIyf2nbPILmWdgaNvZrW/JYq62TmTokE7/vulRig=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-9X3VuiLeXSnrNVimlAIV6z153IaBH8PNwi8Z7kQ04LU='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Refindings 2.4.0</title>
+<title>Refindings 2.6.1</title>
 <style>
 :root{
   --bg:#EEF1F4; --surface:#FFFFFF; --sunk:#F6F8FA; --ink:#18212C; --muted:#5A6573; --faint:#8A94A1; --line:#D6DCE3;
   --focus:#2451B7;
-  --s-open:#A86A12; --s-confirmed:#C2410C; --s-fp:#6F63A0; --s-accepted:#1F7A8A; --s-fixed:#3A8340; --s-regression:#C0262D; --s-new:#2458A6;
+  --s-open:#A86A12;--s-review:#5B6B8C; --s-confirmed:#C2410C; --s-fp:#6F63A0; --s-accepted:#1F7A8A; --s-fixed:#3A8340; --s-regression:#C0262D; --s-new:#2458A6;
   --sev-hi:#C0262D; --sev-mid:#C2410C; --sev-lo:#A86A12; --sev-info:#8A94A1;
   --code-bg:#F3F5F8; --code-hit:#FFF1D6;
   --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
@@ -118,7 +23,7 @@
   :root:not([data-theme="light"]){
     --bg:#12161C; --surface:#1A2029; --sunk:#151A21; --ink:#E4E9EF; --muted:#A3AEBB; --faint:#6E7a88; --line:#2B3440;
     --focus:#7FA2F0;
-    --s-open:#E0A43A; --s-confirmed:#F07A45; --s-fp:#A99BE0; --s-accepted:#4FB6C6; --s-fixed:#6CC06F; --s-regression:#F2555C; --s-new:#6E9EEA;
+    --s-open:#E0A43A;--s-review:#9AA8C7; --s-confirmed:#F07A45; --s-fp:#A99BE0; --s-accepted:#4FB6C6; --s-fixed:#6CC06F; --s-regression:#F2555C; --s-new:#6E9EEA;
     --sev-hi:#F2555C; --sev-mid:#F07A45; --sev-lo:#E0A43A; --sev-info:#6E7a88;
     --code-bg:#141920; --code-hit:#3A2F14;
   }
@@ -126,7 +31,7 @@
 :root[data-theme="dark"]{
   --bg:#12161C; --surface:#1A2029; --sunk:#151A21; --ink:#E4E9EF; --muted:#A3AEBB; --faint:#6E7a88; --line:#2B3440;
   --focus:#7FA2F0;
-  --s-open:#E0A43A; --s-confirmed:#F07A45; --s-fp:#A99BE0; --s-accepted:#4FB6C6; --s-fixed:#6CC06F; --s-regression:#F2555C; --s-new:#6E9EEA;
+  --s-open:#E0A43A;--s-review:#9AA8C7; --s-confirmed:#F07A45; --s-fp:#A99BE0; --s-accepted:#4FB6C6; --s-fixed:#6CC06F; --s-regression:#F2555C; --s-new:#6E9EEA;
   --sev-hi:#F2555C; --sev-mid:#F07A45; --sev-lo:#E0A43A; --sev-info:#6E7a88;
   --code-bg:#141920; --code-hit:#3A2F14;
 }
@@ -445,7 +350,7 @@ table.list th{vertical-align:top}
     <div class="actions">
       <button class="btn" id="btnUndo" aria-label="Undo" title="Undo (Ctrl/Cmd+Z)" disabled><span aria-hidden="true">↶</span></button>
       <button class="btn" id="btnRedo" aria-label="Redo" title="Redo (Ctrl/Cmd+Shift+Z or Ctrl+Y)" disabled><span aria-hidden="true">↷</span></button>
-      <span style="display:flex;flex-direction:column;justify-content:center;font-size:12px;color:var(--muted)"><span id="saveStatus" role="status" style="align-self:center;font-size:12px;color:var(--muted)">Saved locally</span> <span id="exportStatus" aria-live="polite"></span></span>
+      <span style="display:flex;flex-direction:column;justify-content:center;font-size:12px;color:var(--muted)"><button type="button" id="saveStatus" role="status" title="Browser storage settings" style="align-self:center;font-size:12px;color:var(--muted);background:none;border:0;padding:0;cursor:pointer;font:inherit;font-size:12px">Saved locally</button> <span id="exportStatus" aria-live="polite"></span></span>
       <button class="btn primary" id="btnLoad">Load scans / triage</button>
       <button class="btn" id="btnTestExamples" title="Open a separate demo project with 10 synthetic scans; current work stays recoverable">Load test examples</button>
       <div class="menu" id="projMenu">
@@ -461,6 +366,7 @@ table.list th{vertical-align:top}
           <button data-act="renameProject">Rename project<small>Shown in the header, reports and file names</small></button>
           <button data-act="reviewers">Reviewers<small>Create, rename or deactivate reviewers</small></button>
           <button data-act="recovery">Recovery<small>Create or restore a local project snapshot</small></button>
+          <button data-act="storage">Browser storage …<small>Save in the browser, encrypted, or memory only</small></button>
           <button data-act="closeProject">Close project<small>Keep the browser copy or delete it after finishing</small></button>
           <button data-act="reset">Delete all browser projects<small>Remove all saved projects and recovery snapshots, including older versions</small></button>
         </div>
@@ -472,6 +378,7 @@ table.list th{vertical-align:top}
           <button data-act="exportMd">Markdown report …<small>Same content as Markdown, e.g. for tickets or wikis</small></button>
           <button data-act="exportSarif">SARIF 2.1.0 (latest scan)<small>For the VS Code SARIF viewer and code scanning, ratings as suppressions</small></button>
           <button data-act="exportBaseline">FalconEYE baseline<small>False positives and accepted risks to suppress in the next scan</small></button>
+          <button data-act="exportJSpringTriage">JSpringGuard triage<small>Your ratings as a triage file for the JSpringGuard report (Import triage)</small></button>
         </div>
       </div>
       <a class="btn ghost" href="https://github.com/NoAuthZone/Refindings" target="_blank" rel="noopener noreferrer" title="Source code, README, releases and issues on GitHub">GitHub ↗</a>
@@ -693,6 +600,41 @@ table.list th{vertical-align:top}
   </div>
 </dialog>
 
+<dialog id="storageDlg" class="repdlg" aria-labelledby="storageTitle">
+  <form id="storageForm" method="dialog" autocomplete="off">
+    <h3 id="storageTitle">Browser storage</h3>
+    <p class="muted">How Refindings keeps projects between visits. Applies to all projects in this browser. Exported files are not affected.</p>
+    <fieldset style="border:0;padding:0;margin:0 0 10px;display:grid;gap:8px">
+      <label class="chk"><input type="radio" name="mode" value="browser"> <span><b>Save in the browser</b><br><small class="muted">Automatic browser copy and recovery snapshots, unencrypted.</small></span></label>
+      <label class="chk"><input type="radio" name="mode" value="encrypted"> <span><b>Save in the browser, encrypted</b><br><small class="muted">AES-256-GCM, key derived from your password (PBKDF2, 600,000 rounds). The password is kept in memory only and asked for once per tab. Project files saved as ZIP use the same password. Without it, browser copies cannot be restored.</small></span></label>
+      <label class="chk"><input type="radio" name="mode" value="memory"> <span><b>Do not save in the browser</b><br><small class="muted">Memory only: nothing is written; closing the tab discards the project. Save a project file to keep your work. You are warned before closing with unsaved changes.</small></span></label>
+    </fieldset>
+    <div id="storagePwRow" style="display:grid;gap:8px;margin-bottom:10px">
+      <label id="storageOldPwLabel">Current storage password <input type="password" name="oldPw" autocomplete="current-password"></label>
+      <label>New storage password <input type="password" name="pw" minlength="8" autocomplete="new-password"></label>
+      <label>Repeat password <input type="password" name="pw2" minlength="8" autocomplete="new-password"></label>
+    </div>
+    <p id="storageInfo" class="muted"></p>
+    <p id="storageMsg" role="status" aria-live="polite"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn" value="cancel" formnovalidate>Close</button>
+      <button class="btn" type="button" id="storageChangePw">Change password</button>
+      <button class="btn primary" type="button" id="storageApply">Apply</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="unlockDlg" class="repdlg" aria-labelledby="unlockTitle">
+  <form id="unlockForm" method="dialog" autocomplete="off">
+    <h3 id="unlockTitle">Unlock browser storage</h3>
+    <p class="muted" id="unlockWhy">Browser copies are encrypted. Enter the storage password to save and restore projects in this tab.</p>
+    <label>Storage password <input type="password" name="pw" autocomplete="current-password" required></label>
+    <p id="unlockMsg" role="status" aria-live="polite"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn" value="cancel" formnovalidate>Not now</button>
+      <button class="btn primary" value="ok">Unlock</button>
+    </div>
+  </form>
+</dialog>
 <dialog id="projectLoadDlg" class="repdlg" aria-labelledby="projectLoadTitle" aria-describedby="projectLoadInfo">
   <form method="dialog">
     <h3 id="projectLoadTitle">Load project</h3>
@@ -759,10 +701,11 @@ table.list th{vertical-align:top}
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
 const TOOL_VERSION = 3;          // project file schema
-const APP_VERSION = '2.4.0';     // program version, increase with every change
+const APP_VERSION = '2.6.1';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
+  {id:'in-review', label:'In review',          key:'r', color:'var(--s-review)'},
   {id:'test-hardening',label:'Test Hardening',key:'t',color:'var(--s-new)'},
   {id:'demo-files',label:'Demo Files',key:'d',color:'var(--muted)'},
   {id:'fp',        label:'False positive',     key:'f', color:'var(--s-fp)'},
@@ -1013,21 +956,35 @@ function cleanCatalog(raw){
  }
  return out;
 }
+/* Custom ratings that duplicate a built-in one by name (e.g. the "In review" rating that the
+   2.4.1 triage import created) are folded into the built-in status instead of being registered. */
+const STATUS_ALIAS=Object.create(null);
+const statusNameKey=s=>str(s).trim().toLowerCase().replace(/[\s_-]+/g,' ');
+const canonicalStatus=s=>has(STATUS_ALIAS,s)?STATUS_ALIAS[s]:s;
 function registerCatalog(raw){
  const c=cleanCatalog(raw);
- for(const r of c.statuses)if(!has(STATUS_BY_ID,r.id)){const row={...r,key:''};STATUSES.push(row);STATUS_BY_ID[r.id]=row;}
+ for(const r of c.statuses){const builtin=RATING_DEFAULTS.find(s=>statusNameKey(s.label)===statusNameKey(r.label));if(builtin)STATUS_ALIAS[r.id]=builtin.id;}
+ for(const r of c.statuses)if(!has(STATUS_ALIAS,r.id)&&!has(STATUS_BY_ID,r.id)){const row={...r,key:''};STATUSES.push(row);STATUS_BY_ID[r.id]=row;}
  for(const r of c.categories)if(!has(CAT_LABEL,r.id)){CATS.push([r.id,r.label,/(?!)/]);CAT_LABEL[r.id]=r.label;CAT_META[r.id]={cwe:[],owasp:''};}
 }
 function catalogSnapshot(){return {statuses:STATUSES.filter(s=>!BUILTIN_STATUS_IDS.has(s.id)).map(({id,label,color})=>({id,label,color})),categories:CATS.filter(c=>!BUILTIN_CATEGORY_IDS.has(c[0])).map(c=>({id:c[0],label:c[1]}))};}
+/* Browser storage mode. encSalt/encCheck are not secret: the salt for key derivation and a sealed
+   check value to recognise the right password. The password and key never leave memory. */
+function cleanStorageSettings(raw){
+ const mode=['browser','encrypted','memory'].includes(raw?.storageMode)?raw.storageMode:'browser';
+ const salt=typeof raw?.encSalt==='string'&&/^[A-Za-z0-9+/]{20,}={0,2}$/.test(raw.encSalt)?raw.encSalt:'';
+ const check=typeof raw?.encCheck==='string'&&raw.encCheck.startsWith('RFENC1.')?raw.encCheck:'';
+ return mode==='encrypted'&&(!salt||!check)?{storageMode:'memory'}:mode==='encrypted'?{storageMode:mode,encSalt:salt,encCheck:check}:{storageMode:mode};
+}
 function cleanGlobal(raw){
- return {reviewDays:Number.isInteger(raw?.reviewDays)&&raw.reviewDays>=0&&raw.reviewDays<=3650?raw.reviewDays:90,reviewPresets:Array.isArray(raw?.reviewPresets)&&raw.reviewPresets.every(n=>Number.isInteger(n)&&n>=1&&n<=3650)?[...new Set(raw.reviewPresets)].slice(0,12):[...GLOBAL_DEFAULTS.reviewPresets]};
+ return {...cleanStorageSettings(raw),reviewDays:Number.isInteger(raw?.reviewDays)&&raw.reviewDays>=0&&raw.reviewDays<=3650?raw.reviewDays:90,reviewPresets:Array.isArray(raw?.reviewPresets)&&raw.reviewPresets.every(n=>Number.isInteger(n)&&n>=1&&n<=3650)?[...new Set(raw.reviewPresets)].slice(0,12):[...GLOBAL_DEFAULTS.reviewPresets]};
 }
 let GLOBAL=cleanGlobal(null);
-try{const raw=JSON.parse(localStorage.getItem(GLOBAL_KEY)||'null');GLOBAL=cleanGlobal(raw);registerCatalog(raw);try{updateRatings(raw?.ratingOverrides||[]);}catch{}try{updateCategoryNames(raw?.categoryOverrides||[]);}catch{}REMOVED=cleanRemoved(raw?.removed);}catch{}
+try{const raw=JSON.parse(localStorage.getItem(GLOBAL_KEY)||'null');GLOBAL=cleanGlobal(raw);registerCatalog(raw);try{updateRatings(normalizeRatingOverrides(raw?.ratingOverrides));}catch{}try{updateCategoryNames(raw?.categoryOverrides||[]);}catch{}REMOVED=cleanRemoved(raw?.removed);}catch{}
 function persistGlobal(){localStorage.setItem(GLOBAL_KEY,JSON.stringify({...GLOBAL,...catalogSnapshot(),ratingOverrides:RATING_OVERRIDES,categoryOverrides:CATEGORY_OVERRIDES,removed:REMOVED}));}
 
 
-function cleanRemoved(raw){return {statuses:(Array.isArray(raw?.statuses)?raw.statuses:[]).filter(id=>has(STATUS_BY_ID,id)),categories:(Array.isArray(raw?.categories)?raw.categories:[]).filter(id=>has(CAT_LABEL,id))};}
+function cleanRemoved(raw){return {statuses:[...new Set((Array.isArray(raw?.statuses)?raw.statuses:[]).map(canonicalStatus).filter(id=>has(STATUS_BY_ID,id)))],categories:(Array.isArray(raw?.categories)?raw.categories:[]).filter(id=>has(CAT_LABEL,id))};}
 function availableStatuses(){return STATUSES.filter(s=>!REMOVED.statuses.includes(s.id));}
 function availableCategories(){return CATS.filter(c=>!REMOVED.categories.includes(c[0]));}
 function setCatalogRemoved(kind,id,removed){
@@ -1043,6 +1000,19 @@ function updateCategoryNames(rows){
  const saved=new Map(CATEGORY_OVERRIDES.map(r=>[r.id,r.label]));for(const [id,label] of changes)saved.set(id,label);CATEGORY_OVERRIDES=[...saved].map(([id,label])=>({id,label}));
 }
 
+/* Stored overrides may still name a custom rating that is now folded into a built-in one, or use a
+   shortcut that a newer built-in status claims. Clean them up so one stale row cannot discard all overrides. */
+function normalizeRatingOverrides(rows){
+ if(!Array.isArray(rows))return [];
+ const byId=new Map();
+ for(const row of rows){if(!row||typeof row!=='object')continue;const id=canonicalStatus(row.id);if(!has(STATUS_BY_ID,id))continue;
+  // the built-in's own row wins over a folded alias row
+  if(!byId.has(id)||row.id===id)byId.set(id,{...row,id,...(row.id!==id?{label:STATUS_BY_ID[id].label,key:STATUS_BY_ID[id].key,color:''}:{})});}
+ const keys=new Set(),out=[...byId.values()];
+ for(const s of STATUSES)if(!byId.has(s.id)&&s.key)keys.add(s.key);
+ for(const row of out){const k=str(row.key).trim().toLowerCase();if(k&&keys.has(k))row.key='';else if(k)keys.add(k);}
+ return out;
+}
 function updateRatings(rows){
  if(!Array.isArray(rows))throw new Error('Invalid rating settings.');
  const seen=new Set(),changes=new Map();
@@ -1971,50 +1941,108 @@ function finishForeign(A, kind, fileName, mtime){
 
 /* Keep external review records independently of scans, including unmatched flow controls. */
 function sanitizeSpringTriage(rows){
- return (Array.isArray(rows)?rows:[]).filter(r=>r && ['triage','flow-control-triage'].includes(r.kind) && typeof r.key==='string').map(r=>({kind:r.kind,key:r.key.slice(0,4000),status:str(r.status).slice(0,100),note:str(r.note).slice(0,100000),at:ts(r.at)?str(r.at):'',file:str(r.file),line:int(r.line),entrypoint:str(r.entrypoint),control:str(r.control)}));
+ return (Array.isArray(rows)?rows:[]).filter(r=>r && ['triage','flow-control-triage'].includes(r.kind) && typeof r.key==='string').map(r=>({kind:r.kind,key:r.key.slice(0,4000),status:str(r.status).slice(0,100),note:str(r.note).slice(0,100000),at:ts(r.at)?str(r.at):'',file:str(r.file),line:int(r.line),entrypoint:str(r.entrypoint),control:str(r.control),...(ts(r.gone)?{gone:str(r.gone)}:{})}));
 }
-function parseSpringTriage(j){
+/* Same decision, ignoring the bookkeeping field `gone`. */
+const springSame=(a,b)=>a.kind===b.kind&&a.key===b.key&&a.status===b.status&&a.note===b.note&&a.at===b.at;
+/* fallbackAt: used when neither the entry nor the export carries a timestamp
+   (JSpringGuard's single "Export triage" button writes no `exported`, and older
+   entries have no `ts`). Without it such decisions were stored but never applied. */
+function parseSpringTriage(j,fallbackAt=''){
  if(j?.tool!=='JSpringGuard' || !['triage','flow-control-triage'].includes(j.kind)) return null;
  if(j.version!==1 || !j.entries || typeof j.entries!=='object' || Array.isArray(j.entries)) throw new Error('Unsupported JSpringGuard triage version or entries');
  const rows=[];
  for(const [key,v] of Object.entries(j.entries)){
-  if(!v || typeof v!=='object' || typeof v.status!=='string' || (v.note!=null && typeof v.note!=='string')) throw new Error('Invalid JSpringGuard triage entry: '+key);
-  rows.push({kind:j.kind,key,status:v.status,note:v.note||'',at:v.ts||v.updated||j.exported,file:v.file,line:v.line,entrypoint:v.entrypoint,control:v.control});
+  if(!v || typeof v!=='object' || (v.status!=null && typeof v.status!=='string') || (v.note!=null && typeof v.note!=='string')) throw new Error('Invalid JSpringGuard triage entry: '+key);
+  const at=[v.ts,v.updated,j.exported,fallbackAt].find(x=>ts(x))||'';
+  rows.push({kind:j.kind,key,status:v.status||'',note:v.note||'',at,file:v.file,line:v.line,entrypoint:v.entrypoint,control:v.control});
  }
  return sanitizeSpringTriage(rows);
 }
-function mergeSpringTriage(state,rows){
+/* complete: {kind, exported} when the file is a full JSpringGuard export. JSpringGuard deletes an
+   entry when it is set back to Open, so a decision that is older than such an export and missing
+   from it was most likely reset there. It is only flagged (`gone`), never undone automatically. */
+function mergeSpringTriage(state,rows,complete){
  state.jspringTriage=state.jspringTriage||[];
  for(const row of rows){
   const old=state.jspringTriage.find(r=>r.kind===row.kind && r.key===row.key);
   if(!old) state.jspringTriage.push({...row});
-  else if(ts(row.at)>ts(old.at)) Object.assign(old,row);
-  else if(ts(row.at)===ts(old.at) && JSON.stringify(row)!==JSON.stringify(old)){
+  else if(ts(row.at)>ts(old.at)){ Object.assign(old,row); if(!row.gone) delete old.gone; }
+  else if(ts(row.at)===ts(old.at) && !springSame(row,old)){
    // Retain conflicting versions instead of silently losing either decision.
-   if(!state.jspringTriage.some(r=>JSON.stringify(r)===JSON.stringify(row))) state.jspringTriage.push({...row});
+   if(!state.jspringTriage.some(r=>springSame(r,row))) state.jspringTriage.push({...row});
   }
  }
+ let gone=0;
+ if(complete && ts(complete.exported)){
+  const present=new Set(rows.map(r=>r.key));
+  for(const r of state.jspringTriage){
+   if(r.kind!==complete.kind) continue;
+   if(present.has(r.key)){ if(r.gone && ts(complete.exported)>ts(r.gone)) delete r.gone; continue; }
+   if(ts(r.at)<ts(complete.exported) && !r.gone){ r.gone=complete.exported; gone++; }
+  }
+ }
+ return gone;
 }
-function springMatches(state,row){
+/* One pass over all records and findings builds JSpringGuard fingerprint -> findings.
+   Previously every triage row rescanned every scan and every finding. */
+function springIndex(state){
+ const jfpToP=new Map(),pToItems=new Map();
+ for(const s of state.scans) for(const q of s.rec||[]) if(q.jfp){let set=jfpToP.get(q.jfp);if(!set)jfpToP.set(q.jfp,set=new Set());set.add(q.p);}
+ if(jfpToP.size) for(const it of Object.values(state.items)) for(const fp of it.fps||[]){let list=pToItems.get(fp);if(!list)pToItems.set(fp,list=[]);list.push(it);}
+ const cache=new Map();
+ return key=>{
+  if(cache.has(key)) return cache.get(key);
+  const out=new Set();for(const p of jfpToP.get(key)||[]) for(const it of pToItems.get(p)||[]) out.add(it);
+  const list=[...out];cache.set(key,list);return list;
+ };
+}
+function springMatches(state,row,idx){
  if(row.kind!=='triage') return [];
- const fps=new Set(state.scans.flatMap(s=>(s.rec||[]).filter(q=>q.jfp===row.key).map(q=>q.p)));
- return Object.values(state.items).filter(it=>it.fps.some(fp=>fps.has(fp)));
+ return (idx||springIndex(state))(row.key);
 }
-function springStatus(row){return ({'false-positive':'fp','confirmed':'confirmed','accepted':'accepted','fixed':'fixed','open':'open'})[row.status]||null;}
+/* JSpringGuard finding statuses: confirmed, in-review, fixed, false-positive, accepted.
+   Flow/control decisions use accepted-risk. Unknown statuses are matched to an existing rating
+   by name, or created once as a custom rating, instead of being dropped silently. */
+const SPRING_STATUS_ALIASES={'false-positive':'fp','fp':'fp','confirmed':'confirmed','accepted':'accepted','accepted-risk':'accepted','fixed':'fixed','open':'open','in-review':'in-review','review':'in-review'};
+const SPRING_STATUS_LABELS={};
+const springStatusKey=s=>str(s).trim().toLowerCase().replace(/[\s_]+/g,'-');
+function springStatus(row,create=false){
+ const key=springStatusKey(row.status);if(!key)return null;
+ const available=availableStatuses(),alias=SPRING_STATUS_ALIASES[key];
+ if(alias)return available.some(s=>s.id===alias)?alias:null;
+ const label=SPRING_STATUS_LABELS[key]||str(row.status).trim().slice(0,80),want=springStatusKey(label);
+ const hit=available.find(s=>springStatusKey(s.id)===key||springStatusKey(s.label)===want);
+ if(hit)return hit.id;
+ // A rating the user removed on purpose is not recreated.
+ if(!create||STATUSES.some(s=>springStatusKey(s.label)===want))return null;
+ try{const id=addCatalogEntry('statuses',label,'#7086a3');try{persistGlobal();}catch{}return id;}catch{return null;}
+}
+/* Time of the last manual status decision. Note, category or assignee edits (editedAt)
+   must not block a newer scanner triage decision. */
+function manualStatusAt(it){
+ return Math.max(ts(it.statusAt),0,...(it.hist||[]).filter(h=>h&&h.editor!=='JSpringGuard').map(h=>ts(h.at)));
+}
 function applySpringTriage(state){
  let applied=0;
- for(const row of state.jspringTriage||[]){
-  const status=springStatus(row);
-  if(!status || !row.at || state.jspringTriage.some(r=>r!==row && r.kind===row.kind && r.key===row.key && r.at===row.at && JSON.stringify(r)!==JSON.stringify(row))) continue;
-  for(const it of springMatches(state,row)){
-   const latest=Math.max(ts(it.statusAt),ts(it.editedAt));
-   if(latest>=ts(row.at)) continue;
+ const rows=state.jspringTriage||[];if(!rows.length) return 0;
+ const idx=springIndex(state);
+ for(const row of rows){
+  if(!row.at || row.gone || row.kind!=='triage' || state.jspringTriage.some(r=>r!==row && r.kind===row.kind && r.key===row.key && r.at===row.at && !springSame(r,row))) continue;
+  const matches=springMatches(state,row,idx);if(!matches.length)continue;
+  const mapped=springStatus(row,true);if(!mapped)continue;
+  for(const it of matches){
+   if(manualStatusAt(it)>=ts(row.at)) continue;
+   const status=mapped==='open'?(ruleFor(state,it)?'open':null):mapped;
+   if(ts(it.statusAt)===ts(row.at)&&it.status===status || (it.hist||[]).some(h=>h&&h.editor==='JSpringGuard'&&h.at===row.at&&h.s===(status||'open'))) continue;
    const before=it.status||'open';
-   it.status=status;it.statusAt=row.at;
+   it.status=status;it.statusAt=status?row.at:null;
+   it.reviewAt=status==='accepted'?(it.reviewAt||defaultReviewDate()):null;
+   it.conflict=null;
    // Keep existing independent notes, while retaining the original note in the triage panel.
-   if(row.note && !it.note) it.note=row.note;
-   it.hist=(it.hist||[]).concat({at:row.at,s:status,editor:'JSpringGuard'}).slice(-100);
-   it.audit=(it.audit||[]).concat({id:'jspring-'+row.key+'-'+row.at,at:row.at,actor:'JSpringGuard',field:'status',before,after:status}).slice(-100);
+   if(row.note && !str(it.note).includes(row.note)) it.note=it.note?it.note+'\n'+row.note:row.note;
+   it.hist=(it.hist||[]).concat({at:row.at,s:status||'open',editor:'JSpringGuard'}).slice(-40);
+   it.audit=(it.audit||[]).concat({id:'jspring-'+row.key+'-'+row.at,at:row.at,actor:'JSpringGuard',field:'status',before,after:status||'open'}).slice(-100);
    applied++;
   }
  }
@@ -2038,7 +2066,7 @@ const EDITORS = {
 /* Type-check an item from foreign data. depth limits nested merge snapshots. */
 function sanitizeItem(v, key, depth){
   if(!v || typeof v!=='object') return null;
-  const validStatus = s => has(STATUS_BY_ID,s) ? s : null;
+  const validStatus = s => (s=canonicalStatus(s), has(STATUS_BY_ID,s) ? s : null);
   const cat = c => has(CAT_LABEL,c) ? c : 'OTHER';
   const range = r => Array.isArray(r)&&r.length===2&&r.every(x=>Number.isFinite(+x)) ? [int(r[0]),int(r[1])] : null;
   const sig = a => (Array.isArray(a)?a:[]).map(str).slice(0,400);
@@ -2057,7 +2085,7 @@ function sanitizeItem(v, key, depth){
     editor:str(v.editor).slice(0,120), editorAssigned:!!v.editorAssigned, editedAt:!isNaN(Date.parse(v.editedAt))?str(v.editedAt):'',
     snipScan:str(v.snipScan), status:validStatus(v.status), statusAt: v.statusAt?str(v.statusAt):null, note:str(v.note),
     audit:sanitizeAudit(v.audit),
-    hist:(Array.isArray(v.hist)?v.hist:[]).filter(h=>h&&validStatus(h.s)).map(h=>Object.assign({at:str(h.at), s:h.s, editor:str(h.editor).slice(0,120)}, h.src?{src:str(h.src).slice(0,80)}:{}, h.review?{review:true}:{})).slice(-40),
+    hist:(Array.isArray(v.hist)?v.hist:[]).filter(h=>h&&validStatus(h.s)).map(h=>Object.assign({at:str(h.at), s:validStatus(h.s), editor:str(h.editor).slice(0,120)}, h.src?{src:str(h.src).slice(0,80)}:{}, h.review?{review:true}:{})).slice(-40),
     conflict: sanitizeConflict(v.conflict),
     reviewAt: isDate(v.reviewAt) ? str(v.reviewAt) : null,
     sevLast:Math.min(10,Math.max(0,num(v.sevLast))), scannerFiltered:!!v.scannerFiltered, filterReason:str(v.filterReason),
@@ -2087,7 +2115,7 @@ function sanitizeItem(v, key, depth){
 function sanitizeState(raw){
   registerCatalog(raw?.catalog);
   const S = emptyState(); if(!raw || typeof raw!=='object') return S;S.projectId=projectIdentity(raw);
-  const validStatus = s => has(STATUS_BY_ID,s) ? s : null;
+  const validStatus = s => (s=canonicalStatus(s), has(STATUS_BY_ID,s) ? s : null);
   for(const s of Array.isArray(raw.scans)?raw.scans:[]){
     if(!s || typeof s!=='object' || s.id==null) continue;
     const id=safeId(s.id); if(S.scans.some(x=>x.id===id)) continue;
@@ -2102,7 +2130,7 @@ function sanitizeState(raw){
   for(const r of Array.isArray(raw.rules)?raw.rules:[]){
     if(!r || !str(r.glob).trim() || !validStatus(r.status) || r.status==='open') continue;
     try{ globToRe(r.glob); }catch(e){ continue; }
-    S.rules.push({glob:str(r.glob).trim(), cat: r.cat==='*'||has(CAT_LABEL,r.cat)?r.cat:'*', status:r.status, note:str(r.note), at:str(r.at), reviewAt: r.status==='accepted' && isDate(r.reviewAt) ? str(r.reviewAt) : null});
+    S.rules.push({glob:str(r.glob).trim(), cat: r.cat==='*'||has(CAT_LABEL,r.cat)?r.cat:'*', status:validStatus(r.status), note:str(r.note), at:str(r.at), reviewAt: r.status==='accepted' && isDate(r.reviewAt) ? str(r.reviewAt) : null});
   }
   S.roots=(Array.isArray(raw.roots)?raw.roots:[]).map(v=>str(v)).filter(Boolean);
   S.jspringTriage=sanitizeSpringTriage(raw.jspringTriage);
@@ -2285,7 +2313,7 @@ function buildConflict(rated, prev){
 }
 function sanitizeConflict(c){
   if(!c || typeof c!=='object' || !Array.isArray(c.options)) return null;
-  const options=c.options.filter(o=>o&&has(STATUS_BY_ID,o.s)).slice(0,10).map(o=>({s:o.s, at:str(o.at), src:str(o.src).slice(0,80), note:str(o.note).slice(0,2000)}));
+  const options=c.options.filter(o=>o&&has(STATUS_BY_ID,canonicalStatus(o.s))).slice(0,10).map(o=>({s:canonicalStatus(o.s), at:str(o.at), src:str(o.src).slice(0,80), note:str(o.note).slice(0,2000)}));
   return new Set(options.map(o=>o.s)).size>1 ? {at:str(c.at), options} : null;
 }
 
@@ -2740,8 +2768,14 @@ function carryEditor(target, source){
 /* Offline WinZip AES-256 archives. Passwords remain in memory, never in project data. */
 const PROJECT_PASSWORD='refindings';
 const exportPasswords=new WeakMap();
-function chooseExportPassword(change=false){
+/* With encrypted browser storage the ZIP project file uses the storage password, so there is one
+   password for everything. "Change ZIP password" can still set a different one for a project. */
+async function chooseExportPassword(change=false){
   if(!change && exportPasswords.has(S)) return exportPasswords.get(S);
+  if(!change && storageMode()==='encrypted'){
+    if(!STORE_PW && !await requestUnlock('Project files are encrypted with your storage password. Unlock to save the ZIP.')) return null;
+    if(STORE_PW) return STORE_PW;
+  }
   let password=prompt('Password for the ZIP project file (remembered for this project until it is closed):',exportPasswords.get(S)||PROJECT_PASSWORD);
   while(password!==null && !password.length){
     password=prompt('Please enter a non-empty password:',PROJECT_PASSWORD);
@@ -2762,17 +2796,179 @@ async function readProjectZip(buf){
     const entries=(await reader.getEntries()).filter(e=>!e.directory);
     if(entries.length!==1 || !/\.json$/i.test(entries[0].filename)) throw new Error('Expected a ZIP containing one project JSON file');
     if(entries[0].uncompressedSize>512*1024*1024) throw new Error('Project exceeds the 512 MB limit');
-    let password=PROJECT_PASSWORD;
+    // Storage password first, then the old default, then ask.
+    const tries=[STORE_PW,PROJECT_PASSWORD].filter(Boolean);
+    let password=tries.shift();
     for(;;){
       try{ return await entries[0].getData(new zip.TextWriter(),{password,checkSignature:true}); }
       catch(err){
         if(!entries[0].encrypted) throw err;
+        if(tries.length){ password=tries.shift(); continue; }
         password=prompt('The ZIP file could not be decrypted. Enter its password (if it fails again, the file may be damaged):','');
         if(password===null) throw new Error('Import cancelled');
       }
     }
   }finally{ await reader.close(); }
 }
+
+/* ---- Browser storage protection ----
+   Modes: 'browser' (plain, as before), 'encrypted' (AES-256-GCM, key from the storage password via
+   PBKDF2-SHA-256 with 600,000 rounds), 'memory' (nothing is written). Only project copies and recovery
+   snapshots are sealed; deletion markers hold no project content. */
+const STORE_SEAL='RFENC1.', STORE_AAD=new TextEncoder().encode('refindings-browser-store-v1'), STORE_CHECK='refindings-storage-check';
+let STORE_KEY=null;           // CryptoKey, non-extractable, this tab only
+let STORE_PW=null;            // same password, memory only: also encrypts ZIP project files
+const storageMode=()=>GLOBAL.storageMode||'browser';
+const isProjectStoreKey=k=>/^(state|recovery)(:|$)|^legacy-local-/.test(String(k));
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const isSealed=v=>typeof v==='string'&&v.startsWith(STORE_SEAL);
+function lockedError(msg){const e=new Error(msg||'Browser storage is encrypted and locked. Enter the storage password.');e.locked=true;return e;}
+async function deriveStoreKey(password,salt){
+ const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveKey']);
+ return crypto.subtle.deriveKey({name:'PBKDF2',salt:unb64(salt),iterations:600000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function sealValue(value,key=STORE_KEY){
+ if(!key) throw lockedError();
+ const isBuf=value instanceof ArrayBuffer,body=isBuf?new Uint8Array(value):new TextEncoder().encode(String(value));
+ const iv=crypto.getRandomValues(new Uint8Array(12));
+ const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:STORE_AAD},key,body));
+ const out=new Uint8Array(13+ct.length);out[0]=isBuf?1:0;out.set(iv,1);out.set(ct,13);
+ return STORE_SEAL+b64(out);
+}
+async function openValue(value,key=STORE_KEY){
+ if(!isSealed(value)) return value;
+ if(!key) throw lockedError();
+ const raw=unb64(value.slice(STORE_SEAL.length));let plain;
+ try{plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:raw.subarray(1,13),additionalData:STORE_AAD},key,raw.subarray(13));}
+ catch(e){throw lockedError('This browser copy cannot be decrypted with the current storage password.');}
+ return raw[0]===1?plain:new TextDecoder().decode(plain);
+}
+/* Seal on write in encrypted mode; refuse to write project data in memory mode. */
+async function protectForStore(key,value){
+ if(!isProjectStoreKey(key)) return value;
+ if(storageMode()==='memory') throw new Error('Memory-only mode: projects are not written to browser storage.');
+ return storageMode()==='encrypted'?sealValue(value):value;
+}
+async function tryUnlock(password){
+ if(storageMode()!=='encrypted'||!GLOBAL.encSalt) return false;
+ const key=await deriveStoreKey(password,GLOBAL.encSalt);
+ try{ if(await openValue(GLOBAL.encCheck,key)!==STORE_CHECK) return false; }catch(e){ return false; }
+ STORE_KEY=key; STORE_PW=password; return true;
+}
+let unlockPending=null;
+/* Ask once for the storage password. Resolves true when unlocked. */
+function requestUnlock(why){
+ if(STORE_KEY) return Promise.resolve(true);
+ if(unlockPending) return unlockPending;
+ const dlg=$('#unlockDlg'),form=$('#unlockForm');
+ $('#unlockWhy').textContent=why||'Browser copies are encrypted. Enter the storage password to save and restore projects in this tab.';
+ $('#unlockMsg').textContent='';form.reset();
+ unlockPending=new Promise(resolve=>{
+  const onSubmit=async e=>{
+   if(e.submitter?.value!=='ok') return;
+   e.preventDefault();$('#unlockMsg').textContent='Checking …';
+   const ok=await tryUnlock(form.pw.value);
+   if(!ok){$('#unlockMsg').textContent='Wrong password.';form.pw.select();return;}
+   form.pw.value='';dlg.close('ok');
+  };
+  form.addEventListener('submit',onSubmit);
+  dlg.addEventListener('close',()=>{form.removeEventListener('submit',onSubmit);form.pw.value='';unlockPending=null;resolve(!!STORE_KEY);},{once:true});
+  dlg.showModal();form.pw.focus();
+ });
+ return unlockPending;
+}
+/* All raw project copies and snapshots, IndexedDB and localStorage, as [read, write] pairs. */
+async function projectStoreEntries(){
+ const out=[];
+ if(IDB.db) for(const k of await IDB.keys()) if(/^(state|recovery)(:|$)/.test(String(k))) out.push({get:()=>IDB.get(k),put:v=>IDB.put(k,v),del:()=>IDB.remove(k)});
+ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+  if(k===LS_KEY||k===LS_KEY+'.recovery'||k.startsWith(LS_KEY+'.state:')||k.startsWith(LS_KEY+'.recovery:')) out.push({get:async()=>localStorage.getItem(k),put:async v=>localStorage.setItem(k,v),del:async()=>localStorage.removeItem(k)});}
+ return out;
+}
+/* Re-encode every stored copy: decrypt with fromKey (if sealed), then seal with toKey or keep plain.
+   Everything is read and converted first, so a wrong key aborts before anything is overwritten. */
+async function recodeStore(fromKey,toKey){
+ const entries=await projectStoreEntries(),next=[];
+ for(const e of entries){
+  let v=await e.get();if(v==null) continue;
+  v=await openValue(v,fromKey);
+  if(!toKey && v instanceof ArrayBuffer && !IDB.db) v=await gunzipBuf(v);
+  next.push([e,toKey?await sealValue(v,toKey):v]);
+ }
+ for(const [e,v] of next) await e.put(v);
+ return next.length;
+}
+async function purgeProjectStore(){
+ const entries=await projectStoreEntries();for(const e of entries) await e.del();
+ try{localStorage.removeItem(LS_KEY+'.filters');}catch(e){}
+ return entries.length;
+}
+function storageLabel(){
+ return storageMode()==='memory'?'Memory only (not saved in browser)':storageMode()==='encrypted'?(STORE_KEY?'Saved locally, encrypted':'Encrypted storage locked'):'Saved locally';
+}
+async function setStorageMode(mode,{password,oldPassword}={}){
+ const from=storageMode();
+ if(mode==='encrypted'){
+  if(!password||password.length<8) throw new Error('Choose a storage password with at least 8 characters.');
+  let oldKey=STORE_KEY;
+  if(from==='encrypted'&&!oldKey){ if(!oldPassword||!await tryUnlock(oldPassword)) throw new Error('The current storage password is wrong.'); oldKey=STORE_KEY; }
+  const salt=b64(crypto.getRandomValues(new Uint8Array(16))),key=await deriveStoreKey(password,salt);
+  const check=await sealValue(STORE_CHECK,key);
+  if(from!=='memory') await recodeStore(oldKey,key);
+  GLOBAL={...GLOBAL,storageMode:'encrypted',encSalt:salt,encCheck:check};STORE_KEY=key;STORE_PW=password;
+ } else if(mode==='browser'){
+  if(from==='encrypted'&&!STORE_KEY){ if(!oldPassword||!await tryUnlock(oldPassword)) throw new Error('Enter the current storage password to decrypt the existing browser copies, or delete them first.'); }
+  if(from==='encrypted') await recodeStore(STORE_KEY,null);
+  GLOBAL={...GLOBAL,storageMode:'browser'};delete GLOBAL.encSalt;delete GLOBAL.encCheck;STORE_KEY=null;STORE_PW=null;
+ } else if(mode==='memory'){
+  clearTimeout(save._t);if(saving)await saving;await recoveryQueue.catch(()=>{});
+  await purgeProjectStore();
+  GLOBAL={...GLOBAL,storageMode:'memory'};delete GLOBAL.encSalt;delete GLOBAL.encCheck;STORE_KEY=null;STORE_PW=null;
+ } else throw new Error('Unknown storage mode');
+ persistGlobal();
+ if(mode!=='memory'&&(S.scans.length||Object.keys(S.items).length)){DIRTY=true;await persist();}
+ storageStatus(storageLabel());updateExportStatus();
+}
+function openStorageSettings(){
+ const dlg=$('#storageDlg'),f=$('#storageForm'),mode=storageMode();
+ f.reset();f.mode.value=mode;$('#storageMsg').textContent='';
+ const sync=()=>{
+  const m=f.mode.value,enc=mode==='encrypted';
+  $('#storagePwRow').style.display=(m==='encrypted'&&mode!=='encrypted')||(enc&&!STORE_KEY&&m!=='memory')?'grid':'none';
+  $('#storageOldPwLabel').style.display=enc&&!STORE_KEY?'':'none';
+  f.pw.parentElement.style.display=f.pw2.parentElement.style.display=m==='encrypted'&&mode!=='encrypted'?'':'none';
+  $('#storageChangePw').style.display=enc&&m==='encrypted'?'':'none';
+  $('#storageApply').disabled=m===mode;
+ };
+ f.onchange=sync;sync();
+ projectStoreEntries().then(list=>{$('#storageInfo').textContent=`Currently in this browser: ${list.length} stored project cop${list.length===1?'y':'ies'} and snapshot list${list.length===1?'':'s'}. Mode: ${storageLabel()}.`;});
+ dlg.showModal();
+}
+async function applyStorageSettings(changePw=false){
+ const f=$('#storageForm'),m=changePw?'encrypted':f.mode.value,msg=$('#storageMsg');
+ try{
+  if(m==='encrypted'&&(changePw||storageMode()!=='encrypted')){
+   if(changePw){
+    if(!STORE_KEY&&!await tryUnlock(f.oldPw.value)){ $('#storagePwRow').style.display='grid';f.pw.parentElement.style.display=f.pw2.parentElement.style.display='';$('#storageOldPwLabel').style.display='';if(f.oldPw.value)throw new Error('The current storage password is wrong.');msg.textContent='Enter the current and the new password, then click Change password again.';return; }
+    if(!f.pw.value){ $('#storagePwRow').style.display='grid';f.pw.parentElement.style.display=f.pw2.parentElement.style.display='';$('#storageOldPwLabel').style.display='none';msg.textContent='Enter the new password twice, then click Change password again.';f.pw.focus();return; }
+   }
+   if(f.pw.value!==f.pw2.value) throw new Error('The passwords do not match.');
+  }
+  if(m==='memory'&&storageMode()!=='memory'&&!confirm('Switch to memory-only mode? All project copies and recovery snapshots stored in this browser are deleted now. The open project stays in this tab until you close it; save a project file to keep it.')) return;
+  msg.textContent='Working …';
+  await setStorageMode(m,{password:f.pw.value,oldPassword:f.oldPw.value});
+  f.pw.value=f.pw2.value=f.oldPw.value='';
+  msg.textContent=m==='memory'?'Memory-only mode is active. Browser copies were deleted.':m==='encrypted'?(changePw?'Storage password changed; all browser copies re-encrypted.':'Encrypted storage is active; existing browser copies were encrypted.'):'Unencrypted browser storage is active.';
+  toast(msg.textContent);
+  setTimeout(()=>{ if($('#storageDlg').open) openStorageSettings(); $('#storageMsg').textContent=msg.textContent; },0);
+ }catch(e){ msg.textContent=e.message; }
+}
+/* Another tab changed the storage mode: follow it, and drop a key that no longer fits. */
+window.addEventListener('storage',e=>{
+ if(e.key!==GLOBAL_KEY) return;
+ try{const next=cleanStorageSettings(JSON.parse(e.newValue||'null'));if(next.encSalt!==GLOBAL.encSalt){STORE_KEY=null;STORE_PW=null;}GLOBAL={...GLOBAL,...next};delete GLOBAL.encSalt;delete GLOBAL.encCheck;Object.assign(GLOBAL,next);storageStatus(storageLabel());}catch(err){}
+});
 
 /* ---- Persistence ---- */
 /* IndexedDB instead of localStorage: localStorage is limited to ~5 MB and, for file:// in Chrome,
@@ -2800,6 +2996,7 @@ async function readRecovery(){
   return entries.filter(e=>e && typeof e.json==='string').slice(0,5);
 }
 function recordRecovery(label,json=JSON.stringify(S)){
+  if(storageMode()==='memory'||(storageMode()==='encrypted'&&!STORE_KEY)) return Promise.resolve();
   const key=recoveryKey();
   const job=recoveryQueue.catch(()=>{}).then(async()=>{
     const state=JSON.parse(json);
@@ -2849,7 +3046,8 @@ async function renderRecovery(){
   }
 }
 async function openRecovery(){
-  $('#recoveryStatus').textContent='';$('#recoveryDlg').showModal();
+  if(storageMode()==='encrypted'&&!STORE_KEY) await requestUnlock('Enter the storage password to view and restore encrypted browser copies.');
+  $('#recoveryStatus').textContent=storageMode()==='memory'?'Memory-only mode: nothing is stored in this browser. Change this under Project → Browser storage.':'';$('#recoveryDlg').showModal();
   try{await renderRecovery();}catch(e){$('#recoveryStatus').textContent=e.message;}
 }
 
@@ -2869,18 +3067,26 @@ function storageStatus(text){ const el=$('#saveStatus'); if(el) el.textContent=t
 function save(){ S.catalog=catalogSnapshot(); if(REDO.length && redoState!==JSON.stringify(S)){REDO.length=0;updateHistoryButtons();} updateExportStatus(); DIRTY=true; storageStatus('Unsaved changes'); clearTimeout(save._t); save._t=setTimeout(persist,400); }
 async function persist(){
   clearTimeout(save._t); if(saving) return saving; if(!DIRTY) return;
+  if(storageMode()==='memory'){ DIRTY=false; storageStatus(storageLabel()); return; }
+  if(storageMode()==='encrypted' && !STORE_KEY){
+    storageStatus('Encrypted storage locked: not saved');
+    // Ask once; a dismissed dialog is not repeated on every edit, the status text stays visible.
+    if(!persist.asked){ persist.asked=true; requestUnlock('Changes are not saved in this browser until you unlock the encrypted storage.').then(ok=>{ if(ok){ DIRTY=true; persist(); } }); }
+    return;
+  }
   DIRTY=false; const data=JSON.stringify(S),key=stateKey(); storageStatus('Saving…');
   saving=(async()=>{
     try{
       if(S.scans.length || Object.keys(S.items).length) await storedPut(key,CAN_GZIP&&IDB.db?await gzipText(data):data);else await storedRemove(key);
-      storageStatus(DIRTY?'Unsaved changes':'Saved locally');
+      storageStatus(DIRTY?'Unsaved changes':storageLabel());
       automaticRecovery().catch(()=>toast('Automatic recovery checkpoint failed; export a project backup.'));
       if(DIRTY) save._t=setTimeout(persist,0);
     }catch(e){DIRTY=true;storageStatus('Save failed — export a backup');toast(e.message.includes('deleted')?e.message:'Saving in the browser failed: please save the project file');}
   })();
   try{await saving;}finally{saving=null;}
 }
-async function storedGet(key){if(key==='legacy-local-state')return localStorage.getItem(LS_KEY);if(key==='legacy-local-recovery')return localStorage.getItem(LS_KEY+'.recovery');return IDB.db?await IDB.get(key):localStorage.getItem(key==='state'?LS_KEY:key==='recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key);}
+async function storedGet(key){return openValue(await storedGetRaw(key));}
+async function storedGetRaw(key){if(key==='legacy-local-state')return localStorage.getItem(LS_KEY);if(key==='legacy-local-recovery')return localStorage.getItem(LS_KEY+'.recovery');return IDB.db?await IDB.get(key):localStorage.getItem(key==='state'?LS_KEY:key==='recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key);}
 async function storedPut(key,value){
   let raw=value instanceof ArrayBuffer?await gunzipBuf(value):value,ids=[];
   if(/^(state|recovery)(:|$)|^legacy-local-/.test(key)){
@@ -2888,6 +3094,7 @@ async function storedPut(key,value){
   }
   const scope=key.includes(':')?key.slice(key.indexOf(':')+1):key;
   const guards=[...new Set(ids)].map(id=>'deleted-project:'+id);if(/^(state|recovery)(:|$)|^legacy-local-/.test(key))guards.push('deleted-session:'+scope);
+  value=await protectForStore(key,value);
   if(IDB.db){await IDB.put(key,value,guards);return;}
   if(guards.some(g=>localStorage.getItem(LS_KEY+'.'+g)!==null))throw new Error('This project was deleted in another tab. Its browser copy cannot be saved again.');
   localStorage.setItem(key==='legacy-local-recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key,value);
@@ -2915,7 +3122,8 @@ async function deleteProjectCopies(state,key=stateKey()){
       const raw=await storedGet(entry.key);if(!raw)continue;
       const keep=JSON.parse(raw).filter(e=>projectIdentity(JSON.parse(e.json))!==id);
       // Cleanup is not a project save; preserve snapshots of unrelated projects.
-      if(IDB.db&&!entry.key.startsWith('legacy-local-'))await IDB.put(entry.key,JSON.stringify(keep));else localStorage.setItem(entry.key==='legacy-local-recovery'?LS_KEY+'.recovery':LS_KEY+'.'+entry.key,JSON.stringify(keep));
+      const sealed=await protectForStore(entry.key,JSON.stringify(keep));
+      if(IDB.db&&!entry.key.startsWith('legacy-local-'))await IDB.put(entry.key,sealed);else localStorage.setItem(entry.key==='legacy-local-recovery'?LS_KEY+'.recovery':LS_KEY+'.'+entry.key,sealed);
     }
   }
   deletionChannel?.postMessage({projectId:id});
@@ -2934,19 +3142,20 @@ async function allStoredProjects(){
   const out=[];
   for(const key of keys.filter(k=>/^(state|recovery)(:|$)|^legacy-local-/.test(k))){
     try{
-      let raw=key==='legacy-local-state'?localStorage.getItem(LS_KEY):key==='legacy-local-recovery'?localStorage.getItem(LS_KEY+'.recovery'):await storedGet(key);
+      let raw=key==='legacy-local-state'?await openValue(localStorage.getItem(LS_KEY)):key==='legacy-local-recovery'?await openValue(localStorage.getItem(LS_KEY+'.recovery')):await storedGet(key);
       if(raw instanceof ArrayBuffer)raw=await gunzipBuf(raw);if(!raw)continue;
       const parsed=JSON.parse(raw);
       if(Array.isArray(parsed)){for(const e of parsed)if(e?.json)out.push({...e,key,snapshotId:e.id});}
       else if(isProjectFile(parsed)&&parsed.scans.length)out.push({key,json:JSON.stringify(parsed),label:'Saved browser project',at:parsed.scans.at(-1)?.imported||''});
-    }catch(e){out.push({key,json:JSON.stringify(emptyState()),label:'Unreadable browser copy',at:''});}
+    }catch(e){out.push({key,json:JSON.stringify(emptyState()),label:e.locked?'Encrypted browser copy (unlock to view)':'Unreadable browser copy',at:'',locked:!!e.locked});}
   }
   const available=[];for(const entry of out)if(!await wasDeleted(entry))available.push(entry);return available.sort((a,b)=>ts(b.at)-ts(a.at));
 }
 async function finishProject(action){
   clearTimeout(save._t);if(saving)await saving;
   await recoveryQueue.catch(()=>{});
-  if(action==='keep'){DIRTY=true;await persist();if(DIRTY)throw new Error('The browser copy could not be saved. Export a backup before closing.');}
+  if(action==='discard'){/* memory-only: nothing stored, nothing to delete */}
+  else if(action==='keep'){if(storageMode()==='memory')throw new Error('Memory-only mode: there is no browser copy to keep. Save a project file first.');DIRTY=true;await persist();if(DIRTY)throw new Error('The browser copy could not be saved. Export a backup before closing.');}
   else{await deleteProjectCopies(S);}
   // Rotate the key so the closed project cannot be overwritten by the next project in this tab.
   SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';UNDO.length=0;REDO.length=0;DIRTY=false;recoveryAt=0;exportedState=JSON.stringify(S);
@@ -2968,12 +3177,17 @@ async function confirmDeleteAll(){
 }
 async function closeProject(){
   if(!S.scans.length&&!Object.keys(S.items).length){toast('No project is loaded. Use Recovery to manage saved browser copies.');return;}
+  if(storageMode()==='memory'){
+    if(!confirm(exportChanged?'Close this project? It is kept in memory only and has changes that are not saved in a project file. They will be lost.':'Close this project? It is kept in memory only; nothing remains in this browser.'))return;
+    try{await finishProject('discard');toast('Project closed. Nothing was stored in this browser.');}catch(e){toast(e.message);}
+    return;
+  }
   const dlg=$('#closeProjectDlg');if(dlg.open)return;dlg.returnValue='cancel';
   const action=await new Promise(resolve=>{dlg.addEventListener('close',()=>resolve(dlg.returnValue),{once:true});dlg.showModal();});
   if(!['keep','delete'].includes(action))return;
   try{await finishProject(action);toast(action==='delete'?'Project closed; related browser copies and snapshots deleted across tabs.':'Project closed; browser copy is available under Recovery.');}catch(e){toast(e.message);}
 }
-async function load(){await IDB.open();if(IDB.db)for(const key of await IDB.keys())if(String(key).startsWith('deleted-project:'))DELETED_PROJECTS.add(String(key).slice(16));storageStatus('No project loaded');}
+async function load(){await IDB.open();if(IDB.db)for(const key of await IDB.keys())if(String(key).startsWith('deleted-project:'))DELETED_PROJECTS.add(String(key).slice(16));storageStatus(storageMode()==='memory'?'Memory only · no project loaded':'No project loaded');}
 
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') persist(); });
 window.addEventListener('pagehide',persist);
@@ -3125,8 +3339,13 @@ async function importFiles(files, projectMode='ask'){
         continue;
       }
       if(projectMode==='merge' || projectMode==='mergeFull') throw new Error('Please select a project file; import scan reports with Load scans.');
-      const triage=parseSpringTriage(json);
-      if(triage){triages.push({f,rows:triage});continue;}
+      const triage=parseSpringTriage(json,f.lastModified?new Date(f.lastModified).toISOString():'');
+      if(triage){
+        // Exports written by Refindings itself only hold its own ratings: never treat them as complete.
+        const exported=[json.exported,f.lastModified?new Date(f.lastModified).toISOString():''].find(x=>ts(x))||'';
+        triages.push({f,rows:triage,complete:/^Refindings\b/.test(str(json.generator))?null:{kind:json.kind,exported}});
+        continue;
+      }
       // Plain JSON reports use the same adapters from every file picker and drag/drop.
       const foreign = adaptForeign(json, f.name, f.lastModified);
       scans.push({f, json:foreign||json});
@@ -3150,16 +3369,25 @@ async function importFiles(files, projectMode='ask'){
     }catch(e){S=sanitizeState(JSON.parse(before));errors.push(f.name+': '+e.message);results.push({file:f.name,status:'Error',detail:e.message});}
   }
   const beforeTriage=JSON.stringify(S);
-  for(const {f,rows} of triages){mergeSpringTriage(S,rows);results.push({file:f.name,status:'Triage imported',detail:rows.length+' review records preserved'});}
+  // Oldest export first, so a newer export decides which decisions are gone.
+  triages.sort((a,b)=>ts(a.complete?.exported)-ts(b.complete?.exported));
+  for(const {f,rows,complete} of triages){
+    // Only an export that shares at least one decision with what is known counts as the same
+    // source; an empty export or one from another browser must not flag everything as reset.
+    const known=new Set((S.jspringTriage||[]).filter(r=>r.kind===complete?.kind).map(r=>r.key));
+    const goneNow=mergeSpringTriage(S,rows,complete && rows.some(r=>known.has(r.key)) ? complete : null);
+    const flow=rows.filter(r=>r.kind!=='triage').length,finding=rows.length-flow;
+    results.push({file:f.name,status:'Triage imported',detail:[finding?finding+' finding decision'+(finding===1?'':'s'):'',flow?flow+' flow/control decision'+(flow===1?'':'s')+' (kept in the JSpringGuard triage panel)':'',!rows.length?'no decisions in file':'',goneNow?goneNow+' earlier decision'+(goneNow===1?' is':'s are')+' no longer in this export (probably reset to Open in JSpringGuard)':''].filter(Boolean).join(', ')});
+  }
   if((added||enriched) && hasAllRecords(S)) replay(S);
-  applySpringTriage(S);
+  const triageApplied=applySpringTriage(S);
   if(JSON.stringify(S)!==beforeTriage){if(beforeImport===null)beforeImport=beforeTriage;changed=true;}
   if(changed){pushUndo({kind:'full',label:'scan import',json:beforeImport});recordRecovery('Before scan import',beforeImport).catch(()=>toast('Recovery snapshot could not be saved.'));}
   // Regroup everything chronologically: loading order (e.g. an older scan added later) no longer matters
   if((added||enriched) && hasAllRecords(S)) replay(S);
   if(changed) save(); rebuild();
   showImportResults(results);
-  const parts=[]; if(added) parts.push(`${added} scan${added>1?'s':''} loaded`); if(enriched) parts.push(`${enriched} existing enriched`); if(skipped) parts.push(`${skipped} already present`); if(errors.length) parts.push(`${errors.length} error${errors.length>1?'s':''}`);
+  const parts=[]; if(added) parts.push(`${added} scan${added>1?'s':''} loaded`); if(enriched) parts.push(`${enriched} existing enriched`); if(skipped) parts.push(`${skipped} already present`); if(triages.length) parts.push(`${triageApplied} JSpringGuard status${triageApplied===1?'':'es'} applied`); if(errors.length) parts.push(`${errors.length} error${errors.length>1?'s':''}`);
   if(parts.length) toast(parts.join(', '));
 
   requestReviewerAfterLoad();
@@ -3222,8 +3450,9 @@ function mergeExact(src){
   const conflicts=replay(S, Object.values(src.items));
   for(const o of Object.values(S.items)) delete o._src;
   const rulesAdded=mergeRulesAndSettings(src);
+  const triageApplied=applySpringTriage(S);
   SEL.clear(); save(); rebuild(true);
-  toast(`Merged: ${scansAdded} new scan${scansAdded===1?'':'s'}, ${scansShared} shared, ${Object.keys(S.items).length} findings (was ${before}), ${rulesAdded} rule${rulesAdded===1?'':'s'}${conflicts?`, ${conflicts} rating conflict${conflicts===1?'':'s'} (newer rating kept, see flag "rating conflict")`:''}`);
+  toast(`Merged: ${scansAdded} new scan${scansAdded===1?'':'s'}, ${scansShared} shared, ${Object.keys(S.items).length} findings (was ${before}), ${rulesAdded} rule${rulesAdded===1?'':'s'}${conflicts?`, ${conflicts} rating conflict${conflicts===1?'':'s'} (newer rating kept, see flag "rating conflict")`:''}${triageApplied?`, ${triageApplied} JSpringGuard status${triageApplied===1?'':'es'} applied`:''}`);
 }
 function mergeRulesAndSettings(src){
   mergeSpringTriage(S,src.jspringTriage||[]);
@@ -3298,8 +3527,9 @@ function mergeApprox(src){
     }
   }
   const rulesAdded=mergeRulesAndSettings(src);
+  const triageApplied=applySpringTriage(S);
   SEL.clear(); save(); rebuild(true);
-  toast(`Merged approximately (older project file without raw records; reload its raw scans for an exact merge): ${scansAdded} new scan${scansAdded===1?'':'s'}, ${scansShared} shared, ${matched} findings matched, ${added} added, ${rulesAdded} rule${rulesAdded===1?'':'s'}${conflicts?`, ${conflicts} rating conflict${conflicts===1?'':'s'} (newer rating kept)`:''}`);
+  toast(`Merged approximately (older project file without raw records; reload its raw scans for an exact merge): ${scansAdded} new scan${scansAdded===1?'':'s'}, ${scansShared} shared, ${matched} findings matched, ${added} added, ${rulesAdded} rule${rulesAdded===1?'':'s'}${conflicts?`, ${conflicts} rating conflict${conflicts===1?'':'s'} (newer rating kept)`:''}${triageApplied?`, ${triageApplied} JSpringGuard status${triageApplied===1?'':'es'} applied`:''}`);
 }
 
 function mergeProjectJson(json){
@@ -3328,7 +3558,9 @@ function mergeProjectJson(json){
     }
   }
   for(const r of src.rules) if(!S.rules.some(x=>x.glob===r.glob && x.cat===r.cat)) S.rules.push(r);
-  save(); rebuild(); toast(`${n} ratings imported`);
+  mergeSpringTriage(S,src.jspringTriage||[]);
+  const triageApplied=applySpringTriage(S);
+  save(); rebuild(); toast(`${n} ratings imported${triageApplied?`, ${triageApplied} JSpringGuard status${triageApplied===1?'':'es'} applied`:''}`);
 }
 
 const defaultReviewDate = () => GLOBAL.reviewDays>0 ? addDays(GLOBAL.reviewDays) : null;
@@ -3566,7 +3798,8 @@ function activeFilterCount(){
   if(F.fileValue.trim()) n++; if(F.queue) n++; if(F.mine) n++; if(F.editor!=='all') n++; if(F.q.trim()) n++; if(F.folder!=='all') n++; if(F.freq!=='all') n++; if(F.changed!=='all') n++; if(verdictMode()!=='hide') n++; if(F.cmp) n++;
   return n + F.statuses.length + F.flags.length + F.exclude.length + F.cats.length + F.tools.length + F.sevs.length + F.scanIn.length + F.scanOut.length;
 }
-function saveFilters(){ try{ localStorage.setItem(LS_KEY+'.filters', JSON.stringify({F, sort:SORT, cmpScans:CMP})); }catch(e){} }
+function saveFilters(){ // search text and path filters can reveal project content
+  if(storageMode()!=='browser'){ try{localStorage.removeItem(LS_KEY+'.filters');}catch(e){} return; } try{ localStorage.setItem(LS_KEY+'.filters', JSON.stringify({F, sort:SORT, cmpScans:CMP})); }catch(e){} }
 function loadFilters(){
   try{ const o=JSON.parse(localStorage.getItem(LS_KEY+'.filters')||'null'); if(!o) return;
     const f=o.F||{}, d=FDEF();
@@ -3680,9 +3913,18 @@ function reviewButtons(){return GLOBAL.reviewPresets.map(days=>`<button type="bu
 
 function renderSpringTriage(){
  const rows=S.jspringTriage||[],panel=$('#springTriagePanel');panel.classList.toggle('hidden',!rows.length);
- const matched=rows.filter(r=>springMatches(S,r).length).length;
- $('#springTriageTitle').textContent=`JSpringGuard triage: ${rows.length} records (${matched} matched, ${rows.length-matched} unassigned)`;
- $('#springTriageRows').innerHTML=rows.map(r=>{const hits=springMatches(S,r);return `<article style="border-top:1px solid var(--line);padding:10px 0"><strong>${esc(r.kind==='triage'?'Finding':'Flow / control')} · ${esc(r.status)}</strong> — ${hits.length?'Matched to '+hits.length+' finding(s)':'Unassigned'}${!springStatus(r)?' · Original status retained':''}<div style="overflow-wrap:anywhere">${esc(r.file||r.key)}${r.line?':'+r.line:''} ${esc(r.entrypoint)} ${esc(r.control)}</div><time>${esc(r.at)}</time><p style="white-space:pre-wrap">${esc(r.note)}</p></article>`;}).join('');
+ const findingRows=rows.filter(r=>r.kind==='triage'),flow=rows.length-findingRows.length;
+ if(!rows.length){$('#springTriageRows').innerHTML='';return;}
+ const idx=springIndex(S);
+ const matched=findingRows.filter(r=>springMatches(S,r,idx).length).length;
+ $('#springTriageTitle').textContent=`JSpringGuard triage: ${findingRows.length} finding decision${findingRows.length===1?'':'s'} (${matched} matched, ${findingRows.length-matched} without a loaded finding)`+(flow?` · ${flow} flow/control decision${flow===1?'':'s'} (reference only)`:'')+(rows.some(r=>r.gone)?` · ${rows.filter(r=>r.gone).length} no longer in the latest JSpringGuard export`:'');
+ // Row list only while the panel is open; rebuild() runs after every action.
+ if(!panel.open){$('#springTriageRows').innerHTML='';return;}
+ const order=rows.map((r,i)=>[r,i]).sort((a,b)=>(b[0].gone?1:0)-(a[0].gone?1:0));
+ $('#springTriageRows').innerHTML=order.map(([r,i])=>{const hits=springMatches(S,r,idx),mapped=r.kind==='triage'?springStatus(r):null,still=r.gone&&mapped?hits.filter(it=>it.status===mapped):[];
+  return `<article style="border-top:1px solid var(--line);padding:10px 0"><strong>${esc(r.kind==='triage'?'Finding':'Flow / control')} · ${esc(r.status||'(no status)')}</strong> — ${r.kind!=='triage'?'Reference only, not linked to findings':hits.length?'Matched to '+hits.length+' finding(s)':'No matching finding loaded'}${r.kind==='triage'&&!mapped?' · Status not mapped':''}${r.kind==='triage'&&!r.at?' · No timestamp':''}`
+  +(r.gone?`<div style="color:var(--s-open);margin:4px 0">Not in the JSpringGuard export of ${esc(r.gone.slice(0,16).replace('T',' '))}: probably set back to Open there.${still.length?` <button type="button" class="btn" data-springreset="${i}" style="margin-left:6px">Set ${still.length} finding${still.length===1?'':'s'} to Open</button>`:''}</div>`:'')
+  +`<div style="overflow-wrap:anywhere">${esc(r.file||r.key)}${r.line?':'+r.line:''} ${esc(r.entrypoint)} ${esc(r.control)}</div><time>${esc(r.at)}</time><p style="white-space:pre-wrap">${esc(r.note)}</p></article>`;}).join('');
 }
 function rebuild(keepDrawer){
   renderGlobalSettings();
@@ -3870,12 +4112,13 @@ function renderSummary(){
     {k:'new', n:BASE.filter(d=>d.isNew).length, l:'new', col:'var(--s-new)'},
     {k:'st:open', n:c('open'), l:'open', col:'var(--s-open)'},
     {k:'st:confirmed', n:c('confirmed'), l:'confirmed', col:'var(--s-confirmed)'},
+    ...(c('in-review') ? [{k:'st:in-review', n:c('in-review'), l:'in review', col:'var(--s-review)'}] : []),
     {k:'st:fp', n:c('fp'), l:'false positive', col:'var(--s-fp)'},
     {k:'st:accepted', n:c('accepted'), l:'accepted risk', col:'var(--s-accepted)'},
     {k:'st:fixed', n:c('fixed'), l:'fixed', col:'var(--s-fixed)'},
     ...(BASE.some(d=>d.reviewDue) ? [{k:'reviewDue', n:BASE.filter(d=>d.reviewDue).length, l:'review due', col:'var(--s-regression)', sub:'accepted risks'}] : []),
     {k:'worklist', n:BASE.filter(d=>d.eff==='open' && !d.it.status && !d.rule && d.nSeen>=2).length, l:'worklist', col:'var(--s-open)', sub:'open, unrated, ≥2 scans'},
-    {k:'goneChanged', n:BASE.filter(d=>d.goneFile==='changed' && (d.eff==='open'||d.eff==='confirmed')).length, l:'probably fixed', col:'var(--s-fixed)', sub:'gone, file changed'},
+    {k:'goneChanged', n:BASE.filter(d=>d.goneFile==='changed' && (d.eff==='open'||d.eff==='confirmed'||d.eff==='in-review')).length, l:'probably fixed', col:'var(--s-fixed)', sub:'gone, file changed'},
     {k:'regression', n:BASE.filter(d=>d.regression).length, l:'Regression', col:'var(--s-regression)'},
   ];
   for(const cell of cells)if(cell.k.startsWith('st:')){const status=STATUS_BY_ID[cell.k.slice(3)];cell.l=esc(status.label);cell.col=status.color;}
@@ -4448,6 +4691,38 @@ function exportSarif(){
 }
 
 /* ---- FalconEYE-Baseline ---- */
+/* Ratings back to JSpringGuard: same format as its own "Export triage", keyed by the original
+   JSpringGuard fingerprint. Only explicit ratings with a JSpringGuard counterpart are written;
+   a newer decision that came from JSpringGuard itself is not overwritten with an older one. */
+const JSPRING_EXPORT_STATUS={confirmed:'confirmed','in-review':'in-review',fixed:'fixed',fp:'false-positive',accepted:'accepted'};
+function jspringTriageExport(state){
+ const pToJfp=new Map();
+ for(const s of state.scans) for(const q of s.rec||[]) if(q.jfp){let set=pToJfp.get(q.p);if(!set)pToJfp.set(q.p,set=new Set());set.add(q.jfp);}
+ const latest=new Map();
+ for(const r of state.jspringTriage||[]) if(r.kind==='triage' && (!latest.has(r.key)||ts(r.at)>ts(latest.get(r.key).at))) latest.set(r.key,r);
+ const entries=dict();let findings=0,unmapped=0,keptNewer=0;
+ for(const it of Object.values(state.items)){
+  const keys=new Set();for(const fp of it.fps||[]) for(const k of pToJfp.get(fp)||[]) keys.add(k);
+  if(!keys.size||!it.status) continue;
+  const status=JSPRING_EXPORT_STATUS[it.status];
+  if(!status){unmapped++;continue;}
+  const at=ts(it.statusAt)?it.statusAt:new Date().toISOString();let used=false;
+  for(const k of keys){
+   const o=latest.get(k);
+   if(o && ts(o.at)>ts(at)){keptNewer++;continue;}
+   entries[k]={status,note:str(it.note),ts:at};used=true;
+  }
+  if(used) findings++;
+ }
+ return {payload:{tool:'JSpringGuard',kind:'triage',version:1,exported:new Date().toISOString(),generator:`Refindings ${APP_VERSION}`,entries},findings,unmapped,keptNewer};
+}
+function exportJSpringTriage(){
+ const {payload,findings,unmapped,keptNewer}=jspringTriageExport(S),n=Object.keys(payload.entries).length;
+ if(!n){toast(S.scans.some(s=>(s.rec||[]).some(q=>q.jfp))?'No ratings to export for JSpringGuard findings yet.':'No JSpringGuard scan in this project.');return;}
+ download(`${fileSlug()}-jspringguard-finding-triage.json`,JSON.stringify(payload,null,2),'application/json');
+ const extra=[unmapped?`${unmapped} rating${unmapped===1?'':'s'} without a JSpringGuard status skipped`:'',keptNewer?`${keptNewer} newer JSpringGuard decision${keptNewer===1?'':'s'} left unchanged`:''].filter(Boolean);
+ toast(`${n} triage entr${n===1?'y':'ies'} for ${findings} finding${findings===1?'':'s'} exported`+(extra.length?' ('+extra.join(', ')+')':''));
+}
 function exportBaseline(){
   const toStatus = {fp:'false_positive', accepted:'accepted_risk'};
   const entry = (d, status) => ({
@@ -4854,8 +5129,8 @@ $('#scannerOverview').addEventListener('click',e=>{const b=e.target.closest('[da
 for(const [formId,kind] of [['globalCategoryForm','categories'],['globalStatusForm','statuses']]){
  $('#'+formId).onsubmit=e=>{e.preventDefault();try{addCatalogEntry(kind,e.target.elements.label.value,e.target.elements.color?.value);e.target.reset();saveGlobalSettings();}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
 }
-$('#globalReviewForm').onsubmit=e=>{e.preventDefault();try{const days=Number(e.target.days.value);if(!Number.isInteger(days)||days<0||days>3650)throw new Error('Default interval must be between 0 and 3650 days.');const presets=reviewPresetDays(e.target.presets.value);GLOBAL={reviewDays:days,reviewPresets:presets};saveGlobalSettings();}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
-$('#resetReviewDefaults').onclick=()=>{GLOBAL=cleanGlobal(null);const f=$('#globalReviewForm');f.days.value=GLOBAL.reviewDays;f.presets.value=GLOBAL.reviewPresets.join(', ');saveGlobalSettings();};
+$('#globalReviewForm').onsubmit=e=>{e.preventDefault();try{const days=Number(e.target.days.value);if(!Number.isInteger(days)||days<0||days>3650)throw new Error('Default interval must be between 0 and 3650 days.');const presets=reviewPresetDays(e.target.presets.value);GLOBAL={...GLOBAL,reviewDays:days,reviewPresets:presets};saveGlobalSettings();}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
+$('#resetReviewDefaults').onclick=()=>{GLOBAL={...cleanGlobal(null),...cleanStorageSettings(GLOBAL)};const f=$('#globalReviewForm');f.days.value=GLOBAL.reviewDays;f.presets.value=GLOBAL.reviewPresets.join(', ');saveGlobalSettings();};
 
 for(const el of document.querySelectorAll('.column-filter'))for(const name of ['click','keydown'])el.addEventListener(name,e=>e.stopPropagation());
 for(const [key,id]of Object.entries(COLUMN_IDS)){$('#'+id).addEventListener(['history','status'].includes(key)||key.endsWith('Mode')?'change':'input',()=>{F.columns[key]=$('#'+id).value;filtersChanged();});}
@@ -4880,9 +5155,21 @@ $('#reviewerAddForm').onsubmit=e=>{e.preventDefault();const input=$('#reviewerAd
 $('#btnUndo').onclick=undo; $('#btnRedo').onclick=redo;
 $('#btnLoad').onclick=pickScans; $('#btnLoad2').onclick=pickScans;
 $('#btnTestExamples').onclick=loadTestExamples;
+$('#saveStatus').onclick=openStorageSettings;
+$('#storageApply').onclick=()=>applyStorageSettings(false);
+$('#storageChangePw').onclick=()=>applyStorageSettings(true);
+$('#springTriagePanel').addEventListener('toggle',e=>{if(e.target.open)renderSpringTriage();});
+$('#springTriageRows').addEventListener('click',e=>{
+  const b=e.target.closest('[data-springreset]');if(!b)return;
+  const row=(S.jspringTriage||[])[+b.dataset.springreset];if(!row||!row.gone)return;
+  const mapped=springStatus(row),ids=springMatches(S,row).filter(it=>it.status===mapped).map(it=>it.id);
+  if(!ids.length)return;
+  if(!ensureEditor())return;
+  undoItems('JSpringGuard reset',ids);setStatus(ids,'open');toast(`${ids.length} finding${ids.length===1?'':'s'} set to Open`,undoAction);
+});
 $('#recoveryClose').onclick=()=>$('#recoveryDlg').close();
 $('#recoveryDeleteAll').onclick=confirmDeleteAll;
-$('#recoveryCreate').onclick=async()=>{ try{ await recordRecovery('Manual snapshot'); await renderRecovery(); $('#recoveryStatus').textContent=S.scans.length?'Snapshot saved.':'Load a project first.'; }catch(e){ $('#recoveryStatus').textContent='Snapshot failed: '+e.message; } };
+$('#recoveryCreate').onclick=async()=>{ if(storageMode()==='memory'){ $('#recoveryStatus').textContent='Memory-only mode: snapshots are not stored. Save a project file instead.'; return; } if(storageMode()==='encrypted'&&!STORE_KEY&&!await requestUnlock()) return; try{ await recordRecovery('Manual snapshot'); await renderRecovery(); $('#recoveryStatus').textContent=S.scans.length?'Snapshot saved.':'Load a project first.'; }catch(e){ $('#recoveryStatus').textContent='Snapshot failed: '+e.message; } };
 $('#reviewerForm').onsubmit=e=>{ e.preventDefault(); setReviewerName(); };
 $('#btnOpenProj2').onclick=()=>{ $('#fileProject').dataset.mode='open'; $('#fileProject').click(); };
 $('#fileScans').onchange=e=>{ readFiles(e.target.files); e.target.value=''; };
@@ -4901,10 +5188,10 @@ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
     const name=`${fileSlug()}_project_v${APP_VERSION}_${stamp()}.json`;
     try{
       if(a==='saveProject'){
-        const password=chooseExportPassword();
+        const password=await chooseExportPassword();
         if(password===null) return;
         download(name.replace(/\.json$/,'.zip'),await projectZip(json,password));
-        toast('Project saved as AES-256 encrypted ZIP.');
+        toast(storageMode()==='encrypted'&&password===STORE_PW?'Project saved as AES-256 encrypted ZIP with your storage password.':'Project saved as AES-256 encrypted ZIP.');
       }else download(name,json,'application/json');
       // Compare the captured project, so edits made while ZIP encryption runs stay unexported.
       const captured=JSON.parse(json);delete captured.tool;delete captured.appVersion;delete captured.exported;exportedState=JSON.stringify(captured);updateExportStatus();
@@ -4918,6 +5205,7 @@ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
   if(a==='changePassword') chooseExportPassword(true);
   if(a==='reviewers') openReviewerManager();
   if(a==='recovery') openRecovery();
+  if(a==='storage') openStorageSettings();
   if(a==='closeProject') await closeProject();
   if(a==='reset') await confirmDeleteAll();
   if(!S.scans.length && a.startsWith('export')){ toast('Load scans first'); return; }
@@ -4925,6 +5213,7 @@ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
   if(a==='exportMd') openReportDialog('md');
   if(a==='exportSarif') exportSarif();
   if(a==='exportBaseline') exportBaseline();
+  if(a==='exportJSpringTriage') exportJSpringTriage();
 });
 function filtersChanged(){ SUMFILTER=null; SEL.clear(); renderSummary(); renderTable(); }
 let _qt; $('#fText').addEventListener('input',e=>{ clearTimeout(_qt); _qt=setTimeout(()=>{ F.q=e.target.value; filtersChanged(); },150); });
@@ -4967,7 +5256,7 @@ $('#summary').onclick=e=>{
     if(k.startsWith('st:')) F.statuses=[k.slice(3)];
     else if(k==='latest') F.freq='latest';
     else if(k==='worklist'){ F.statuses=['open']; F.flags=['unrated']; F.freq='min:2'; }
-    else if(FLAG_BY_ID[k]){ F.flags=[k]; if(k==='goneChanged') F.statuses=['open','confirmed']; }
+    else if(FLAG_BY_ID[k]){ F.flags=[k]; if(k==='goneChanged') F.statuses=['open','confirmed','in-review']; }
   }
   renderSummary(); renderTable();
 };
