@@ -1,4 +1,4 @@
-# Refindings 2.6.1
+# Refindings 2.7.4
 
 Review security findings from multiple scanners in one offline HTML application. Runs in a modern browser on Windows, Linux and macOS, without installation or a server. The page blocks all network access (strict Content Security Policy).
 
@@ -23,11 +23,20 @@ The format is detected from the content; several tools can live in one project. 
 
 Secrets reported by secret scanners are masked on import and never stored.
 
+### Module scans
+
+A scan of a single module (for example JSpringGuard run on `repo/orders`) reports paths relative to that module: `src/main/java/...` instead of `orders/src/main/java/...`. Refindings detects this from the other scans in the project and aligns the paths, also when the module scan is older than the full scan. Projects saved by earlier versions are aligned when opened.
+
+- A module scan only covers its folder: findings elsewhere in the repository are not marked "no longer reported" because of it.
+- Comparing a module scan with a full scan shows the findings of other modules as **outside the module**, not as new or gone; reports list them the same way.
+- The **Module** column under **Scans** shows the detected folder and lets you set or clear it by hand (empty = whole repository). Detection gives up when the file names fit several modules equally well.
+- If Refindings had to guess a scan's base path (no code base in the report), paths are aligned but the scan still counts as a scan of the whole repository.
+
 ## Features
 
 - Inspect code context, scanner explanations and structured Flowtrace / FalconEYE evidence (source, sink, trace steps, verifier verdict).
 - Track every finding across scans: history strip, regressions, "no longer reported", code-change detection, age and fix deadlines (SLA).
-- Compare any two scans (new, gone, severity up/down, gone with changed or unchanged file).
+- Compare any two scans (new, gone, severity up/down, gone with changed or unchanged file, outside the module).
 - Filter by status, severity, category, tool, flags, folder, scan, scanner verdict, search syntax (`-term`, `"phrase"`, `file:`, `note:`, `cat:`) and per-column filters; resize columns.
 - **Review queue** (priority by severity, regression, overdue, unassigned) and **My findings**.
 - Assign reviewers, manage reviewers (create, rename, deactivate), apply bulk changes, merge and split findings, use Undo/Redo.
@@ -36,6 +45,14 @@ Secrets reported by secret scanners are masked on import and never stored.
 - Configure accepted-risk review intervals: default **90 days**, quick choices **30/90/180/365 days**.
 - Path rules, editor links (VS Code, VSCodium, Cursor, JetBrains, custom) and scan renaming.
 - Merge project files or import ratings only; conflicting ratings are flagged for resolution.
+
+## Large projects
+
+Refindings stays responsive with many scans and thousands of findings (measured: 12 scans, about 3,500 findings each, rating a finding in about 0.1 s).
+
+- The findings table shows the first 200 rows and loads more while you scroll (or with **Show more**). Selecting all, keyboard navigation (`j`/`k`) and bulk actions always cover every filtered finding.
+- Code snippets that repeat across scans are stored once (project format 4). Saved browser copies, recovery snapshots and project files are several times smaller. Version 3 project files still open; older Refindings versions refuse format 4 files instead of loading them incompletely.
+- Changes are saved about a second after the last edit, so several quick edits share one write.
 
 ## Exports
 
@@ -51,16 +68,16 @@ Global preferences apply within the same browser storage context. They are not s
 Under **Project → Browser storage** choose how projects are kept between visits:
 
 - **Save in the browser** (default): automatic copy and recovery snapshots, unencrypted.
-- **Save in the browser, encrypted:** AES-256-GCM with a key derived from your password (PBKDF2, 600,000 rounds). The password is kept in memory only and asked once per tab. ZIP project files then use the same password.
+- **Save in the browser, encrypted:** AES-256-GCM with a key derived from your password (PBKDF2, 600,000 rounds). The password is kept in memory only and asked once per tab. ZIP project files then use the same password; in a locked tab you can choose **Separate password …** for the ZIP instead. A forgotten storage password cannot be recovered: only deleting the browser copies helps, exported files are not affected.
 - **Do not save in the browser:** memory only; closing the tab discards the project, and you are warned about unsaved changes.
 
 Use **Project → Recovery** for saved browser copies and snapshots. Project files saved as ZIP use AES-256; choose your own password, because the suggested default `refindings` is public. Plain JSON exports and unencrypted browser storage are not protected. Only source code included in imported reports is displayed.
 
-Export projects before deleting recovery copies or closing a project, and avoid simultaneous delete/restore operations in several tabs.
+Export projects before deleting recovery copies or closing a project, and avoid simultaneous delete/restore operations in several tabs. After switching back to a version before 2.7, browser copies saved by 2.7 show no code snippets; open an exported project file with 2.7 instead.
 
 ## License
 
-Refindings: [MIT License](LICENSE), copyright 2026 NoAuthZone.
+Refindings: MIT License, copyright 2026 NoAuthZone.
 
 The ZIP library `@zip.js/zip.js` 2.20.0 is bundled inside the HTML. Its original BSD-3-Clause license and copyright notice are included in that file and must be retained.
 
