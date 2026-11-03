@@ -5,9 +5,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-afvlIyf2nbPILmWdgaNvZrW/JYq62TmTokE7/vulRig=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-9X3VuiLeXSnrNVimlAIV6z153IaBH8PNwi8Z7kQ04LU='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tC5mXLMfpABGJWjVXQ7oP9b2e1i1fNjYbdSQVg8FtPo=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-xNFryPJKIq+lYeCliG2iFbBrYzJsVp618ftrfFYz2PI='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Refindings 2.6.1</title>
+<title>Refindings 2.7.4</title>
 <style>
 :root{
   --bg:#EEF1F4; --surface:#FFFFFF; --sunk:#F6F8FA; --ink:#18212C; --muted:#5A6573; --faint:#8A94A1; --line:#D6DCE3;
@@ -700,8 +700,8 @@ table.list th{vertical-align:top}
 
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
-const TOOL_VERSION = 3;          // project file schema
-const APP_VERSION = '2.6.1';     // program version, increase with every change
+const TOOL_VERSION = 4;          // project file schema (4: code snippets stored once in snipPool)
+const APP_VERSION = '2.7.4';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
@@ -790,10 +790,10 @@ function commonDirPrefix(paths){
 /* Determine the relative path: known roots first, then matching against known files, otherwise the common prefix */
 function makeRelativizer(locations, knownRoots, knownFiles, codebase, keepRelative){
   const locs = locations.map(normPath);
-  let root = knownRoots.find(r => r && locs.every(l=>l.startsWith(r)));
+  let root = knownRoots.find(r => r && locs.every(l=>l.startsWith(r))), from = root ? 'known' : '';
   // Code base path from the metadata, if all paths are below it (report format)
   const cb = normPath(codebase||'').replace(/\/+$/,'');
-  if(!root && cb && locs.length && locs.every(l=>l.startsWith(cb+'/'))) root = cb+'/';
+  if(!root && cb && locs.length && locs.every(l=>l.startsWith(cb+'/'))){ root = cb+'/'; from='codebase'; }
   if(!root && knownFiles.size){
     // Pick the prefix that maps as many paths as possible onto known files
     const votes = new Map();
@@ -805,12 +805,12 @@ function makeRelativizer(locations, knownRoots, knownFiles, codebase, keepRelati
       }
     }
     let best=null,bv=0; for(const [k,v] of votes) if(v>bv){best=k;bv=v;}
-    if(best && locs.every(l=>l.startsWith(best))) root = best;
+    if(best && locs.every(l=>l.startsWith(best))){ root = best; from='files'; }
   }
   // paths of other tools are usually already relative to the repository: do not cut off a common folder then
-  if(!root && !(keepRelative && locs.every(l=>!/^(\/|[A-Za-z]:\/)/.test(l)))) root = commonDirPrefix(locs);
+  if(!root && !(keepRelative && locs.every(l=>!/^(\/|[A-Za-z]:\/)/.test(l)))){ root = commonDirPrefix(locs); from = root ? 'guess' : ''; }
   root = root || '';
-  return { root, rel: l => { const n=normPath(l); return root && n.startsWith(root) ? n.slice(root.length) : n; } };
+  return { root, from: from || 'relative', rel: l => { const n=normPath(l); return root && n.startsWith(root) ? n.slice(root.length) : n; } };
 }
 
 /* ---- Normalise input formats ----
@@ -2049,7 +2049,34 @@ function applySpringTriage(state){
  return applied;
 }
 
-function emptyState(){ return {version:TOOL_VERSION, projectId:crypto.randomUUID(), catalog:catalogSnapshot(), reviewers:[], jspringTriage:[], scans:[], items:dict(), rules:[], roots:[], settings:{editorBase:'', editor:'vscode', editorTpl:'', projectName:'', reviewDays:90, sla:{crit:7, high:30, med:90, low:180, info:0}}}; }
+/* ---- Compact serialisation ----
+   Code snippets repeat in every scan, usually unchanged or only shifted by a few lines. They are written once
+   into snipPool, relative to their first line; records and findings keep [first line, pool index]. This makes the
+   saved state, undo snapshots, recovery copies and project files several times smaller and faster to write. */
+let SNIP_POOL_IN=null, SNIP_POOL_MEMO=new Map();
+const snipRelCache=new WeakMap();
+function snipRel(sn){
+  let c=snipRelCache.get(sn);
+  if(!c){ const o=int(sn[0]&&sn[0][0]); const rel=sn.map(a=>[int(a[0])-o,a[1]?1:0,str(a[2])]); c={o,rel,key:JSON.stringify(rel)}; snipRelCache.set(sn,c); }
+  return c;
+}
+function poolSnip(o,i){
+  const rel=SNIP_POOL_IN&&Number.isInteger(i)?SNIP_POOL_IN[i]:null; if(!Array.isArray(rel)) return [];
+  o=int(o); const k=o+'|'+i; let sn=SNIP_POOL_MEMO.get(k);
+  if(!sn){ sn=rel.filter(Array.isArray).map(a=>[int(a[0])+o,a[1]?1:0,str(a[2])]); SNIP_POOL_MEMO.set(k,sn); }
+  return sn;
+}
+function serializeState(state){
+  const pool=[], index=new Map();
+  const ref=sn=>{ if(!Array.isArray(sn)||!sn.length) return null; const c=snipRel(sn); let i=index.get(c.key); if(i===undefined){ i=pool.length; index.set(c.key,i); pool.push(c.rel); } return [c.o,i]; };
+  const scans=state.scans.map(s=>!Array.isArray(s.rec)?s:{...s,rec:s.rec.map(q=>{ const r=ref(q.sn); if(!r) return q; const {sn,...rest}=q; rest.so=r[0]; rest.si=r[1]; return rest; })});
+  const items=dict();
+  for(const k of Object.keys(state.items)){ const it=state.items[k], r=ref(it.snip); if(!r){ items[k]=it; continue; } const {snip,...rest}=it; rest.snipO=r[0]; rest.snipI=r[1]; items[k]=rest; }
+  return {...state, version:TOOL_VERSION, scans, items, snipPool:pool};
+}
+/* JSON.stringify(S) everywhere (save, undo, recovery, clone) uses the compact form. */
+function withSerializer(state){ Object.defineProperty(state,'toJSON',{value:function(){ return serializeState(this); },enumerable:false,configurable:true}); return state; }
+function emptyState(){ return withSerializer({version:TOOL_VERSION, projectId:crypto.randomUUID(), catalog:catalogSnapshot(), reviewers:[], jspringTriage:[], scans:[], items:dict(), rules:[], roots:[], settings:{editorBase:'', editor:'vscode', editorTpl:'', projectName:'', reviewDays:90, sla:{crit:7, high:30, med:90, low:180, info:0}}}); }
 /* Review dates for accepted risks: plain local dates (YYYY-MM-DD) */
 const isDate = s => /^\d{4}-\d\d-\d\d$/.test(str(s)) && !isNaN(Date.parse(s));
 const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -2081,7 +2108,7 @@ function sanitizeItem(v, key, depth){
     fps:(Array.isArray(v.fps)?v.fps:[]).map(str).slice(-60), titles, seen,
     alts:(Array.isArray(v.alts)?v.alts:[]).filter(a=>a&&typeof a==='object').slice(0,50).map(a=>({file:str(a.file), cat:cat(a.cat), sig:sig(a.sig), range:range(a.range)})),
     lastTitle:str(v.lastTitle,'(untitled)'), lastDate:str(v.lastDate), reasoning:str(v.reasoning), mitigation:str(v.mitigation), confidence:str(v.confidence),
-    snip:(Array.isArray(v.snip)?v.snip:[]).filter(Array.isArray).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]),
+    snip:!Array.isArray(v.snip)&&v.snipI!==undefined?poolSnip(v.snipO,v.snipI):(Array.isArray(v.snip)?v.snip:[]).filter(Array.isArray).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]),
     editor:str(v.editor).slice(0,120), editorAssigned:!!v.editorAssigned, editedAt:!isNaN(Date.parse(v.editedAt))?str(v.editedAt):'',
     snipScan:str(v.snipScan), status:validStatus(v.status), statusAt: v.statusAt?str(v.statusAt):null, note:str(v.note),
     audit:sanitizeAudit(v.audit),
@@ -2113,6 +2140,10 @@ function sanitizeItem(v, key, depth){
 
 /* Validate and type the project file / stored state: blocks broken or crafted data (XSS, pollution) */
 function sanitizeState(raw){
+  const prevPool=SNIP_POOL_IN;SNIP_POOL_IN=Array.isArray(raw?.snipPool)?raw.snipPool:null;SNIP_POOL_MEMO=new Map();
+  try{ return sanitizeStateInner(raw); }finally{ SNIP_POOL_IN=prevPool; }
+}
+function sanitizeStateInner(raw){
   registerCatalog(raw?.catalog);
   const S = emptyState(); if(!raw || typeof raw!=='object') return S;S.projectId=projectIdentity(raw);
   const validStatus = s => (s=canonicalStatus(s), has(STATUS_BY_ID,s) ? s : null);
@@ -2121,7 +2152,7 @@ function sanitizeState(raw){
     const id=safeId(s.id); if(S.scans.some(x=>x.id===id)) continue;
     const fileHashes=dict(); if(s.fileHashes && typeof s.fileHashes==='object') for(const f of Object.keys(s.fileHashes)) fileHashes[f]=str(s.fileHashes[f]);
     S.scans.push({id, file:str(s.file), label:str(s.label).slice(0,60), tool:str(s.tool).slice(0,60)||'FalconEYE', started:str(s.started), codebase:str(s.codebase), root:str(s.root),
-      raw:int(s.raw), filtered:int(s.filtered), distinct:int(s.distinct), imported:str(s.imported), fileHashes, rec:sanitizeRecords(s.rec)});
+      raw:int(s.raw), filtered:int(s.filtered), distinct:int(s.distinct), imported:str(s.imported), fileHashes, rec:sanitizeRecords(s.rec), ...(normModule(s.module)?{module:normModule(s.module)}:{}), ...(normModule(typeof s.prefix==='string'?s.prefix:s.module)?{prefix:normModule(typeof s.prefix==='string'?s.prefix:s.module)}:{}), ...(s.moduleManual?{moduleManual:true}:{}), ...(['known','codebase','files','guess','relative'].includes(s.rootFrom)?{rootFrom:s.rootFrom}:{})});
     if(!S.scans[S.scans.length-1].rec) delete S.scans[S.scans.length-1].rec;
   }
   S.scans.sort((a,b)=>ts(a.started)-ts(b.started));
@@ -2151,12 +2182,16 @@ function sigEntries(it){
 
 /* Mix a scan into the state. Returns statistics. */
 /* Same scan in another format? Same ID, or same start second and same number of findings (the HTML report has no ID) */
-function scanContentKey(records){
-  return Array.isArray(records)?JSON.stringify(records.map(q=>[q.f,q.c,q.p,q.s,q.x]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))):null;
+/* Paths are compared without the module prefix, so a module scan loaded again is recognised after its
+   paths were anchored in the full repository. Keys are built once per record (was: JSON per comparison). */
+const unModule=(f,module)=>module&&f.startsWith(module)?f.slice(module.length):f;
+const recIdKey=(q,module)=>JSON.stringify([unModule(q.f,module),q.c,q.p,q.s,q.x]);
+function scanContentKey(records,module=''){
+  return Array.isArray(records)?JSON.stringify(records.map(q=>recIdKey(q,module)).sort()):null;
 }
-function scanDetailsCompatible(a,b){
-  const order=rows=>rows.slice().sort((x,y)=>JSON.stringify([x.f,x.c,x.p,x.s,x.x]).localeCompare(JSON.stringify([y.f,y.c,y.p,y.s,y.x])));
-  const left=order(a),right=order(b);
+function scanDetailsCompatible(a,b,moduleA='',moduleB=''){
+  const order=(rows,m)=>rows.map(q=>[recIdKey(q,m),q]).sort((x,y)=>x[0]<y[0]?-1:x[0]>y[0]?1:0).map(x=>x[1]);
+  const left=order(a,moduleA),right=order(b,moduleB);
   return left.every((q,i)=>['mi','co','re','fr','fk'].every(k=>!q[k] || !right[i][k] || q[k]===right[i][k]));
 }
 function legacyHardenedRecordsMatch(oldRows,newRows){
@@ -2166,13 +2201,16 @@ function legacyHardenedRecordsMatch(oldRows,newRows){
   for(const row of newRows){const k=key(row);if(!pool.has(k))pool.set(k,[]);pool.get(k).push(row);}
   return oldRows.every(q=>{const rows=pool.get(key(q))||[];const legacy=q.fr==='JSpringGuard assessment: HARDENED';const i=rows.findIndex(m=>(legacy?m.c==='HARDENED'&&!m.x:m.c===q.c&&m.p===q.p&&m.x===q.x)&&['mi','co','re'].every(k=>!q[k]||!m[k]||q[k]===m[k]));if(i<0)return false;rows.splice(i,1);return true;});
 }
-function findSameScan(state,id,started,count,tool='FalconEYE',records){
-  const sec=Math.floor(ts(started)/1000),key=scanContentKey(records);
+/* recordsPrefix: path prefix already applied to records (scans from another project file). */
+function findSameScan(state,id,started,count,tool='FalconEYE',records,recordsPrefix=''){
+  const sec=Math.floor(ts(started)/1000);let key;const newKey=()=>key===undefined?(key=scanContentKey(records,recordsPrefix)):key;
   return state.scans.find(s=>{
     if(toolOf(s).toLowerCase()!==str(tool||'FalconEYE').toLowerCase()) return false;
-    const sameContent=key!==null && key===scanContentKey(s.rec) && scanDetailsCompatible(records,s.rec);
+    // cheap checks first: the content key of a large scan is only built when id or time and size fit
+    if(s.id!==id && !(!str(id).startsWith('FT-S-') && !str(s.id).startsWith('FT-S-') && sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count)) return false;
+    const sameContent=newKey()!==null && key===scanContentKey(s.rec,scanPrefix(s)) && scanDetailsCompatible(records,s.rec,recordsPrefix,scanPrefix(s));
     if(s.id===id) return sameContent || key===null || !Array.isArray(s.rec) || (tool==='JSpringGuard' && Math.floor(ts(s.started)/1000)===sec && legacyHardenedRecordsMatch(s.rec,records));
-    return sameContent && !str(id).startsWith('FT-S-') && !str(s.id).startsWith('FT-S-') && sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count;
+    return sameContent;
   })||null;
 }
 /* Replace a substitute ID (HTML report without ID) by the real scan ID once a format with ID is loaded */
@@ -2188,14 +2226,15 @@ function renameScan(state, scan, newId){
 function enrichScan(state, scan, N, R){
   let changed=false;
   const fileHashes=dict();
+  const pre=scanPrefix(scan);   // fingerprints use the scan's own paths, file hashes the aligned ones
   for(const x of N.findings){ const file=R.rel(x.location); if(x.actual_snippet && x.actual_snippet.length && !fileHashes[file]) fileHashes[file]=fnv(x.actual_snippet.map(str).join('')); }
-  if(Object.keys(fileHashes).length && !Object.keys(scan.fileHashes||{}).length){ scan.fileHashes=fileHashes; changed=true; }
+  if(Object.keys(fileHashes).length && !Object.keys(scan.fileHashes||{}).length){ scan.fileHashes=setRecordsModule([],fileHashes,'',pre); changed=true; }
   const byFp=new Map(); for(const it of Object.values(state.items)) if(it.seen[scan.id]) for(const f of it.fps) byFp.set(f,it);
   const flt=new Map();
   for(const x of N.findings){
     const p=parseFinding(x), file=R.rel(x.location), it=byFp.get(fnv(file+'|'+categorize(p.title)+'|'+p.codeNorm)); if(!it) continue;
     const v=it.seen[scan.id];
-    if(!v.fh && fileHashes[file]){ v.fh=fileHashes[file]; changed=true; }
+    if(!v.fh && fileHashes[file]){ v.fh=fileHashes[file]; changed=true; }   // keyed by the scan's own path here
     if(x.verifier_data){ const a=flt.get(it)||{all:true, p:null}; a.all=a.all&&p.scannerFiltered; if(p.scannerFiltered) a.p=p; flt.set(it,a); }
   }
   for(const [it,a] of flt){
@@ -2235,7 +2274,7 @@ function sanitizeRecords(a){
     k:(Array.isArray(r.k)?r.k:[]).map(str).slice(0,400), r:rng(r.r), p:str(r.p), x:r.fr==='JSpringGuard assessment: HARDENED'?0:r.x?1:0,
     fk: ['hall','self','sup'].includes(r.fk) ? r.fk : '', fr:str(r.fr), h:str(r.h),
     re:str(r.re), mi:str(r.mi), co:str(r.co),
-    sn:(Array.isArray(r.sn)?r.sn:[]).filter(Array.isArray).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]) }));
+    sn:Array.isArray(r.sn)?r.sn.filter(Array.isArray).map(a=>[int(a[0]), a[1]?1:0, str(a[2])]):poolSnip(r.so,r.si) }));
 }
 const hasAllRecords = state => state.scans.length>0 && state.scans.every(s=>Array.isArray(s.rec));
 
@@ -2373,6 +2412,72 @@ function replay(state, extraItems){
   return transferAnnotations(state, old);
 }
 
+/* ---- Module scans ----
+   A scan of one module (e.g. JSpringGuard run on repo/orders) reports paths relative to the module:
+   src/main/java/... instead of orders/src/main/java/... in a scan of the whole repository. Such a scan gets a
+   module prefix: its paths are stored with the prefix, so findings match across both scans, and the prefix is
+   its scope, so findings elsewhere in the repository do not count as "no longer reported" by it. */
+const normModule=v=>{const m=normPath(str(v).trim()).replace(/^\.\/+/,'').replace(/^\/+/,'');return m&&!m.endsWith('/')?m+'/':m;};
+/* prefix: added to the scan's paths so they match the repository. module: the folder the scan covers.
+   Both are the same for a real module scan. When Refindings only guessed the scan's base path (no code base in
+   the report, common folder of the findings cut off), the paths are aligned but the scan still counts as a scan
+   of the whole repository: it may simply have found nothing elsewhere. */
+const scanPrefix=s=>typeof s.prefix==='string'?s.prefix:(s.module||'');
+function rootWasGuessed(s){
+  if(s.rootFrom) return s.rootFrom==='guess';
+  if(!s.root) return false;
+  return normPath(s.codebase||'').replace(/\/+$/,'')+'/'!==s.root;   // projects before 2.7.1
+}
+const inScope=(scan,file)=>!scan||!scan.module||str(file).startsWith(scan.module);
+/* Prefix P so that most files f exist as P+f among the known files; '' if they already match as they are. */
+function detectModulePrefix(files,known){
+  if(!files.size||!known.size) return '';
+  let direct=0;for(const f of files) if(known.has(f)) direct++;
+  if(direct*2>=files.size) return '';
+  const prefixes=new Map();
+  for(const k of known){ for(let i=k.indexOf('/');i>=0;i=k.indexOf('/',i+1)){ const suf=k.slice(i+1); if(files.has(suf)){ let set=prefixes.get(suf); if(!set) prefixes.set(suf,set=new Set()); set.add(k.slice(0,i+1)); } } }
+  const votes=new Map();for(const set of prefixes.values()) for(const pre of set) votes.set(pre,(votes.get(pre)||0)+1);
+  let best='',bv=0,second=0;
+  for(const [pre,v] of votes){ if(v>bv){ second=bv; best=pre; bv=v; } else if(v>second) second=v; }
+  // A tie (e.g. only build.gradle, which every module has) gives no evidence for one module.
+  return best && bv>direct && bv>second && bv*2>=files.size ? best : '';
+}
+function knownFilesExcept(state,scan){
+  const known=new Set();
+  for(const s of state.scans) if(s!==scan) for(const q of s.rec||[]) known.add(q.f);
+  return known;
+}
+/* Rewrite the paths of a scan's records and file hashes from its current module prefix to another one. */
+function setRecordsModule(recs,fileHashes,from,to){
+  for(const q of recs) q.f=to+unModule(q.f,from);
+  if(fileHashes){ const next=dict(); for(const k of Object.keys(fileHashes)) next[to+unModule(k,from)]=fileHashes[k]; return next; }
+  return fileHashes;
+}
+/* Anchor older scans once a scan of the whole repository is known (module scan loaded first). */
+function anchorModuleScans(state){
+  if(!hasAllRecords(state)||state.scans.length<2) return 0;
+  let n=0;
+  for(const s of state.scans){
+    if(scanPrefix(s)||s.moduleManual) continue;
+    const pre=detectModulePrefix(new Set(s.rec.map(q=>q.f)),knownFilesExcept(state,s));
+    if(!pre) continue;
+    s.fileHashes=setRecordsModule(s.rec,s.fileHashes,'',pre);s.prefix=pre;
+    if(rootWasGuessed(s)) delete s.module; else s.module=pre;
+    n++;
+  }
+  return n;
+}
+function setScanModule(id,value){
+  const s=S.scans.find(x=>x.id===id);if(!s) return;
+  if(!Array.isArray(s.rec)){toast('This scan has no raw records (older project file); load the scan again to set a module.');return;}
+  const next=normModule(value);if(next===(s.module||'')&&next===scanPrefix(s)&&s.moduleManual)return;
+  undoFull('module path');
+  s.fileHashes=setRecordsModule(s.rec,s.fileHashes,scanPrefix(s),next);s.prefix=next;s.module=next;s.moduleManual=true;
+  if(!next) delete s.module;
+  replay(S);save();rebuild(true);
+  toast(next?`Scan treated as module ${next}`:'Scan treated as a scan of the whole repository',undoAction);
+}
+
 function ingestScan(state, json, fileName){
   const N = normalizeInput(json, fileName);
   const meta = N.meta, findings = N.findings;
@@ -2383,6 +2488,7 @@ function ingestScan(state, json, fileName){
   const {recs, fileHashes} = recordsFromInput(N, R);
   const same = findSameScan(state, scanId, started, findings.length, meta.tool, recs);
   if(same){
+    const scanBefore=same.id;
     if(same.id!==scanId && same.id.startsWith('scan-') && meta.id && !state.scans.some(s=>s!==same && s.id===scanId)){ renameScan(state, same, scanId); }
     let enriched = N.rich && enrichScan(state, same, N, R);
     if(!Array.isArray(same.rec)){ same.rec=recs; enriched=true; }
@@ -2400,15 +2506,20 @@ function ingestScan(state, json, fileName){
         if(!q.co && m.co){ q.co=m.co; enriched=true; }
         if(!q.re && m.re){ q.re=m.re; enriched=true; } }
     }
-    if(!same.label && meta.label){ same.label=meta.label; }
-    if(!same.tool && meta.tool) same.tool=meta.tool;
-    return {skipped:true, enriched, scanId:same.id};
+    let changed=!!enriched||same.id!==scanBefore;
+    if(!same.label && meta.label){ same.label=meta.label; changed=true; }
+    if(!same.tool && meta.tool){ same.tool=meta.tool; changed=true; }
+    return {skipped:true, enriched, changed, scanId:same.id};
   }
   if(R.root && !state.roots.includes(R.root)) state.roots.push(R.root);
+  // Module scan: anchor its relative paths in the repository known from the other scans.
+  const prefix=hasAllRecords(state)?detectModulePrefix(new Set(recs.map(q=>q.f)),knownFilesExcept(state,null)):'';
+  const hashes=prefix?setRecordsModule(recs,fileHashes,'',prefix):fileHashes;
+  const module=prefix&&R.from!=='guess'?prefix:'';
   const originalId=scanId; let suffix=1;
   while(state.scans.some(s=>s.id===scanId)) scanId=originalId+'-'+suffix++;
   const r = applyRecords(state, scanId, started, recs, meta.tool!=='FalconEYE');
-  state.scans.push({id:scanId, file:str(fileName), label:meta.label, tool:meta.tool, started, codebase:str(meta.codebase_path), root:R.root, raw:recs.length, filtered:recs.filter(q=>q.x).length, distinct:r.touched.size, imported:new Date().toISOString(), fileHashes, rec:recs});
+  state.scans.push({id:scanId, file:str(fileName), label:meta.label, tool:meta.tool, started, codebase:str(meta.codebase_path), root:R.root, raw:recs.length, filtered:recs.filter(q=>q.x).length, distinct:r.touched.size, imported:new Date().toISOString(), fileHashes:hashes, rec:recs, rootFrom:R.from, ...(prefix?{prefix}:{}), ...(module?{module}:{})});
   state.scans.sort((a,b)=>ts(a.started)-ts(b.started));
   for(const id of r.touched) refreshDisplay(state, state.items[id]);
   return {skipped:false, scanId, raw:recs.length, distinct:r.touched.size, created:r.created, matched:r.matched};
@@ -2482,10 +2593,12 @@ function globToRe(g){
   }
   return new RegExp('^'+re+'$');
 }
+const globCache=new Map();
+function globMatch(glob,file){ let re=globCache.get(glob); if(re===undefined){ try{ re=globToRe(glob); }catch(e){ re=null; } globCache.set(glob,re); } return !!re && re.test(file); }
 function ruleFor(state, it){
   for(const r of state.rules){
     if(r.cat!=='*' && r.cat!==it.cat) continue;
-    try{ if(globToRe(r.glob).test(it.file)) return r; }catch(e){}
+    if(globMatch(r.glob,it.file)) return r;
   }
   return null;
 }
@@ -2494,16 +2607,21 @@ function ruleFor(state, it){
 function derive(state){
   const scans = state.scans, idx = new Map(scans.map((s,i)=>[s.id,i]));
   // Several scanners in one project: "latest" means the latest scan of the tool(s) that reported the finding
-  const latestBy = new Map(), nBy = new Map(), toolAt = scans.map(toolOf);
-  toolAt.forEach((t,i)=>{ latestBy.set(t,i); nBy.set(t,(nBy.get(t)||0)+1); });
+  const toolAt = scans.map(toolOf), byTool = new Map();
+  toolAt.forEach((t,i)=>{ if(!byTool.has(t)) byTool.set(t,[]); byTool.get(t).push(i); });
+  // Module scans only cover their part of the repository: "latest" is the latest scan that covers the finding.
+  const anyModule = scans.some(s=>s.module);
   const out = [];
   for(const it of Object.values(state.items)){
     const seenIdx = Object.keys(it.seen).map(id=>idx.get(id)).filter(i=>i!==undefined).sort((a,b)=>a-b);
     if(!seenIdx.length) continue;
     const first=seenIdx[0], last=seenIdx[seenIdx.length-1];
     const tools = [...new Set(seenIdx.map(i=>toolAt[i]))].sort();
-    let span=0; for(let i=first;i<scans.length;i++) if(tools.includes(toolAt[i])) span++;
-    const latestIdx = tools.map(t=>latestBy.get(t));
+    const covers = !anyModule ? ()=>true : i=>!scans[i].module || inScope(scans[i],it.file) || (it.alts||[]).some(a=>inScope(scans[i],a.file));
+    const latestOf = t=>{ const l=byTool.get(t); for(let j=l.length-1;j>=0;j--) if(covers(l[j])) return l[j]; return undefined; };
+    const coveredBy = t=>byTool.get(t).filter(covers).length;
+    let span=0; for(let i=first;i<scans.length;i++) if(tools.includes(toolAt[i]) && covers(i)) span++;
+    const latestIdx = tools.map(latestOf).filter(i=>i!==undefined);
     const rule = it.status ? null : ruleFor(state,it);
     const eff = it.status || (rule && rule.status) || 'open';
     const inLatest = latestIdx.some(i=>it.seen[scans[i].id]);
@@ -2519,10 +2637,10 @@ function derive(state){
     if(inLatest && lastFh) changedStill = seenIdx.some(i=>{ const f=it.seen[scans[i].id].fh; return f && f!==lastFh; });
     // No longer reported: did the file change in the latest scan? (only known if the file has other findings there)
     let goneFile=null;
-    const latest = scans[latestBy.get(toolAt[last])];
+    const latest = scans[latestOf(toolAt[last])??last];
     if(!inLatest && lastFh && latest.fileHashes){ const cur=latest.fileHashes[it.file]; if(cur) goneFile = cur===lastFh ? 'same' : 'changed'; }
     out.push({it, first, last, seenIdx, nSeen:seenIdx.length, span, eff, rule, inLatest, tools,
-      isNew: first===latestBy.get(toolAt[first]) && nBy.get(toolAt[first])>1,
+      isNew: first===latestOf(toolAt[first]) && coveredBy(toolAt[first])>1,
       frequent: span>1 && seenIdx.length===span,
       gone: !inLatest, regression, sevMax, changedStill, goneFile,
       ...slaInfo(it, eff, sevMax, ts(scans[first].started)),
@@ -2550,7 +2668,7 @@ function perScanStats(state, derived){
   const rows = scans.map(s=>({...Object.fromEntries(STATUSES.map(s=>[s.id,0])),scan:s, total:0, open:0, confirmed:0, fp:0, accepted:0, fixed:0, 'test-hardening':0, 'demo-files':0, regression:0, newN:0, goneN:0}));
   for(const d of derived){
     for(const i of d.seenIdx){ const r=rows[i]; r.total++; r[d.eff]++; if(d.regression && ts(scans[i].started) > ts(d.it.statusAt)) r.regression++; if(i===d.first && i>0) r.newN++; }
-    for(let i=1;i<scans.length;i++){ if(d.it.seen[scans[i-1].id] && !d.it.seen[scans[i].id]) rows[i].goneN++; }
+    for(let i=1;i<scans.length;i++){ if(d.it.seen[scans[i-1].id] && !d.it.seen[scans[i].id] && inScope(scans[i],d.it.file)) rows[i].goneN++; }
   }
   return rows;
 }
@@ -2769,16 +2887,19 @@ function carryEditor(target, source){
 const PROJECT_PASSWORD='refindings';
 const exportPasswords=new WeakMap();
 /* With encrypted browser storage the ZIP project file uses the storage password, so there is one
-   password for everything. "Change ZIP password" can still set a different one for a project. */
+   password for everything. Without unlocking, a separate ZIP password can be chosen: saving a project file must
+   never depend on the storage password (in a locked tab the project is not saved anywhere else).
+   "Change ZIP password" can still set a different one for a project. */
 async function chooseExportPassword(change=false){
   if(!change && exportPasswords.has(S)) return exportPasswords.get(S);
+  let separate=false;
   if(!change && storageMode()==='encrypted'){
-    if(!STORE_PW && !await requestUnlock('Project files are encrypted with your storage password. Unlock to save the ZIP.')) return null;
-    if(STORE_PW) return STORE_PW;
+    if(STORE_PW || await requestUnlock('The ZIP project file is encrypted with your storage password. Unlock to use it, or choose a separate password for this file.','Separate password …')){ if(STORE_PW) return STORE_PW; }
+    separate=true;
   }
-  let password=prompt('Password for the ZIP project file (remembered for this project until it is closed):',exportPasswords.get(S)||PROJECT_PASSWORD);
+  let password=prompt(separate?'Separate password for this ZIP project file (the storage password is not used; remembered for this project until it is closed):':'Password for the ZIP project file (remembered for this project until it is closed):',separate?'':exportPasswords.get(S)||PROJECT_PASSWORD);
   while(password!==null && !password.length){
-    password=prompt('Please enter a non-empty password:',PROJECT_PASSWORD);
+    password=prompt('Please enter a non-empty password:',separate?'':PROJECT_PASSWORD);
   }
   if(password!==null) exportPasswords.set(S,password);
   return password;
@@ -2858,10 +2979,11 @@ async function tryUnlock(password){
 }
 let unlockPending=null;
 /* Ask once for the storage password. Resolves true when unlocked. */
-function requestUnlock(why){
+function requestUnlock(why,cancelLabel){
  if(STORE_KEY) return Promise.resolve(true);
  if(unlockPending) return unlockPending;
- const dlg=$('#unlockDlg'),form=$('#unlockForm');
+ const dlg=$('#unlockDlg'),form=$('#unlockForm'),cancel=form.querySelector('button[value="cancel"]');
+ cancel.textContent=cancelLabel||'Not now';
  $('#unlockWhy').textContent=why||'Browser copies are encrypted. Enter the storage password to save and restore projects in this tab.';
  $('#unlockMsg').textContent='';form.reset();
  unlockPending=new Promise(resolve=>{
@@ -2873,7 +2995,7 @@ function requestUnlock(why){
    form.pw.value='';dlg.close('ok');
   };
   form.addEventListener('submit',onSubmit);
-  dlg.addEventListener('close',()=>{form.removeEventListener('submit',onSubmit);form.pw.value='';unlockPending=null;resolve(!!STORE_KEY);},{once:true});
+  dlg.addEventListener('close',()=>{form.removeEventListener('submit',onSubmit);form.pw.value='';cancel.textContent='Not now';unlockPending=null;resolve(!!STORE_KEY);},{once:true});
   dlg.showModal();form.pw.focus();
  });
  return unlockPending;
@@ -2988,24 +3110,29 @@ const IDB = {
 };
 /* Recovery snapshots are separate from the current project and survive page reloads. */
 let recoveryQueue=Promise.resolve();
+/* Recovery lists may be gzipped (since 2.7); entries carry pid/n so the snapshot itself need not be parsed. */
+async function storedText(key){const v=await storedGet(key);return v instanceof ArrayBuffer?gunzipBuf(v):v;}
+const recoveryEntryId=e=>typeof e?.pid==='string'&&e.pid?e.pid:projectIdentity(JSON.parse(e.json));
 async function readRecovery(){
-  const raw=await storedGet(recoveryKey());
+  const raw=await storedText(recoveryKey());
   if(!raw) return [];
   const entries=JSON.parse(raw);
   if(!Array.isArray(entries)) throw new Error('Recovery storage is unreadable');
   return entries.filter(e=>e && typeof e.json==='string').slice(0,5);
 }
-function recordRecovery(label,json=JSON.stringify(S)){
+/* meta: {pid, project, empty} of the snapshot; computed from S when json is the current state. */
+function recordRecovery(label,json,meta){
   if(storageMode()==='memory'||(storageMode()==='encrypted'&&!STORE_KEY)) return Promise.resolve();
+  if(json===undefined){ json=JSON.stringify(S); meta={pid:projectIdentity(S),project:S.settings?.projectName||'',empty:!S.scans.length&&!Object.keys(S.items).length}; }
   const key=recoveryKey();
   const job=recoveryQueue.catch(()=>{}).then(async()=>{
-    const state=JSON.parse(json);
-    if(!state.scans?.length && !Object.keys(state.items||{}).length) return;
-    const entries=JSON.parse(await storedGet(key)||'[]');
+    if(!meta){ const state=JSON.parse(json); meta={pid:projectIdentity(state),project:state.settings?.projectName||'',empty:!state.scans?.length&&!Object.keys(state.items||{}).length}; }
+    if(meta.empty) return;
+    const entries=JSON.parse(await storedText(key)||'[]');
     if(entries[0]?.json===json) return;
-    entries.unshift({project:state.settings?.projectName||'Untitled project',id:Date.now()+'-'+Math.random().toString(36).slice(2),at:new Date().toISOString(),label,json});
-    const data=JSON.stringify(entries.slice(0,5));
-    await storedPut(key,data);
+    entries.unshift({project:meta.project||'Untitled project',pid:meta.pid,id:Date.now()+'-'+Math.random().toString(36).slice(2),at:new Date().toISOString(),label,json});
+    const keep=entries.slice(0,5),data=JSON.stringify(keep);
+    await storedPut(key,CAN_GZIP&&IDB.db?await gzipText(data):data,[...new Set(keep.map(recoveryEntryId))]);
   });
   recoveryQueue=job;
   return job;
@@ -3051,20 +3178,23 @@ async function openRecovery(){
   try{await renderRecovery();}catch(e){$('#recoveryStatus').textContent=e.message;}
 }
 
-let DIRTY=false, saving=null, redoState=null, exportedState=null, exportChanged=false;
+/* REV counts state changes (every save()). Comparing revisions replaces comparing the whole state as JSON,
+   which took seconds on large projects after every click. */
+let DIRTY=false, saving=null, exportChanged=false, REV=0, exportedRev=0, keepRedo=false, checkpointRev=-1;
 let recoveryAt=0;
 function updateExportStatus(){
-  exportChanged=!!S.scans.length && JSON.stringify(S)!==exportedState;
+  exportChanged=!!S.scans.length && REV!==exportedRev;
   const el=$('#exportStatus');if(el) el.textContent=exportChanged?'Changes not exported':'Project backup up to date';
 }
 async function automaticRecovery(now=Date.now()){
-  if(now-recoveryAt<120000 || !S.scans.length) return;
-  await recordRecovery('Automatic checkpoint');recoveryAt=now;
+  // Nothing changed since the last checkpoint: no work at all (was a full read/write of all snapshots).
+  if(now-recoveryAt<120000 || !S.scans.length || checkpointRev===REV) return;
+  const rev=REV;await recordRecovery('Automatic checkpoint');recoveryAt=now;checkpointRev=rev;
 }
 window.addEventListener('beforeunload',e=>{if(exportChanged){e.preventDefault();e.returnValue='';}});
 setInterval(()=>automaticRecovery().catch(()=>{}),30000);
 function storageStatus(text){ const el=$('#saveStatus'); if(el) el.textContent=text; }
-function save(){ S.catalog=catalogSnapshot(); if(REDO.length && redoState!==JSON.stringify(S)){REDO.length=0;updateHistoryButtons();} updateExportStatus(); DIRTY=true; storageStatus('Unsaved changes'); clearTimeout(save._t); save._t=setTimeout(persist,400); }
+function save(){ S.catalog=catalogSnapshot(); REV++; if(REDO.length && !keepRedo){REDO.length=0;updateHistoryButtons();} keepRedo=false; updateExportStatus(); DIRTY=true; storageStatus('Unsaved changes'); clearTimeout(save._t); save._t=setTimeout(persist,1200); }  // several quick edits share one write
 async function persist(){
   clearTimeout(save._t); if(saving) return saving; if(!DIRTY) return;
   if(storageMode()==='memory'){ DIRTY=false; storageStatus(storageLabel()); return; }
@@ -3077,7 +3207,7 @@ async function persist(){
   DIRTY=false; const data=JSON.stringify(S),key=stateKey(); storageStatus('Saving…');
   saving=(async()=>{
     try{
-      if(S.scans.length || Object.keys(S.items).length) await storedPut(key,CAN_GZIP&&IDB.db?await gzipText(data):data);else await storedRemove(key);
+      if(S.scans.length || Object.keys(S.items).length) await storedPut(key,CAN_GZIP&&IDB.db?await gzipText(data):data,[projectIdentity(S)]);else await storedRemove(key);
       storageStatus(DIRTY?'Unsaved changes':storageLabel());
       automaticRecovery().catch(()=>toast('Automatic recovery checkpoint failed; export a project backup.'));
       if(DIRTY) save._t=setTimeout(persist,0);
@@ -3087,10 +3217,16 @@ async function persist(){
 }
 async function storedGet(key){return openValue(await storedGetRaw(key));}
 async function storedGetRaw(key){if(key==='legacy-local-state')return localStorage.getItem(LS_KEY);if(key==='legacy-local-recovery')return localStorage.getItem(LS_KEY+'.recovery');return IDB.db?await IDB.get(key):localStorage.getItem(key==='state'?LS_KEY:key==='recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key);}
-async function storedPut(key,value){
-  let raw=value instanceof ArrayBuffer?await gunzipBuf(value):value,ids=[];
+/* knownIds: project identities contained in value. Callers that know them pass them, so a large project is not
+   unzipped and parsed again just to find its identity. */
+async function storedPut(key,value,knownIds){
+  let ids=[];
   if(/^(state|recovery)(:|$)|^legacy-local-/.test(key)){
-    const parsed=JSON.parse(raw);ids=Array.isArray(parsed)?parsed.filter(e=>e?.json).map(e=>projectIdentity(JSON.parse(e.json))):[projectIdentity(parsed)];
+    if(Array.isArray(knownIds)) ids=knownIds;
+    else{
+      const raw=value instanceof ArrayBuffer?await gunzipBuf(value):value;
+      const parsed=JSON.parse(raw);ids=Array.isArray(parsed)?parsed.filter(e=>e?.json).map(recoveryEntryId):[projectIdentity(parsed)];
+    }
   }
   const scope=key.includes(':')?key.slice(key.indexOf(':')+1):key;
   const guards=[...new Set(ids)].map(id=>'deleted-project:'+id);if(/^(state|recovery)(:|$)|^legacy-local-/.test(key))guards.push('deleted-session:'+scope);
@@ -3100,7 +3236,7 @@ async function storedPut(key,value){
   localStorage.setItem(key==='legacy-local-recovery'?LS_KEY+'.recovery':LS_KEY+'.'+key,value);
 }
 async function wasDeleted(entry){
-  const id=projectIdentity(JSON.parse(entry.json)),scope=entry.key.includes(':')?entry.key.slice(entry.key.indexOf(':')+1):entry.key;
+  const id=recoveryEntryId(entry),scope=entry.key.includes(':')?entry.key.slice(entry.key.indexOf(':')+1):entry.key;
   return !!await storedGet('deleted-project:'+id)||!!await storedGet('deleted-session:'+scope);
 }
 async function assertRecoveryAvailable(entry){
@@ -3116,11 +3252,11 @@ async function deleteProjectCopies(state,key=stateKey()){
   await storedPut('deleted-project:'+id,Date.now());await storedPut('deleted-session:'+scope,Date.now());DELETED_PROJECTS.add(id);
   await storedRemove(key);if(key.startsWith('state:'))await storedRemove(key.replace(/^state:/,'recovery:'));if(key.startsWith('recovery:'))await storedRemove(key.replace(/^recovery:/,'state:'));
   for(const entry of copies){
-    if(projectIdentity(JSON.parse(entry.json))!==id)continue;
+    if(recoveryEntryId(entry)!==id)continue;
     if(!entry.snapshotId)await storedRemove(entry.key);
     else{
-      const raw=await storedGet(entry.key);if(!raw)continue;
-      const keep=JSON.parse(raw).filter(e=>projectIdentity(JSON.parse(e.json))!==id);
+      const raw=await storedText(entry.key);if(!raw)continue;
+      const keep=JSON.parse(raw).filter(e=>recoveryEntryId(e)!==id);
       // Cleanup is not a project save; preserve snapshots of unrelated projects.
       const sealed=await protectForStore(entry.key,JSON.stringify(keep));
       if(IDB.db&&!entry.key.startsWith('legacy-local-'))await IDB.put(entry.key,sealed);else localStorage.setItem(entry.key==='legacy-local-recovery'?LS_KEY+'.recovery':LS_KEY+'.'+entry.key,sealed);
@@ -3130,7 +3266,7 @@ async function deleteProjectCopies(state,key=stateKey()){
 }
 let deletionChannel=null;try{deletionChannel=new BroadcastChannel('refindings-project-deletion');deletionChannel.onmessage=async e=>{
   if(!e.data?.projectId)return;DELETED_PROJECTS.add(e.data.projectId);
-  if(projectIdentity(S)===e.data.projectId){clearTimeout(save._t);DIRTY=false;UNDO.length=0;REDO.length=0;SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';exportedState=JSON.stringify(S);SEL.clear();closeDrawer();updateHistoryButtons();updateExportStatus();rebuild();requestReviewerAfterLoad();storageStatus('Deleted in another tab');toast('This project was deleted in another tab. Open a project file to continue.');}
+  if(projectIdentity(S)===e.data.projectId){clearTimeout(save._t);DIRTY=false;UNDO.length=0;REDO.length=0;SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';exportedRev=REV;SEL.clear();closeDrawer();updateHistoryButtons();updateExportStatus();rebuild();requestReviewerAfterLoad();storageStatus('Deleted in another tab');toast('This project was deleted in another tab. Open a project file to continue.');}
   if($('#recoveryDlg').open)await renderRecovery();
 };}catch(e){}
 
@@ -3146,7 +3282,7 @@ async function allStoredProjects(){
       if(raw instanceof ArrayBuffer)raw=await gunzipBuf(raw);if(!raw)continue;
       const parsed=JSON.parse(raw);
       if(Array.isArray(parsed)){for(const e of parsed)if(e?.json)out.push({...e,key,snapshotId:e.id});}
-      else if(isProjectFile(parsed)&&parsed.scans.length)out.push({key,json:JSON.stringify(parsed),label:'Saved browser project',at:parsed.scans.at(-1)?.imported||''});
+      else if(isProjectFile(parsed)&&parsed.scans.length)out.push({key,json:raw,pid:projectIdentity(parsed),label:'Saved browser project',at:parsed.scans.at(-1)?.imported||''});
     }catch(e){out.push({key,json:JSON.stringify(emptyState()),label:e.locked?'Encrypted browser copy (unlock to view)':'Unreadable browser copy',at:'',locked:!!e.locked});}
   }
   const available=[];for(const entry of out)if(!await wasDeleted(entry))available.push(entry);return available.sort((a,b)=>ts(b.at)-ts(a.at));
@@ -3158,7 +3294,7 @@ async function finishProject(action){
   else if(action==='keep'){if(storageMode()==='memory')throw new Error('Memory-only mode: there is no browser copy to keep. Save a project file first.');DIRTY=true;await persist();if(DIRTY)throw new Error('The browser copy could not be saved. Export a backup before closing.');}
   else{await deleteProjectCopies(S);}
   // Rotate the key so the closed project cannot be overwritten by the next project in this tab.
-  SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';UNDO.length=0;REDO.length=0;DIRTY=false;recoveryAt=0;exportedState=JSON.stringify(S);
+  SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';UNDO.length=0;REDO.length=0;DIRTY=false;recoveryAt=0;exportedRev=REV;
   clearTimeout(save._t);SEL.clear();closeDrawer();F=FDEF();SUMFILTER=null;$('#fText').value='';updateHistoryButtons();updateExportStatus();storageStatus('No project loaded');rebuild();requestReviewerAfterLoad();
 }
 async function deleteAllBrowserProjects(){
@@ -3169,7 +3305,7 @@ async function deleteAllBrowserProjects(){
   // Also remove unreadable/older raw copies that do not appear as a recoverable project.
   if(IDB.db)for(const key of await IDB.keys())if(/^(state|recovery)(:|$)/.test(String(key)))await IDB.remove(key);
   const localKeys=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key===LS_KEY||key===LS_KEY+'.recovery'||key.startsWith(LS_KEY+'.state:')||key.startsWith(LS_KEY+'.recovery:'))localKeys.push(key);}for(const key of localKeys)localStorage.removeItem(key);
-  SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';UNDO.length=0;REDO.length=0;DIRTY=false;recoveryAt=0;exportedState=JSON.stringify(S);clearTimeout(save._t);SEL.clear();closeDrawer();F=FDEF();SUMFILTER=null;$('#fText').value='';updateHistoryButtons();updateExportStatus();storageStatus('No project loaded');rebuild();requestReviewerAfterLoad();
+  SESSION_ID=crypto.randomUUID();S=emptyState();activeEditor='';UNDO.length=0;REDO.length=0;DIRTY=false;recoveryAt=0;exportedRev=REV;clearTimeout(save._t);SEL.clear();closeDrawer();F=FDEF();SUMFILTER=null;$('#fText').value='';updateHistoryButtons();updateExportStatus();storageStatus('No project loaded');rebuild();requestReviewerAfterLoad();
 }
 async function confirmDeleteAll(){
   if(!confirm('Permanently delete ALL browser projects and recovery snapshots, including copies from other tabs and older versions? No recovery snapshot or Undo will be created. Downloaded JSON/ZIP files remain on disk.'))return;
@@ -3274,7 +3410,7 @@ function projectMergePreview(json){
   const src=sanitizeState(json),target=sanitizeState(clone(S));
   let added=0,shared=0;
   for(const scan of src.scans){
-    const same=findSameScan(target,scan.id,scan.started,scan.raw,toolOf(scan),scan.rec);
+    const same=findSameScan(target,scan.id,scan.started,scan.raw,toolOf(scan),scan.rec,scanPrefix(scan));
     if(same){shared++;continue;}
     let id=scan.id,n=1;while(target.scans.some(s=>s.id===id))id=scan.id+'-'+n++;
     target.scans.push({...scan,id});added++;
@@ -3358,17 +3494,26 @@ async function importFiles(files, projectMode='ask'){
   const richness = j => /"actual_snippet"|"verifier_data"/.test(JSON.stringify((j.findings||j.results||[])[0]||{})) ? 0 : (j.metadata||j.review||{}).id ? 1 : 2;
   const sec = j => Math.floor(when(j)/1000);
   scans.sort((a,b)=>sec(a.json)-sec(b.json) || richness(a.json)-richness(b.json));
-  let beforeImport=null,changed=false;
+  // One copy of the state before the import serves Undo, the recovery snapshot and the rollback of a failing
+  // scan. Serialising the whole state before and after every scan made large imports very slow.
+  const beforeImport=(scans.length||triages.length)?JSON.stringify(S):null;
+  const beforeMeta={pid:projectIdentity(S),project:S.settings?.projectName||'',empty:!S.scans.length&&!Object.keys(S.items).length};
+  let changed=false;const done=[];
   for(const {f,json} of scans){
-    const before=JSON.stringify(S);
     try{
       const r=ingestScan(S,json,f.name);
       if(!r.skipped) added++; else if(r.enriched) enriched++; else skipped++;
-      if(JSON.stringify(S)!==before){if(beforeImport===null) beforeImport=before;changed=true;}
+      if(!r.skipped||r.changed) changed=true;
+      done.push({f,json});
       results.push({file:f.name,status:!r.skipped?'New':r.enriched?'Enriched':'Already present'});
-    }catch(e){S=sanitizeState(JSON.parse(before));errors.push(f.name+': '+e.message);results.push({file:f.name,status:'Error',detail:e.message});}
+    }catch(e){
+      // Roll back to the state before this import and re-apply the scans that already worked.
+      S=sanitizeState(JSON.parse(beforeImport));for(const x of done) ingestScan(S,x.json,x.f.name);
+      errors.push(f.name+': '+e.message);results.push({file:f.name,status:'Error',detail:e.message});
+    }
   }
-  const beforeTriage=JSON.stringify(S);
+  const moduleChanges=anchorModuleScans(S);if(moduleChanges) changed=true;
+  const triageBefore=JSON.stringify(S.jspringTriage||[]);
   // Oldest export first, so a newer export decides which decisions are gone.
   triages.sort((a,b)=>ts(a.complete?.exported)-ts(b.complete?.exported));
   for(const {f,rows,complete} of triages){
@@ -3379,12 +3524,11 @@ async function importFiles(files, projectMode='ask'){
     const flow=rows.filter(r=>r.kind!=='triage').length,finding=rows.length-flow;
     results.push({file:f.name,status:'Triage imported',detail:[finding?finding+' finding decision'+(finding===1?'':'s'):'',flow?flow+' flow/control decision'+(flow===1?'':'s')+' (kept in the JSpringGuard triage panel)':'',!rows.length?'no decisions in file':'',goneNow?goneNow+' earlier decision'+(goneNow===1?' is':'s are')+' no longer in this export (probably reset to Open in JSpringGuard)':''].filter(Boolean).join(', ')});
   }
-  if((added||enriched) && hasAllRecords(S)) replay(S);
-  const triageApplied=applySpringTriage(S);
-  if(JSON.stringify(S)!==beforeTriage){if(beforeImport===null)beforeImport=beforeTriage;changed=true;}
-  if(changed){pushUndo({kind:'full',label:'scan import',json:beforeImport});recordRecovery('Before scan import',beforeImport).catch(()=>toast('Recovery snapshot could not be saved.'));}
   // Regroup everything chronologically: loading order (e.g. an older scan added later) no longer matters
-  if((added||enriched) && hasAllRecords(S)) replay(S);
+  if((added||enriched||moduleChanges) && hasAllRecords(S)) replay(S);
+  const triageApplied=applySpringTriage(S);
+  if(triageApplied||JSON.stringify(S.jspringTriage||[])!==triageBefore) changed=true;
+  if(changed){pushUndo({kind:'full',label:'scan import',json:beforeImport});recordRecovery('Before scan import',beforeImport,beforeMeta).catch(()=>toast('Recovery snapshot could not be saved.'));}
   if(changed) save(); rebuild();
   showImportResults(results);
   const parts=[]; if(added) parts.push(`${added} scan${added>1?'s':''} loaded`); if(enriched) parts.push(`${enriched} existing enriched`); if(skipped) parts.push(`${skipped} already present`); if(triages.length) parts.push(`${triageApplied} JSpringGuard status${triageApplied===1?'':'es'} applied`); if(errors.length) parts.push(`${errors.length} error${errors.length>1?'s':''}`);
@@ -3394,6 +3538,8 @@ async function importFiles(files, projectMode='ask'){
 }
 function openProjectJson(json){
   validateProjectFile(json);const next=sanitizeState(json);if(DELETED_PROJECTS.has(next.projectId))next.projectId=crypto.randomUUID();
+  // Projects from before 2.7 may hold module scans whose paths do not match the full scans yet.
+  if(anchorModuleScans(next)) replay(next);
   undoFull('open project');
   S=next; activeEditor=''; SEL.clear(); closeDrawer(); save(); rebuild(); toast(`Project opened: ${S.scans.length} scans, ${Object.keys(S.items).length} findings`);
   requestReviewerAfterLoad();
@@ -3430,7 +3576,7 @@ function mergeExact(src){
   let scansAdded=0, scansShared=0;
   const scanMap=new Map();
   for(const s of src.scans){
-    const same=findSameScan(S, s.id, s.started, s.raw, toolOf(s), s.rec);
+    const same=findSameScan(S, s.id, s.started, s.raw, toolOf(s), s.rec, scanPrefix(s));
     if(same){
       scanMap.set(s.id, same.id); scansShared++;
       if(!same.label && s.label) same.label=s.label;
@@ -3443,6 +3589,7 @@ function mergeExact(src){
     }
   }
   for(const o of Object.values(src.items)) for(const m of o.mergeLog) m.scans=m.scans.map(sid=>scanMap.get(sid)||sid);
+  anchorModuleScans(S);   // module scans of either project, now that all scans are together
   const before=Object.keys(S.items).length;
   const here=projectName(), there=src.settings.projectName || 'imported project';
   for(const o of Object.values(S.items)) o._src=here;
@@ -3468,7 +3615,7 @@ function mergeRulesAndSettings(src){
 function mergeApprox(src){
   const scanMap=new Map(); let scansAdded=0, scansShared=0;
   for(const s of src.scans){
-    const same=findSameScan(S, s.id, s.started, s.raw, toolOf(s), s.rec);
+    const same=findSameScan(S, s.id, s.started, s.raw, toolOf(s), s.rec, scanPrefix(s));
     if(same){
       scanMap.set(s.id, same.id); scansShared++;
       if(!same.label && s.label) same.label=s.label;
@@ -3579,7 +3726,7 @@ function pushUndo(entry){
   updateHistoryButtons();
 }
 function undoItems(label, ids){ pushUndo({kind:'items', label, data:ids.filter(id=>S.items[id]).map(id=>[id, annot(S.items[id])])}); }
-function undoFull(label){ const json=JSON.stringify(S); recordRecovery('Before '+label,json).catch(()=>toast('Recovery snapshot could not be saved; export a project backup.')); pushUndo({kind:'full', label, json}); }
+function undoFull(label){ const json=JSON.stringify(S); recordRecovery('Before '+label,json,{pid:projectIdentity(S),project:S.settings?.projectName||'',empty:!S.scans.length&&!Object.keys(S.items).length}).catch(()=>toast('Recovery snapshot could not be saved; export a project backup.')); pushUndo({kind:'full', label, json}); }
 function undoRules(label){ pushUndo({kind:'rules', label, rules:JSON.parse(JSON.stringify(S.rules))}); }
 function updateHistoryButtons(){
   $('#btnUndo').disabled=!UNDO.length; $('#btnRedo').disabled=!REDO.length;
@@ -3601,12 +3748,12 @@ function applyHistory(u){
 }
 function undo(){
   const u=UNDO.pop(); if(!u){toast('Nothing to undo');return;}
-  REDO.push(inverseHistory(u)); applyHistory(u); redoState=JSON.stringify(S);
+  REDO.push(inverseHistory(u)); applyHistory(u); keepRedo=true;
   save(); rebuild(true); updateHistoryButtons(); toast('Undone: '+u.label);
 }
 function redo(){
   const u=REDO.pop(); if(!u){toast('Nothing to redo');return;}
-  UNDO.push(inverseHistory(u)); applyHistory(u); redoState=JSON.stringify(S);
+  UNDO.push(inverseHistory(u)); applyHistory(u); keepRedo=true;
   save(); rebuild(true); updateHistoryButtons(); toast('Redone: '+u.label);
 }
 const undoAction = {label:'Undo', run:()=>undo()};
@@ -3659,21 +3806,30 @@ let CMP_MANUAL=false;
 const CMP_MODES = {
   new:     {label:'new in B',          hint:'reported in B, not in A'},
   gone:    {label:'gone from A',       hint:'reported in A, not in B'},
+  outside: {label:'outside the module', hint:'only in the larger scan: the other scan covers just one module'},
   goneChanged:{label:'gone, file changed', hint:'probably fixed'},
   goneSame:{label:'gone, file unchanged', hint:'scanner noise'},
   both:    {label:'in both',           hint:'reported in A and B'},
   sevUp:   {label:'severity up',       hint:'higher in B than in A'},
   sevDown: {label:'severity down',     hint:'lower in B than in A'},
 };
+const scanIndexCache=new WeakMap();
+function scanById(id){ let m=scanIndexCache.get(S.scans); if(!m||m.size!==S.scans.length){ m=new Map(S.scans.map(s=>[s.id,s])); scanIndexCache.set(S.scans,m); } return m.get(id); }
 function cmpInfo(d){
   const a=CMP.a, b=CMP.b; if(!a||!b||a===b) return null;
   const sa=d.it.seen[a], sb=d.it.seen[b];
+  // A module scan does not cover the rest of the repository: missing there is not "gone" or "new".
+  const scanA=scanById(a), scanB=scanById(b);
+  const outside=(sa&&!sb&&!inScope(scanB,d.it.file))||(sb&&!sa&&!inScope(scanA,d.it.file));
+  if(outside) return {inA:!!sa, inB:!!sb, sevA:sa?sa.sev:null, sevB:sb?sb.sev:null, file:null, outside:true};
   let file=null;
   if(sa && !sb){ const sB=S.scans.find(s=>s.id===b); const cur=sB&&sB.fileHashes&&sB.fileHashes[d.it.file]; if(cur && sa.fh) file = cur===sa.fh ? 'same' : 'changed'; }
   return {inA:!!sa, inB:!!sb, sevA:sa?sa.sev:null, sevB:sb?sb.sev:null, file};
 }
 function cmpMatch(d, mode){
   const c=cmpInfo(d); if(!c) return false;
+  if(mode==='outside') return !!c.outside;
+  if(c.outside) return false;
   switch(mode){
     case 'new': return c.inB && !c.inA;
     case 'gone': return c.inA && !c.inB;
@@ -3893,6 +4049,9 @@ function renderRatingEditor(force=false){
 }
 
 function renderGlobalSettings(){
+ S.catalog=catalogSnapshot();
+ // The editors read computed theme colours, which forces a full style recalculation; only while visible.
+ if(!$('#globalSettings').open) return;
  renderCategoryEditor();
  renderRatingEditor();
  const f=$('#globalReviewForm');if(!f.contains(document.activeElement)){f.days.value=GLOBAL.reviewDays;f.presets.value=GLOBAL.reviewPresets.join(', ');}
@@ -3965,7 +4124,7 @@ function renderVerdictOptions(){
 /* Match counts per option, taking all other filters into account */
 function cmpText(d){
   const c=cmpInfo(d); if(!c) return '';
-  const sev = c.inA&&c.inB ? (c.sevA===c.sevB ? `sev. ${c.sevA} in both` : `sev. ${c.sevA} → ${c.sevB}`) : c.inB ? `new in B, sev. ${c.sevB}` : c.inA ? `gone in B (was sev. ${c.sevA})${c.file==='changed'?', file changed':c.file==='same'?', file unchanged':''}` : '';
+  const sev = c.outside ? (c.inA?'only in A, outside the module of B':'only in B, outside the module of A') : c.inA&&c.inB ? (c.sevA===c.sevB ? `sev. ${c.sevA} in both` : `sev. ${c.sevA} → ${c.sevB}`) : c.inB ? `new in B, sev. ${c.sevB}` : c.inA ? `gone in B (was sev. ${c.sevA})${c.file==='changed'?', file changed':c.file==='same'?', file unchanged':''}` : '';
   return sev ? `  <span style="color:var(--ink)">A→B: ${esc(sev)}</span>` : '';
 }
 function renderCompare(){
@@ -3987,7 +4146,8 @@ function renderCompare(){
   const Q=parseQuery(F.q); const pool=BASE.filter(d=>passes(d,'cmp',Q));
   const sA=S.scans.find(s=>s.id===CMP.a), sB=S.scans.find(s=>s.id===CMP.b);
   const noHash=!Object.keys(sB.fileHashes||{}).length || !Object.keys(sA.fileHashes||{}).length;
-  $('#cmpGrid').innerHTML=Object.entries(CMP_MODES).filter(([k])=>!(noHash && (k==='goneChanged'||k==='goneSame'))).map(([k,m])=>{
+  const anyModule=!!(sA.module||sB.module);
+  $('#cmpGrid').innerHTML=Object.entries(CMP_MODES).filter(([k])=>!(noHash && (k==='goneChanged'||k==='goneSame')) && (k!=='outside'||anyModule)).map(([k,m])=>{
     const n=pool.filter(d=>cmpMatch(d,k)).length;
     return `<button class="cmp-cell${F.cmp===k?' on':''}" data-cmp="${k}" title="${esc(m.hint)}"><b>${n}</b><span>${esc(m.label)}</span></button>`; }).join('')
     + (noHash?'<span class="cmp-note" style="align-self:center">File-change split needs raw results (_result.json) for both scans.</span>':'')
@@ -4071,11 +4231,13 @@ function renderFacets(){
     +(F.folder!=='all'&&F.folder!=='root:'&&!fc2.has(F.folder)?`<option value="${esc(F.folder)}">${esc(F.folder)} (0)</option>`:'');
   fsel.value=F.folder; fsel.title = F.folder==='all' ? 'Folder' : F.folder;
   // exclude folder: folder names occurring several times (anywhere), plus folder paths
-  const names=new Map(), allFolders=new Set();
-  for(const d of BASE){ const parts=d.it.file.split('/'); for(let i=0;i<parts.length-1;i++){ allFolders.add(parts.slice(0,i+1).join('/')+'/'); const nm=parts[i]; if(!names.has(nm)) names.set(nm,new Set()); names.get(nm).add(parts.slice(0,i+1).join('/')); } }
+  // counts collected in the same pass (was: one pass over all findings per folder)
+  const names=new Map(), allFolders=new Set(), nameCount=new Map(), preCount=new Map();
+  for(const d of BASE){ const parts=d.it.file.split('/'), seenNames=new Set(); let pre='';
+    for(let i=0;i<parts.length-1;i++){ pre+=parts[i]+'/'; allFolders.add(pre); preCount.set(pre,(preCount.get(pre)||0)+1); const nm=parts[i]; if(!names.has(nm)) names.set(nm,new Set()); names.get(nm).add(pre.slice(0,-1)); if(!seenNames.has(nm)){ seenNames.add(nm); nameCount.set(nm,(nameCount.get(nm)||0)+1); } } }
   const multi=[...names.entries()].filter(([,s])=>s.size>=2).map(([n])=>n).sort();
-  const cntName=n=>BASE.filter(d=>('/'+d.it.file).includes('/'+n+'/')).length;
-  const cntPre=f=>BASE.filter(d=>d.it.file.startsWith(f)).length;
+  const cntName=n=>nameCount.get(n)||0;
+  const cntPre=f=>preCount.get(f)||0;
   $('#fExclude').innerHTML=`<option value="">Exclude folder …</option>`
     +(multi.length?`<optgroup label="Folder name anywhere">${multi.filter(n=>!F.exclude.includes('name:'+n)).map(n=>`<option value="name:${esc(n)}">${esc(n)}/ (${cntName(n)})</option>`).join('')}</optgroup>`:'')
     +`<optgroup label="Path">${[...allFolders].sort().filter(f=>f.split('/').length<=4 && !F.exclude.includes(f)).map(f=>`<option value="${esc(f)}">${indent(f)}${esc(f)} (${cntPre(f)})</option>`).join('')}</optgroup>`;
@@ -4085,12 +4247,18 @@ function renderFacets(){
   syncFilterInputs();
   const n=activeFilterCount(); const rb=$('#fReset'); rb.classList.toggle('hidden',!n); rb.textContent=`Reset filters (${n})`;
 }
+let FILE_VALUES_STALE=true;
+/* Suggestions for the file filter: computed when the field is used, not on every rebuild. */
+function renderFileValues(){
+  if(!FILE_VALUES_STALE) return; FILE_VALUES_STALE=false;
+  const paths=new Set();for(const it of Object.values(S.items)){paths.add(it.file);for(const p of fullPaths(it))paths.add(p.path);}
+  $('#fileValues').innerHTML=[...paths].sort().slice(0,500).map(p=>'<option value="'+esc(p)+'"></option>').join('');
+}
 function renderFilterOptions(){
   {const value=F.columns.status;$('#colStatus').innerHTML='<option value="">All statuses</option>'+STATUSES.map(s=>`<option value="${s.id}">${esc(s.label)}</option>`).join('');$('#colStatus').value=value;}
   {const selected=$('#bulkCategory').value;$('#bulkCategory').innerHTML=categoryOptions();if(!REMOVED.categories.includes(selected))$('#bulkCategory').value=selected;}
-  const paths=new Set();for(const it of Object.values(S.items)){paths.add(it.file);for(const p of fullPaths(it))paths.add(p.path);}
-  $('#fileValues').innerHTML=[...paths].sort().slice(0,500).map(p=>'<option value="'+esc(p)+'"></option>').join('');
-  renderFacets();
+  FILE_VALUES_STALE=true;if(document.activeElement===$('#fileValue')) renderFileValues();
+  // renderFacets() follows in renderTable(), which rebuild() calls right after this
   const rf=$('#ruleForm');
   {
     const oldCat=rf.cat.value,oldStatus=rf.status.value;
@@ -4125,12 +4293,14 @@ function renderSummary(){
   $('#summary').innerHTML=cells.map(x=>`<button class="sum${SUMFILTER===x.k?' active':''}" data-sum="${x.k}"><span class="d" style="background:${x.col}"></span><div class="n">${x.n}</div><div class="l">${x.l}</div>${x.sub?`<div class="l" style="color:var(--faint);font-size:12px">${x.sub}</div>`:''}</button>`).join('');
 }
 
+let TIMELINE_W=null;   // width of the chart area, kept current by a ResizeObserver (reading it forced a layout)
 function renderTimeline(){
   const rows=perScanStats(S,BASE);
   const segs=STATUSES.map(s=>[s.id,s.color]);
   $('#legend').innerHTML=segs.map(([k,c])=>`<span><i class="sw" style="background:${c}"></i>${esc(STATUS_BY_ID[k].label)}</span>`).join('')+`<span><i class="sw" style="background:var(--s-new)"></i>new</span><span style="color:var(--muted)">− no longer found</span>`;
   const max=Math.max(1,...rows.map(r=>r.total));
-  const colW=Math.max(56, Math.min(110, Math.floor(((document.querySelector('#timeline').clientWidth||900)-50)/Math.max(rows.length,1))));
+  if(TIMELINE_W===null){ TIMELINE_W=document.querySelector('#timeline').clientWidth||900; if(typeof ResizeObserver==='function') new ResizeObserver(es=>{ const w=Math.round(es[0].contentRect.width); if(w&&Math.abs(w-TIMELINE_W)>40){ TIMELINE_W=w; if(S.scans.length) renderTimeline(); } }).observe(document.querySelector('#timeline')); }
+  const colW=Math.max(56, Math.min(110, Math.floor(((TIMELINE_W||900)-50)/Math.max(rows.length,1))));
   const H=150, top=18, W=Math.max(rows.length*colW+40, 300);
   let svg=`<svg width="${W}" height="${H+90}" role="img" aria-label="Findings per scan">`;
   for(const g of [0,.5,1]){ const y=top+H-(H*g); svg+=`<line x1="30" x2="${W}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/><text x="26" y="${y+4}" text-anchor="end" font-size="11" fill="var(--faint)">${Math.round(max*g)}</text>`; }
@@ -4206,14 +4376,9 @@ function statusHtml(d){
   return h;
 }
 
-function renderTable(){
-  applyView();
-  renderFacets(); renderCompare(); saveFilters();
-  const rows=VIEW;
-  $('#reviewQueueInfo').classList.toggle('hidden',!F.queue);
-  $('#reviewQueueCount').textContent=`${VIEW.length} remaining · ${reviewedIds().size} reviewed in this session`;
-  $('#queueNext').disabled=!VIEW.length;
-  $('#tbody').innerHTML = rows.length ? rows.map(d=>{
+const ROW_CHUNK=200;let ROWS_SHOWN=0,moreRowsObserver=null;
+function rowHtml(d){
+
     const it=d.it, variants=Object.keys(it.titles).length;
     const ln = it.range ? (it.range[0]===it.range[1]?':'+it.range[0]:':'+it.range[0]+'–'+it.range[1]) : '';
     return `<tr class="row${CUR===it.id?' cur':''}" data-id="${esc(it.id)}">
@@ -4225,7 +4390,38 @@ function renderTable(){
       <td>${fileCell(it)}</td>
       <td class="c-seen num">${d.nSeen}/${d.span}</td>
       <td>${statusHtml(d)}</td><td><button class="btn small ghost" data-edit-reviewer="${esc(it.id)}" title="Change assignee">${esc(it.editor||'Unassigned')}</button></td></tr>`;
-  }).join('') : `<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--muted)">No findings for these filters. Reset the filters or change the search.</td></tr>`;
+}
+function moreRowsHtml(){
+  const rest=VIEW.length-ROWS_SHOWN;
+  return rest>0?`<tr id="moreRows"><td colspan="8" style="padding:14px;text-align:center;color:var(--muted)">${ROWS_SHOWN} of ${VIEW.length} shown · <button class="btn small" type="button" id="moreRowsBtn">Show ${Math.min(rest,ROW_CHUNK)} more</button></td></tr>`:'';
+}
+function showMoreRows(n=ROW_CHUNK){
+  const sentinel=$('#moreRows');if(!sentinel) return;
+  const from=ROWS_SHOWN;ROWS_SHOWN=Math.min(VIEW.length,ROWS_SHOWN+n);
+  sentinel.insertAdjacentHTML('beforebegin',VIEW.slice(from,ROWS_SHOWN).map(rowHtml).join(''));
+  sentinel.outerHTML=moreRowsHtml();observeMoreRows();
+}
+/* Make sure the row of a finding exists, e.g. when stepping with j/k beyond the rendered rows. */
+function ensureRowShown(id){ const i=VIEW.findIndex(d=>d.it.id===id); if(i>=ROWS_SHOWN) showMoreRows(i+1-ROWS_SHOWN+ROW_CHUNK); }
+function observeMoreRows(){
+  if(typeof IntersectionObserver!=='function') return;
+  if(!moreRowsObserver) moreRowsObserver=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)) showMoreRows(); },{rootMargin:'600px'});
+  moreRowsObserver.disconnect();const el=$('#moreRows');if(el) moreRowsObserver.observe(el);
+}
+function renderTable(){
+  applyView();
+  renderFacets(); renderCompare(); saveFilters();
+  const rows=VIEW;
+  $('#reviewQueueInfo').classList.toggle('hidden',!F.queue);
+  $('#reviewQueueCount').textContent=`${VIEW.length} remaining · ${reviewedIds().size} reviewed in this session`;
+  $('#queueNext').disabled=!VIEW.length;
+  // Only the first rows are built; more follow while scrolling. Building every row of a large project
+  // on each click was the main cost of the table.
+  if(ROWS_SHOWN<ROW_CHUNK) ROWS_SHOWN=ROW_CHUNK;
+  if(CUR){ const ci=rows.findIndex(d=>d.it.id===CUR); if(ci>=ROWS_SHOWN) ROWS_SHOWN=ci+1+ROW_CHUNK; }
+  ROWS_SHOWN=Math.min(ROWS_SHOWN,Math.max(rows.length,ROW_CHUNK));
+  $('#tbody').innerHTML = rows.length ? rows.slice(0,ROWS_SHOWN).map(rowHtml).join('')+moreRowsHtml() : `<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--muted)">No findings for these filters. Reset the filters or change the search.</td></tr>`;
+  observeMoreRows();
   const raw=S.scans.reduce((a,s)=>a+s.raw,0);
   const hiddenF = D.length-BASE.length, vm=verdictMode();
   const hidTxt = !hiddenF ? '' : vm==='hide' ? `, ${hiddenF} rejected by the scanner hidden` : `, ${hiddenF} hidden by scanner verdict`;
@@ -4248,8 +4444,8 @@ const scanLabel = (s, i) => s.label ? s.label : `Scan ${i+1}`;
 function renderScans(){
   $('#scansCount').textContent=`(${S.scans.length})`;
   const rows=perScanStats(S,BASE);
-  $('#scansTbl').innerHTML=`<tr><th>Started</th><th>Tool</th><th>Label</th><th>File</th><th class="r">Raw findings</th><th class="r">Findings</th><th class="r">Rejected</th><th>Base path</th><th></th></tr>`+
-    rows.map(r=>`<tr><td>${esc(fmtDT(r.scan.started))}</td><td>${esc(toolOf(r.scan))}</td><td><input class="scanlabel" data-scanlabel="${esc(r.scan.id)}" value="${esc(r.scan.label||'')}" placeholder="e.g. model name" maxlength="60" style="border:1px solid var(--line);background:var(--sunk);border-radius:5px;padding:3px 6px;width:170px"></td><td class="mono">${esc(r.scan.file)}</td><td class="r">${r.scan.raw}</td><td class="r">${r.total}</td><td class="r">${r.scan.filtered}</td><td class="mono" title="${esc(r.scan.root)}">${esc(r.scan.root.length>48?'…'+r.scan.root.slice(-47):r.scan.root)}</td><td><button class="btn small ghost" data-delscan="${esc(r.scan.id)}">Remove</button></td></tr>`).join('');
+  $('#scansTbl').innerHTML=`<tr><th>Started</th><th>Tool</th><th>Label</th><th>File</th><th class="r">Raw findings</th><th class="r">Findings</th><th class="r">Rejected</th><th>Base path</th><th title="Folder of the repository this scan covers. Empty: the whole repository. Detected automatically for module scans.">Module</th><th></th></tr>`+
+    rows.map(r=>`<tr><td>${esc(fmtDT(r.scan.started))}</td><td>${esc(toolOf(r.scan))}</td><td><input class="scanlabel" data-scanlabel="${esc(r.scan.id)}" value="${esc(r.scan.label||'')}" placeholder="e.g. model name" maxlength="60" style="border:1px solid var(--line);background:var(--sunk);border-radius:5px;padding:3px 6px;width:170px"></td><td class="mono">${esc(r.scan.file)}</td><td class="r">${r.scan.raw}</td><td class="r">${r.total}</td><td class="r">${r.scan.filtered}</td><td class="mono" title="${esc(r.scan.root)}">${esc(r.scan.root.length>48?'…'+r.scan.root.slice(-47):r.scan.root)}</td><td><input class="mono" data-scanmodule="${esc(r.scan.id)}" value="${esc(r.scan.module||'')}" placeholder="whole repository" ${Array.isArray(r.scan.rec)?'':'disabled title="Older project file without raw records"'} title="${r.scan.module?(r.scan.moduleManual?'Set manually':'Detected automatically'):scanPrefix(r.scan)?'Paths aligned with '+esc(scanPrefix(r.scan))+' (base path was guessed); still counted as a scan of the whole repository':'Covers the whole repository'}; e.g. orders/ for a scan of that module" style="border:1px solid var(--line);background:var(--sunk);border-radius:5px;padding:3px 6px;width:150px"></td><td><button class="btn small ghost" data-delscan="${esc(r.scan.id)}">Remove</button></td></tr>`).join('');
 }
 
 /* ---- Drawer ---- */
@@ -4260,7 +4456,7 @@ function step(dir){
   if(F.queue){nextReview(dir);return;}
   if(!CUR) return; if(!NAV.includes(CUR)) NAV=VIEW.map(d=>d.it.id);
   let i=NAV.indexOf(CUR)+dir; while(NAV[i]!==undefined && !S.items[NAV[i]]) i+=dir;
-  const n=NAV[i]; if(n){ CUR=n; renderDrawer(); markCur(); const tr=document.querySelector(`tr.row[data-id="${CSS.escape(CUR)}"]`); if(tr) tr.scrollIntoView({block:'nearest'}); }
+  const n=NAV[i]; if(n){ CUR=n; ensureRowShown(n); renderDrawer(); markCur(); const tr=document.querySelector(`tr.row[data-id="${CSS.escape(CUR)}"]`); if(tr) tr.scrollIntoView({block:'nearest'}); }
 }
 function auditEntriesHtml(it){
   const labels={editor:'Assignee',status:'Status',note:'Note',category:'Category'};
@@ -4509,9 +4705,13 @@ const pathHtml = s => String(s).split(/(?<=\/)/).map(seg=>`<span class="pseg${se
 let FULLPATH=false; try{ FULLPATH=localStorage.getItem(LS_KEY+'.fullpath')==='1'; }catch(e){}
 function sourceRoot(scan,file){
   if(/^(?:[A-Za-z]:\/|\/)/.test(normPath(file)))return '';
-  if(scan?.root)return scan.root;
   const base=normPath(scan?.codebase||'');
-  return /^(?:[A-Za-z]:\/|\/)/.test(base)?base.replace(/\/+$/,'')+'/':'';
+  const root=scan?.root || (/^(?:[A-Za-z]:\/|\/)/.test(base)?base.replace(/\/+$/,'')+'/':'');
+  // Paths of an aligned module scan already start with the module folder: take it off the scan's base path
+  // (/repo/orders/ + orders/src/... would repeat it). Unknown how they relate: no full path rather than a wrong one.
+  const pre=scan?scanPrefix(scan):'';
+  if(pre && root) return root.endsWith('/'+pre)||root===pre ? root.slice(0,root.length-pre.length) : '';
+  return root;
 }
 function fullPaths(it){
   const m=new Map();
@@ -4760,7 +4960,8 @@ function exportBaseline(){
 /* Comparison section for reports: only when two different scans are selected */
 function cmpScansPicked(){ const a=S.scans.find(s=>s.id===CMP.a), b=S.scans.find(s=>s.id===CMP.b); return a&&b&&a!==b ? [a,b] : null; }
 const scanName = s => `${s.label?s.label+', ':''}${fmtDT(s.started)}`;
-function cmpGroups(list){ return ['new','gone','sevUp','sevDown'].map(k=>[k, list.filter(d=>cmpMatch(d,k)).sort((x,y)=>y.sevMax-x.sevMax)]); }
+/* 'outside' last: findings only in the larger scan when one side is a module scan */
+function cmpGroups(list){ return ['new','gone','sevUp','sevDown','outside'].map(k=>[k, list.filter(d=>cmpMatch(d,k)).sort((x,y)=>y.sevMax-x.sevMax)]); }
 /* ================= Reports =================
    One model (buildReport) feeds both renderers (HTML and Markdown). The export dialog decides scope, statuses,
    minimum severity, sections, code snippets and how paths are shown. */
@@ -4929,7 +5130,7 @@ function renderHtmlReport(M){
   if(M.cmp){
     const [A,B]=M.cmp, g=cmpGroups(M.list), both=M.list.filter(d=>cmpMatch(d,'both')).length;
     const row=d=>{ const c=cmpInfo(d); return `<tr><td class="c">${c.sevA??'–'} → ${c.sevB??'–'}</td><td>${e(d.it.lastTitle)}<div class="m">${esc(CAT_LABEL[d.it.cat])}, ${esc(statusLabel(d.eff))}${c.file==='changed'?', file changed':c.file==='same'?', file unchanged':''}</div></td><td>${fileCell(d)}</td></tr>`; };
-    section('comparison',`Comparison: ${M.red(scanName(A))} → ${M.red(scanName(B))}`, `<p class="m">${g[0][1].length} new, ${g[1][1].length} gone, ${both} in both, severity up ${g[2][1].length}, down ${g[3][1].length}.</p>
+    section('comparison',`Comparison: ${M.red(scanName(A))} → ${M.red(scanName(B))}`, `<p class="m">${g[0][1].length} new, ${g[1][1].length} gone, ${both} in both, severity up ${g[2][1].length}, down ${g[3][1].length}${g[4][1].length?`, ${g[4][1].length} outside the module covered by the other scan`:''}.</p>
       ${g.filter(([,l])=>l.length).map(([k,l])=>`<h3>${esc(CMP_MODES[k].label)} (${l.length})</h3><table><thead><tr><th class="c">Sev. A → B</th><th>Finding</th><th>File</th></tr></thead><tbody>${l.map(row).join('')}</tbody></table>`).join('')}`);
   }
   // 5 breakdown
@@ -5034,7 +5235,7 @@ function renderMdReport(M){
   if(sec.scans){ H('scans','Scan history'); out.push(`| Scan | Raw findings | Findings | New | No longer found | ${segs.map(statusLabel).join(' | ')} | Regression |`, `|---|${'---:|'.repeat(segs.length+5)}`,
       ...M.rows.map((x,i)=>`| ${x.scan.label?c_(x.scan.label)+', ':''}${fmtDT(x.scan.started)} | ${x.scan.raw} | ${x.total} | ${i?x.newN:'–'} | ${i?x.goneN:'–'} | ${segs.map(k=>x[k]).join(' | ')} | ${x.regression} |`), ''); }
   if(M.cmp){ const [A,B]=M.cmp, g=cmpGroups(M.list); H('comparison',`Comparison: ${mdEsc(r(scanName(A)))} → ${mdEsc(r(scanName(B)))}`);
-    out.push(`${g[0][1].length} new, ${g[1][1].length} gone, ${M.list.filter(d=>cmpMatch(d,'both')).length} in both, severity up ${g[2][1].length}, down ${g[3][1].length}.`, '');
+    out.push(`${g[0][1].length} new, ${g[1][1].length} gone, ${M.list.filter(d=>cmpMatch(d,'both')).length} in both, severity up ${g[2][1].length}, down ${g[3][1].length}${g[4][1].length?`, ${g[4][1].length} outside the module covered by the other scan`:''}.`, '');
     for(const [k,l] of g){ if(!l.length) continue; out.push(`**${CMP_MODES[k].label} (${l.length})**`, '', '| Sev. A → B | Finding | File | Status |', '|---|---|---|---|', ...l.map(d=>{ const c=cmpInfo(d); return `| ${c.sevA??'–'} → ${c.sevB??'–'} | ${c_(d.it.lastTitle)} | ${fileMd(d)} | ${statusLabel(d.eff)} |`; }), ''); } }
   if(sec.breakdown){ H('breakdown','Breakdown'); const bh=SEV_BUCKETS.map(b=>b.label.split(' ')[0]);
     out.push('**Severity × status**', '', `| Status | ${bh.join(' | ')} | Total |`, `|---|${'---:|'.repeat(bh.length+1)}`, ...M.matrix.filter(x=>o.statuses.includes(x.s.id)).map(x=>`| ${x.s.label} | ${SEV_BUCKETS.map(b=>x.by[b.id]||'').join(' | ')} | ${Object.values(x.by).reduce((a,b)=>a+b,0)} |`), '');
@@ -5122,6 +5323,8 @@ $('#ratingSettingsForm').onsubmit=e=>{e.preventDefault();try{
  updateRatings(rows);saveGlobalSettings();renderRatingEditor(true);
 }catch(err){$('#globalSettingsMessage').textContent=err.message;}};
 $('#ratingSettingsForm').addEventListener('input',e=>{if(e.target.matches('[data-rating-color]'))e.target.closest('[data-rating-id]').querySelector('[data-rating-theme]').checked=false;});
+$('#fileValue').addEventListener('focus',renderFileValues);
+$('#globalSettings').addEventListener('toggle',e=>{ if(e.target.open) renderGlobalSettings(); });
 $('#restoreRatingDefaults').onclick=()=>{try{restoreRatingDefaults();saveGlobalSettings();renderRatingEditor(true);}catch(err){$('#globalSettingsMessage').textContent=err.message;}};
 
 $('#scannerOverview').addEventListener('click',e=>{const b=e.target.closest('[data-scanner-filter]');if(!b)return;F.tools=[b.dataset.scannerFilter];saveFilters();rebuild(true);});
@@ -5184,7 +5387,7 @@ document.addEventListener('click',()=>document.querySelectorAll('.menu').forEach
 document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
   const a=b.dataset.act;
   if(a==='saveProject' || a==='saveProjectPlain'){
-    const json=JSON.stringify(Object.assign({tool:'refindings',appVersion:APP_VERSION,exported:new Date().toISOString()},S));
+    const json=JSON.stringify(Object.assign({tool:'refindings',appVersion:APP_VERSION,exported:new Date().toISOString()},serializeState(S))),capturedRev=REV;
     const name=`${fileSlug()}_project_v${APP_VERSION}_${stamp()}.json`;
     try{
       if(a==='saveProject'){
@@ -5194,7 +5397,7 @@ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
         toast(storageMode()==='encrypted'&&password===STORE_PW?'Project saved as AES-256 encrypted ZIP with your storage password.':'Project saved as AES-256 encrypted ZIP.');
       }else download(name,json,'application/json');
       // Compare the captured project, so edits made while ZIP encryption runs stay unexported.
-      const captured=JSON.parse(json);delete captured.tool;delete captured.appVersion;delete captured.exported;exportedState=JSON.stringify(captured);updateExportStatus();
+      exportedRev=capturedRev;updateExportStatus();
     }catch(err){ alert('Could not save project: '+err.message); }
   }
   if(a==='openProject'){ $('#fileProject').dataset.mode='open'; $('#fileProject').click(); }
@@ -5215,7 +5418,7 @@ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{
   if(a==='exportBaseline') exportBaseline();
   if(a==='exportJSpringTriage') exportJSpringTriage();
 });
-function filtersChanged(){ SUMFILTER=null; SEL.clear(); renderSummary(); renderTable(); }
+function filtersChanged(){ SUMFILTER=null; SEL.clear(); ROWS_SHOWN=0; renderSummary(); renderTable(); }
 let _qt; $('#fText').addEventListener('input',e=>{ clearTimeout(_qt); _qt=setTimeout(()=>{ F.q=e.target.value; filtersChanged(); },150); });
 let MOREF=false; try{ MOREF=localStorage.getItem(LS_KEY+'.morefilters')==='1'; }catch(e){}
 $('#fMore').onclick=()=>{ MOREF=!MOREF; try{ localStorage.setItem(LS_KEY+'.morefilters', MOREF?'1':'0'); }catch(e){} renderFacets(); };
@@ -5299,6 +5502,7 @@ $('#fullPathBtn').addEventListener('click',e=>{ e.stopPropagation(); FULLPATH=!F
   try{ localStorage.setItem(LS_KEY+'.fullpath', FULLPATH?'1':'0'); }catch(_){} renderTable(); });
 document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{ const k=th.dataset.sort; SORT = SORT.k===k ? {k, dir:-SORT.dir} : {k, dir:1}; renderTable(); });
 $('#tbody').addEventListener('click',e=>{
+  if(e.target.closest('#moreRowsBtn')){ showMoreRows(); return; }
   const cb=e.target.closest('[data-sel]');
   if(cb){ const id=cb.dataset.sel; cb.checked?SEL.add(id):SEL.delete(id); updateBulk(); e.stopPropagation(); return; }
   if(e.target.closest('td') && e.target.closest('td').querySelector('[data-sel]')) return;
@@ -5392,7 +5596,7 @@ $('#ruleForm').onsubmit=e=>{
 $('#rulesTbl').addEventListener('change',e=>{ const inp=e.target.closest('[data-rulereview]'); if(!inp) return; const r=S.rules[+inp.dataset.rulereview]; if(!r) return;
   undoRules('rule review date'); r.reviewAt=isDate(inp.value)?inp.value:null; save(); rebuild(true); });
 $('#rulesTbl').onclick=e=>{ const b=e.target.closest('[data-delrule]'); if(!b) return; undoRules('rule removed'); S.rules.splice(+b.dataset.delrule,1); save(); rebuild(true); toast('Rule removed', undoAction); };
-$('#scansTbl').addEventListener('change',e=>{ const inp=e.target.closest('[data-scanlabel]'); if(!inp) return;
+$('#scansTbl').addEventListener('change',e=>{ const mod=e.target.closest('[data-scanmodule]'); if(mod){ setScanModule(mod.dataset.scanmodule, mod.value); return; } const inp=e.target.closest('[data-scanlabel]'); if(!inp) return;
   setScanLabel(inp.dataset.scanlabel, inp.value); });
 $('#scansTbl').onclick=e=>{
   const b=e.target.closest('[data-delscan]'); if(!b) return; const id=b.dataset.delscan;
@@ -5423,7 +5627,7 @@ $('#appVersion').textContent='v'+APP_VERSION;
 $('#footVersion').textContent='v'+APP_VERSION;
 $('#projName').onclick=()=>renameProject();
 // New sessions start without another project’s filters.
-load().then(()=>{ exportedState=S.scans.length?null:JSON.stringify(S);updateExportStatus();rebuild();requestReviewerAfterLoad(); });
+load().then(()=>{ exportedRev=S.scans.length?-1:REV;updateExportStatus();rebuild();requestReviewerAfterLoad(); });
 </script>
 </body>
 </html>
