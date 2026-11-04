@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <!--
-  Refindings  (formerly Scan-Triage) — changelog · https://github.com/NoAuthZone/Refindings
+  Refindings (formerly Scan-Triage) — changelog · https://github.com/NoAuthZone/Refindings
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tC5mXLMfpABGJWjVXQ7oP9b2e1i1fNjYbdSQVg8FtPo=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-xNFryPJKIq+lYeCliG2iFbBrYzJsVp618ftrfFYz2PI='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-6NE2Aanvg8pEitTTY/v8nNJZEG3hDG5MMpy3zCRAOVo=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-tl5ZKzvsuQgoiBrKlJWI0Ds1W3CAuvgxiCuAvn7wpaI='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Refindings 2.7.4</title>
+<title>Refindings 2.10.0</title>
 <style>
 :root{
   --bg:#EEF1F4; --surface:#FFFFFF; --sunk:#F6F8FA; --ink:#18212C; --muted:#5A6573; --faint:#8A94A1; --line:#D6DCE3;
@@ -186,9 +186,62 @@ table.list tr.row.cur td:first-child{box-shadow:inset 3px 0 0 var(--focus)}
 /* drawer */
 .scrim{position:fixed;inset:0;background:rgba(10,14,20,.35);z-index:40;display:none}
 .scrim.on{display:block}
-aside.drawer{position:fixed;top:0;right:0;bottom:0;width:min(760px,100%);background:var(--surface);border-left:1px solid var(--line);z-index:41;transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+aside.drawer{position:fixed;top:0;right:0;bottom:0;width:min(var(--dw,760px),100%);background:var(--surface);border-left:1px solid var(--line);z-index:41;transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 aside.drawer.on{transform:none}
 @media (prefers-reduced-motion:reduce){aside.drawer{transition:none}}
+/* drawer: resizable, size presets, expand, dock, two columns, mini bar, compare */
+.dr-resize{position:absolute;left:-5px;top:0;bottom:0;width:11px;cursor:col-resize;z-index:3;touch-action:none}
+.dr-resize::after{content:"";position:absolute;left:4px;top:0;bottom:0;width:3px;border-radius:2px;background:transparent;transition:background .12s}
+.dr-resize:hover::after,.dr-resize:focus-visible::after,body.dr-drag .dr-resize::after{background:var(--focus)}
+.dr-h{flex-wrap:wrap}
+.dr-h h3{flex:1 1 220px;min-width:0}
+.dr-tools{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.dr-tools .grp{display:inline-flex;gap:0}
+.dr-tools .grp .btn{border-radius:0;margin-left:-1px}
+.dr-tools .grp .btn:first-child{border-radius:6px 0 0 6px;margin-left:0}
+.dr-tools .grp .btn:last-child{border-radius:0 6px 6px 0}
+.dr-tools .btn[aria-pressed="true"]{border-color:var(--focus);color:var(--focus);position:relative;z-index:1}
+body{transition:padding-right .18s ease}
+body.dr-dock{padding-right:var(--dw,760px)}
+body.dr-dock .scrim{display:none!important}
+body.dr-drag{transition:none;user-select:none;cursor:col-resize}
+body.dr-drag aside.drawer{transition:none}
+body.dr-exp{--codeh-def:70vh}
+body.dr-codedrag{user-select:none;cursor:row-resize}
+@media (prefers-reduced-motion:reduce){body{transition:none}}
+/* body: main area, optional compare pane */
+.dr-main{flex:1;min-height:0;display:flex}
+.dr-main .dr-b{flex:1 1 0;min-width:0}
+/* code height (idea 2) */
+#drawer pre.code{max-height:var(--codeh,var(--codeh-def,480px))}
+.code-rz{height:12px;margin:2px 0 0;cursor:row-resize;position:relative;touch-action:none;border-radius:4px}
+.code-rz::after{content:"";position:absolute;left:50%;top:4px;width:44px;height:3px;margin-left:-22px;border-radius:2px;background:var(--line)}
+.code-rz:hover::after,.code-rz:focus-visible::after,body.dr-codedrag .code-rz::after{background:var(--focus)}
+/* two columns (idea 3) */
+.dr-cols{display:block}
+aside.drawer.wide{--codeh-def:60vh}
+aside.drawer.wide .dr-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:0 24px;align-items:start}
+aside.drawer.wide .dr-colR{position:sticky;top:0;max-height:calc(100vh - 150px);overflow:auto;padding-right:2px}
+/* mini bar (idea 8) */
+.dr-mini{display:none}
+aside.drawer.mini{border-left-width:2px}
+aside.drawer.mini>:not(.dr-mini){display:none!important}
+aside.drawer.mini .dr-mini{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;height:100%;min-height:0}
+.dr-mini .btn{width:42px;padding:4px 0;text-align:center}
+.dr-mini .btn.sel{background:var(--sunk);border-color:currentColor;font-weight:700}
+.dr-mini .mini-st{display:flex;flex-direction:column;gap:5px;margin:4px 0}
+.dr-mini .mini-title{writing-mode:vertical-rl;flex:1;min-height:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--muted)}
+/* compare (idea 7) */
+.dr-cmp{display:none;flex:1 1 0;min-width:0;overflow:auto;padding:14px 18px 30px;border-left:1px solid var(--line);background:var(--sunk)}
+aside.drawer.cmp .dr-cmp{display:block}
+.cmp-top{display:flex;gap:6px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cmp-top b{font-size:13px;color:var(--muted);font-weight:600}
+.cmp-t{font-size:17px;font-weight:600;margin:0 0 12px;line-height:1.3}
+.cmp-hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.dr-cmp .kv{grid-template-columns:100px 1fr}
+.dr-cmp .kv dd.df{box-shadow:inset 3px 0 0 var(--s-open);padding-left:7px}
+.dr-cmp .dfm{color:var(--s-open);font-weight:700}
+tr.row.pinb{box-shadow:inset 3px 0 0 var(--s-fp)}
 .dr-h{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
 .dr-h h3{margin:0;font-size:18px;line-height:1.3;flex:1}
 .dr-b{overflow:auto;padding:14px 18px 30px;flex:1}
@@ -686,14 +739,38 @@ table.list th{vertical-align:top}
 </dialog>
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dr-resize" id="drResize" role="separator" aria-orientation="vertical" aria-label="Resize panel" tabindex="0" title="Drag to resize, double-click to reset"></div>
   <div class="dr-h">
     <h3 id="drTitle"></h3>
+    <div class="dr-tools" id="drTools">
+      <span class="grp" role="group" aria-label="Panel width">
+        <button class="btn small" data-drw="S" title="Narrow">S</button>
+        <button class="btn small" data-drw="M" title="Medium">M</button>
+        <button class="btn small" data-drw="L" title="Wide (60 % of window)">L</button>
+      </span>
+      <button class="btn small" data-drw="exp" aria-pressed="false" title="Expand to 90 % of the window (useful for code)">⤢</button>
+      <button class="btn small" data-drw="pin" aria-pressed="false" title="Dock: the list shrinks instead of being covered">Dock</button>
+      <button class="btn small" data-drw="cols" aria-pressed="true" title="Two columns when the panel is wide (details left, code right)">▥</button>
+      <button class="btn small" data-drw="cmp" aria-pressed="false" title="Compare: pins this finding on the right, then pick another one on the left">⇄</button>
+      <button class="btn small" data-drw="mini" title="Collapse to a slim bar (status keys, previous/next)">⇥</button>
+    </div>
     <button class="btn small" id="drPrev" title="Previous (k)">↑</button>
     <button class="btn small" id="drNext" title="Next (j)">↓</button>
     <button class="btn small" id="drClose" title="Close (Esc)">Close</button>
   </div>
-  <div class="dr-b" id="drBody"></div>
+  <div class="dr-main">
+    <div class="dr-b" id="drBody"></div>
+    <section class="dr-cmp" id="drCmp" aria-label="Pinned finding for comparison"></section>
+  </div>
   <div class="kbd-help">Keys: <b>o</b> open, <b>c</b> confirmed, <b>f</b> false positive, <b>a</b> accepted risk, <b>x</b> fixed, <b>t</b> test hardening, <b>d</b> demo files, <b>j/k</b> next/previous, <b>Ctrl/Cmd+Z</b> undo, <b>Esc</b> close</div>
+  <div class="dr-mini" id="drMini">
+    <button class="btn small" data-mini="restore" title="Restore panel">⤢</button>
+    <button class="btn small" data-mini="prev" title="Previous (k)">↑</button>
+    <button class="btn small" data-mini="next" title="Next (j)">↓</button>
+    <div class="mini-st" id="drMiniSt"></div>
+    <div class="mini-title" id="drMiniTitle"></div>
+    <button class="btn small" data-mini="close" title="Close (Esc)">✕</button>
+  </div>
 </aside>
 <div class="toast" id="toast"></div>
 <div class="dragover-overlay" id="dragOverlay">Drop scan or project files</div>
@@ -701,7 +778,7 @@ table.list th{vertical-align:top}
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
 const TOOL_VERSION = 4;          // project file schema (4: code snippets stored once in snipPool)
-const APP_VERSION = '2.7.4';     // program version, increase with every change
+const APP_VERSION = '2.10.0';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
@@ -1094,8 +1171,11 @@ function uriToPath(u){
 }
 const firstLine = (s, max=160) => { let t=str(s).trim().split(/\r?\n/)[0].trim(); if(t.length>max){ const cut=t.slice(0,max).lastIndexOf('. '); t = cut>40 ? t.slice(0,cut+1) : t.slice(0,max-1)+'…'; } return t; };
 /* flagged lines (start…end) plus optional context lines → found_snippet */
+/* Up to SNIP_MAX_LINES lines of code per finding (was 60: a 64-line file showed lines 1-60 only). Repeated
+   snippets are stored once (snipPool), so longer context costs little. */
+const SNIP_MAX_LINES=1000;
 function snipOf(start, end, text, ctxStart, ctxText){
-  const out=dict(), lines = t => { const a=str(t).replace(/\r/g,'').split('\n'); if(a.length>1 && a[a.length-1]==='') a.pop(); return a.slice(0,60); };
+  const out=dict(), lines = t => { const a=str(t).replace(/\r/g,'').split('\n'); if(a.length>1 && a[a.length-1]==='') a.pop(); return a.slice(0,SNIP_MAX_LINES); };
   if(ctxText && ctxStart>0) lines(ctxText).forEach((l,i)=>{ const n=ctxStart+i; out[n]={identifier:(n>=start && n<=end)?'>':'|', line:' '+l}; });
   if(text && start>0) lines(text).forEach((l,i)=>{ out[start+i]={identifier:'>', line:' '+l}; });
   return out;
@@ -2186,6 +2266,11 @@ function sigEntries(it){
    paths were anchored in the full repository. Keys are built once per record (was: JSON per comparison). */
 const unModule=(f,module)=>module&&f.startsWith(module)?f.slice(module.length):f;
 const recIdKey=(q,module)=>JSON.stringify([unModule(q.f,module),q.c,q.p,q.s,q.x]);
+/* Same findings regardless of fingerprint: a longer code snippet changes the fingerprint of a finding whose whole
+   region is flagged (snippets were cut at 60 lines before 2.7.5), so a report loaded again must still match. */
+// No line numbers: with the cut snippet, the flagged line was lost and line 1 was stored instead.
+const looseRecKey=(q,module)=>JSON.stringify([unModule(q.f,module),q.c,q.s,q.x,q.t]);
+function looseContentKey(records,module=''){ return Array.isArray(records)?JSON.stringify(records.map(q=>looseRecKey(q,module)).sort()):null; }
 function scanContentKey(records,module=''){
   return Array.isArray(records)?JSON.stringify(records.map(q=>recIdKey(q,module)).sort()):null;
 }
@@ -2209,7 +2294,8 @@ function findSameScan(state,id,started,count,tool='FalconEYE',records,recordsPre
     // cheap checks first: the content key of a large scan is only built when id or time and size fit
     if(s.id!==id && !(!str(id).startsWith('FT-S-') && !str(s.id).startsWith('FT-S-') && sec && Math.floor(ts(s.started)/1000)===sec && s.raw===count)) return false;
     const sameContent=newKey()!==null && key===scanContentKey(s.rec,scanPrefix(s)) && scanDetailsCompatible(records,s.rec,recordsPrefix,scanPrefix(s));
-    if(s.id===id) return sameContent || key===null || !Array.isArray(s.rec) || (tool==='JSpringGuard' && Math.floor(ts(s.started)/1000)===sec && legacyHardenedRecordsMatch(s.rec,records));
+    if(s.id===id) return sameContent || key===null || !Array.isArray(s.rec) || (tool==='JSpringGuard' && Math.floor(ts(s.started)/1000)===sec && legacyHardenedRecordsMatch(s.rec,records))
+      || (Math.floor(ts(s.started)/1000)===sec && s.raw===count && looseContentKey(records,recordsPrefix)===looseContentKey(s.rec,scanPrefix(s)));
     return sameContent;
   })||null;
 }
@@ -2496,10 +2582,16 @@ function ingestScan(state, json, fileName){
       // combine what each format has, matched by fingerprint: verifier verdict and file hashes come from the raw
       // result, recommendation and confidence from the FalconEYE report (JSON/HTML)
       const pool=new Map(); for(const q of recs){ if(!pool.has(q.p)) pool.set(q.p,[]); pool.get(q.p).push(q); }
-      for(const q of same.rec){ const m=(pool.get(q.p)||[]).shift() || (q.fr==='JSpringGuard assessment: HARDENED' ? recs.find(m=>m.c==='HARDENED' && m.f===q.f && m.t===q.t && JSON.stringify(m.r)===JSON.stringify(q.r)) : null); if(!m) continue;
+      // fallback by place: the fingerprint differs when only the snippet got longer
+      const loose=new Map(), byJfp=new Map();
+      for(const q of recs){ const k=looseRecKey(q,''); if(!loose.has(k)) loose.set(k,[]); loose.get(k).push(q); if(q.jfp){ if(!byJfp.has(q.jfp)) byJfp.set(q.jfp,[]); byJfp.get(q.jfp).push(q); } }
+      const used=new Set(), take=list=>{ while(list&&list.length){ const m=list.shift(); if(!used.has(m)){ used.add(m); return m; } } return null; };
+      const pre=scanPrefix(same);
+      for(const q of same.rec){ const m=take(pool.get(q.p)) || (q.fr==='JSpringGuard assessment: HARDENED' ? recs.find(m=>!used.has(m) && m.c==='HARDENED' && m.f===unModule(q.f,pre) && m.t===q.t && JSON.stringify(m.r)===JSON.stringify(q.r)) : null) || (q.jfp ? take(byJfp.get(q.jfp)) : null) || take(loose.get(looseRecKey(q,pre))); if(!m) continue; used.add(m);
         if(m.ev && (!q.ev || JSON.stringify(m.ev).length>JSON.stringify(q.ev).length)){q.ev=m.ev;enriched=true;}
         if(m.jfp && !q.jfp){q.jfp=m.jfp;enriched=true;}
-        if(m.sn.length>q.sn.length){q.sn=m.sn;enriched=true;}
+        // longer snippet: also its flagged lines (range) and tokens; the fingerprint stays, so ratings stay attached
+        if(m.sn.length>q.sn.length){q.sn=m.sn;q.r=m.r;q.k=m.k;enriched=true;}
         if(q.fr==='JSpringGuard assessment: HARDENED'){q.c='HARDENED';q.x=0;q.fk='';q.fr='';enriched=true;}
         if(N.rich && (m.x!==q.x || (!q.h && m.h) || m.fk!==q.fk)){ q.x=m.x; q.fk=m.fk; q.fr=m.fr; if(m.h) q.h=m.h; enriched=true; }
         if(!q.mi && m.mi){ q.mi=m.mi; enriched=true; }
@@ -4449,9 +4541,9 @@ function renderScans(){
 }
 
 /* ---- Drawer ---- */
-function openDrawer(id){ CUR=id; NAV=VIEW.map(d=>d.it.id); renderDrawer(); $('#drawer').classList.add('on'); $('#drawer').setAttribute('aria-hidden','false'); $('#scrim').classList.add('on'); markCur(); }
-function closeDrawer(){ CUR=null; $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden','true'); $('#scrim').classList.remove('on'); markCur(); }
-function markCur(){ document.querySelectorAll('tr.row').forEach(tr=>tr.classList.toggle('cur',tr.dataset.id===CUR)); }
+function openDrawer(id){ CUR=id; NAV=VIEW.map(d=>d.it.id); renderDrawer(); $('#drawer').classList.add('on'); $('#drawer').setAttribute('aria-hidden','false'); $('#scrim').classList.add('on'); applyDrawerLayout(); markCur(); }
+function closeDrawer(){ CUR=null; DRB=null; $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden','true'); $('#scrim').classList.remove('on'); applyDrawerLayout(); markCur(); }
+function markCur(){ document.querySelectorAll('tr.row').forEach(tr=>{ tr.classList.toggle('cur',tr.dataset.id===CUR); tr.classList.toggle('pinb',DRB!=null && tr.dataset.id===DRB && DRB!==CUR); }); }
 function step(dir){
   if(F.queue){nextReview(dir);return;}
   if(!CUR) return; if(!NAV.includes(CUR)) NAV=VIEW.map(d=>d.it.id);
@@ -4642,6 +4734,7 @@ function renderDrawer(){
     ${auditHtml(it)}
     ${it.hist.length?`<div class="dr-sec"><h4>Status changes</h4><ul class="hist">${it.hist.slice().reverse().map(h=>`<li>${esc(fmtDT(h.at))}: ${esc(STATUS_BY_ID[h.s]?STATUS_BY_ID[h.s].label:h.s)}${h.review?' (reviewed again)':''}${h.editor?' · '+esc(h.editor):''}${h.src?` <span style="color:var(--faint)">(${esc(h.src)})</span>`:''}</li>`).join('')}</ul></div>`:''}
   `;
+  drwAfterRender();
   const codeBlock=$('#drBody .code'),hit=codeBlock?.querySelector('.hit');
   if(hit) codeBlock.scrollTop=Math.max(0,hit.offsetTop-codeBlock.clientHeight/2);
   // correct selection
@@ -4966,11 +5059,14 @@ function cmpGroups(list){ return ['new','gone','sevUp','sevDown','outside'].map(
    One model (buildReport) feeds both renderers (HTML and Markdown). The export dialog decides scope, statuses,
    minimum severity, sections, code snippets and how paths are shown. */
 const REPORT_SECTIONS = [
+  ['exec',      'Management summary'],
   ['summary',   'Summary'],
+  ['scope',     'Scope and methodology'],
   ['changes',   'Changes since last report'],
   ['scans',     'Scan history'],
   ['comparison','Comparison of two scans'],
   ['breakdown', 'Breakdown (severity, category, OWASP, files)'],
+  ['tools',     'Scanner comparison'],
   ['sla',       'Age and fix deadlines'],
   ['details',   'Detail cards'],
   ['lists',     'Finding lists by status'],
@@ -5071,8 +5167,60 @@ async function buildReport(o){
   const decisions=[];
   for(const d of list) for(const hh of d.it.hist||[]) decisions.push({at:hh.at, s:hh.s, review:!!hh.review, src:hh.src||'', d});
   decisions.sort((a,b)=>ts(b.at)-ts(a.at));
-  return {o, red, pathOf, now, grpName, cardsAll:o.cards==='all', scans, latest, list, by, facts, summary, rows, changes, matrix, catRows, owaspRows, topFiles, topModules, slaDue, slaRows, details, checksum, decisions,
+  const exec=execSummary(list, rows, scans), scopeInfo=scopeOf(o, list, scans), toolsCmp=toolComparison(list, scans);
+  return {o, red, pathOf, now, grpName, cardsAll:o.cards==='all', scans, latest, list, by, facts, summary, rows, changes, matrix, catRows, owaspRows, topFiles, topModules, slaDue, slaRows, details, checksum, decisions, exec, scopeInfo, toolsCmp,
           cmp: o.sections.comparison ? cmpScansPicked() : null};
+}
+
+/* ---- Management summary, scope, scanner comparison (report model) ----
+   Unresolved = open, in review or confirmed. The overall rating follows the most severe confirmed finding; without
+   confirmed findings the most severe unresolved one, marked as not yet verified. */
+const UNRESOLVED=new Set(['open','in-review','confirmed']);
+const SEV_ORDER=['crit','high','med','low','info'];
+const SEV_NAME={crit:'Critical',high:'High',med:'Medium',low:'Low',info:'Informational'};
+function execSummary(list, rows, scans){
+  const unresolved=list.filter(d=>UNRESOLVED.has(d.eff)), confirmed=list.filter(d=>d.eff==='confirmed');
+  const worst=arr=>SEV_ORDER.find(b=>arr.some(d=>sevBucket(d.sevMax)===b))||null;
+  const level=worst(confirmed)||worst(unresolved), verified=!!worst(confirmed);
+  const bySev=Object.fromEntries(SEV_ORDER.map(b=>[b,unresolved.filter(d=>sevBucket(d.sevMax)===b).length]));
+  const rank=d=>(d.eff==='confirmed'?0:d.regression?1:d.eff==='in-review'?2:3);
+  const top=unresolved.slice().sort((a,b)=>b.sevMax-a.sevMax||rank(a)-rank(b)||b.nSeen-a.nSeen||a.it.file.localeCompare(b.it.file)).slice(0,5);
+  const last=rows[rows.length-1], prevActive=rows.length>1?unresolved.filter(d=>d.it.seen[scans[rows.length-2].id]).length:null;
+  const latestActive=unresolved.filter(d=>d.inLatest).length;
+  const recs=[];
+  const critHighConf=confirmed.filter(d=>['crit','high'].includes(sevBucket(d.sevMax))).length;
+  if(critHighConf) recs.push(`Fix the ${critHighConf} confirmed critical or high finding${critHighConf===1?'':'s'} first.`);
+  const reg=list.filter(d=>d.regression).length;
+  if(reg) recs.push(`Investigate ${reg} regression${reg===1?'':'s'}: fixed findings that were reported again.`);
+  const unrated=list.filter(d=>d.eff==='open'&&!d.it.status&&!d.rule), unratedCH=unrated.filter(d=>['crit','high'].includes(sevBucket(d.sevMax))).length;
+  if(unrated.length) recs.push(`Rate the ${unrated.length} unrated finding${unrated.length===1?'':'s'}${unratedCH?`, starting with ${unratedCH} critical or high`:''}.`);
+  const sla=unresolved.filter(d=>d.slaDue).length;
+  if(sla) recs.push(`${sla} unresolved finding${sla===1?' is':'s are'} past the fix deadline.`);
+  const review=list.filter(d=>d.reviewDue).length;
+  if(review) recs.push(`Review ${review} accepted risk${review===1?'':'s'} whose review date has passed.`);
+  if(!recs.length) recs.push(unresolved.length?'Continue rating and fixing the unresolved findings.':'No unresolved findings in the selected scope.');
+  return {level, verified, bySev, unresolved:unresolved.length, confirmed:confirmed.length, fixed:list.filter(d=>d.eff==='fixed').length,
+    regressions:reg, top, trend:{scans:rows.length, newN:last?last.newN:0, goneN:last?last.goneN:0, prevActive, latestActive, name:last?scanName(last.scan)+' ('+toolOf(last.scan)+')':''}, recs};
+}
+function scopeOf(o, list, scans){
+  const tools=[...new Set(scans.map(toolOf))].sort().map(t=>{ const ss=scans.filter(s=>toolOf(s)===t), l=ss[ss.length-1];
+    return {tool:t, scans:ss.length, first:ss[0].started, last:l.started, file:l.file, raw:l.raw, rejected:l.filtered||0}; });
+  const bases=[...new Set(scans.map(s=>normPath(s.codebase||'').replace(/\/+$/,'')).filter(Boolean))];
+  const modules=scans.filter(s=>s.module).map(s=>({scan:s, module:s.module}));
+  const reviewers=[...new Set(list.flatMap(d=>(d.it.hist||[]).map(h=>h.editor)).concat(list.map(d=>d.it.editor)).filter(Boolean))].sort();
+  const statuses=o.statuses.map(statusLabel);
+  return {tools, bases, modules, reviewers, statuses, filtered:o.scope==='filtered', minSev:o.minSev, verdict:verdictText(),
+    from:scans[0].started, to:scans[scans.length-1].started, rated:list.filter(d=>d.it.status).length, total:list.length};
+}
+function toolComparison(list, scans){
+  const tools=[...new Set(scans.map(toolOf))].sort();
+  if(tools.length<2) return null;
+  const rows=tools.map(t=>{ const mine=list.filter(d=>d.tools.includes(t)), rated=mine.filter(d=>d.it.status);
+    return {tool:t, total:mine.length, unresolved:mine.filter(d=>UNRESOLVED.has(d.eff)).length, confirmed:mine.filter(d=>d.eff==='confirmed').length,
+      fp:mine.filter(d=>d.eff==='fp').length, rated:rated.length, only:mine.filter(d=>d.tools.length===1).length, shared:mine.filter(d=>d.tools.length>1).length}; });
+  const pair=tools.map(a=>tools.map(b=>a===b?null:list.filter(d=>d.tools.includes(a)&&d.tools.includes(b)).length));
+  const multi=list.filter(d=>d.tools.length>1).sort((a,b)=>b.tools.length-a.tools.length||b.sevMax-a.sevMax).slice(0,25);
+  return {tools, rows, pair, multi, multiTotal:list.filter(d=>d.tools.length>1).length};
 }
 
 /* --- shared text bits --- */
@@ -5103,9 +5251,34 @@ function renderHtmlReport(M){
   const catCell = c => `${esc(CAT_LABEL[c])}${cweText(c)?`<div class="m">${esc(cweText(c))}${owaspText(c)?' · '+esc(owaspText(c).slice(0,3)):''}</div>`:''}`;
   const fileCell = d => `<span class="mono">${e(M.pathOf(d.it))}${d.it.range?':'+esc(fmtRange(d.it.range)):''}</span>`;
   const table = arr => arr.length ? `<table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>Category</th><th>File</th><th class="c">Seen</th><th>Last seen</th><th>Note</th></tr></thead><tbody>${arr.map(d=>`<tr><td class="c">${sevBadge(d.sevMax)}</td><td>${M.cardsAll&&sec.details?`<a href="#f-${esc(d.it.id)}">${e(d.it.lastTitle)}</a>`:e(d.it.lastTitle)}${flagsText(d).length?`<div class="m">${flagsText(d).map(f=>`<span class="tag${/regression|overdue|due|conflict/.test(f)?' warn':''}">${e(f)}</span>`).join(' ')}</div>`:''}</td><td>${catCell(d.it.cat)}</td><td>${fileCell(d)}</td><td class="c">${d.nSeen}/${d.span}</td><td>${esc(fmtDate(M.scans[d.last].started))}</td><td class="note">${e(d.it.note||(d.rule&&d.rule.note)||'')}</td></tr>`).join('')}</tbody></table>` : '<p class="m">None.</p>';
+  // 0 management summary
+  if(sec.exec){
+    const x=M.exec, lc=x.level?sevCol[x.level]:'#3A8340', t=x.trend;
+    section('exec','Management summary', `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:stretch;margin:6px 0 12px">
+      <div style="border:2px solid ${lc};border-radius:8px;padding:10px 16px;min-width:190px"><div class="m">Overall risk</div><div style="font-size:24px;font-weight:700;color:${lc}">${x.level?SEV_NAME[x.level]:'None found'}</div><div class="m">${x.level?(x.verified?'based on confirmed findings':'not verified yet: no finding confirmed'):'no unresolved findings'}</div></div>
+      <div class="kpi" style="flex:1">${SEV_ORDER.map(b=>`<div style="border-color:${sevCol[b]}"><b>${x.bySev[b]}</b>${esc(SEV_NAME[b].toLowerCase())} unresolved</div>`).join('')}</div></div>
+      <p>${x.unresolved} unresolved finding${x.unresolved===1?'':'s'} (open, in review or confirmed), ${x.confirmed} confirmed, ${x.fixed} fixed${x.regressions?`, ${x.regressions} regression${x.regressions===1?'':'s'}`:''}.${t.scans>1?` The latest scan, ${e(t.name)}, reported ${t.newN} new finding${t.newN===1?'':'s'} and no longer reported ${t.goneN}; ${t.latestActive} unresolved finding${t.latestActive===1?' is':'s are'} still reported by the latest scan of their scanner.`:''}</p>
+      ${x.top.length?`<h3>Top risks</h3><table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>Status</th><th>File</th></tr></thead><tbody>${x.top.map(d=>`<tr><td class="c">${sevBadge(d.sevMax)}</td><td>${e(d.it.lastTitle)}<div class="m">${esc(CAT_LABEL[d.it.cat])}${d.regression?', regression':''}</div></td><td>${esc(statusLabel(d.eff))}</td><td>${fileCell(d)}</td></tr>`).join('')}</tbody></table>`:''}
+      <h3>Recommended next steps</h3><ol>${x.recs.map(r=>`<li>${e(r)}</li>`).join('')}</ol>`);
+  }
   // 1 summary
   if(sec.summary) section('summary','Summary', `<div class="kpi">${segs.map(k=>`<div style="border-color:${col[k]}"><b>${M.facts.cnt[k]}</b>${esc(statusLabel(k))}</div>`).join('')}<div style="border-color:#C0262D"><b>${M.facts.regressions}</b>regressions</div><div style="border-color:#C0262D"><b>${M.facts.slaDue}</b>SLA overdue</div><div style="border-color:#2458A6"><b>${M.facts.isNew}</b>new in latest scan</div></div>
     <div class="summary">${M.summary.map(s=>`<p>${e(s)}</p>`).join('')}</div>`);
+  // 1b scope and methodology
+  if(sec.scope){
+    const x=M.scopeInfo;
+    section('scope','Scope and methodology', `<p>${x.total} findings from ${M.scans.length} scan${M.scans.length===1?'':'s'} between ${esc(fmtDT(x.from))} and ${esc(fmtDT(x.to))}.</p>
+      <h3>Scanners</h3><table><thead><tr><th>Scanner</th><th class="c">Scans</th><th>First scan</th><th>Latest scan</th><th>Latest report file</th><th class="c">Raw findings (latest)</th><th class="c">Rejected by scanner</th></tr></thead><tbody>${x.tools.map(t=>`<tr><td>${esc(t.tool)}</td><td class="c">${t.scans}</td><td>${esc(fmtDT(t.first))}</td><td>${esc(fmtDT(t.last))}</td><td class="mono">${e(t.file)}</td><td class="c">${t.raw}</td><td class="c">${t.rejected}</td></tr>`).join('')}</tbody></table>
+      <h3>Coverage</h3><ul>${x.bases.length?`<li>Code base${x.bases.length===1?'':'s'}: ${x.bases.map(b=>`<span class="mono">${e(b)}</span>`).join(', ')}</li>`:'<li>The reports name no code base; paths are relative to the scanned folder.</li>'}
+        ${x.modules.length?x.modules.map(m=>`<li>Module scan <b>${e(scanName(m.scan))}</b> (${esc(toolOf(m.scan))}) covers only <span class="mono">${e(m.module)}</span>; findings elsewhere are not counted as gone because of it.</li>`).join(''):'<li>All scans cover the whole repository.</li>'}</ul>
+      <h3>Selection</h3><ul><li>Statuses: ${esc(x.statuses.join(', '))}</li><li>Minimum severity: ${x.minSev}</li><li>${x.filtered?'Findings of the current filter view only':'All findings of the project'}${esc(x.verdict)}</li>
+        <li>${x.rated} of ${x.total} findings rated manually${x.reviewers.length?` by ${x.reviewers.map(n=>esc(n)).join(', ')}`:''}</li></ul>
+      <h3>Method</h3><ul><li>Findings come from automated scanners; Refindings does not scan code itself.</li>
+        <li>The same finding is recognised across scans and scanners by file, category and flagged code, even when the wording changes; severity is the highest reported.</li>
+        <li>Ratings (confirmed, false positive, accepted risk, fixed, …) are manual decisions of the reviewers; unrated findings are open.</li>
+        <li>"No longer reported" means the latest scan covering the file did not report the finding; it is not proof of a fix.</li>
+        <li>Limits: only vulnerabilities the scanners detect are covered; code is shown only as far as the reports include it.</li></ul>`);
+  }
   // 2 changes
   if(sec.changes){
     const c=M.changes;
@@ -5141,6 +5314,15 @@ function renderHtmlReport(M){
       <h3>OWASP Top 10 (2021)</h3><table><thead><tr><th>Category</th><th class="c">Findings</th><th class="c">Open / confirmed</th><th class="c">Confirmed</th></tr></thead><tbody>${M.owaspRows.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="c">${v.total}</td><td class="c">${v.active}</td><td class="c">${v.confirmed}</td></tr>`).join('')}</tbody></table>
       <div class="two"><div><h3>Top files</h3><table><thead><tr><th>File</th><th class="c">Open / conf.</th><th class="c">Total</th></tr></thead><tbody>${M.topFiles.map(([f,v])=>`<tr><td class="mono">${e(f)}</td><td class="c">${v.active}</td><td class="c">${v.total}</td></tr>`).join('')}</tbody></table></div>
       <div><h3>Top modules</h3><table><thead><tr><th>Folder</th><th class="c">Open / conf.</th><th class="c">Critical</th><th class="c">Total</th></tr></thead><tbody>${M.topModules.map(([f,v])=>`<tr><td class="mono">${e(f)}</td><td class="c">${v.active}</td><td class="c">${v.crit}</td><td class="c">${v.total}</td></tr>`).join('')}</tbody></table></div></div>`);
+  }
+  // 5b scanner comparison
+  if(sec.tools){
+    const x=M.toolsCmp;
+    section('tools','Scanner comparison', !x ? '<p class="m">Only one scanner in this report.</p>' :
+      `<table><thead><tr><th>Scanner</th><th class="c">Findings</th><th class="c">Unresolved</th><th class="c">Confirmed</th><th class="c">False positive</th><th class="c">False-positive share of rated</th><th class="c">Only this scanner</th><th class="c">Also found by others</th></tr></thead><tbody>${x.rows.map(r=>`<tr><td>${esc(r.tool)}</td><td class="c">${r.total}</td><td class="c">${r.unresolved}</td><td class="c">${r.confirmed}</td><td class="c">${r.fp}</td><td class="c">${r.rated?Math.round(100*r.fp/r.rated)+' %':'–'}</td><td class="c">${r.only}</td><td class="c">${r.shared}</td></tr>`).join('')}</tbody></table>
+      <h3>Overlap</h3><table><thead><tr><th></th>${x.tools.map(t=>`<th class="c">${esc(t)}</th>`).join('')}</tr></thead><tbody>${x.tools.map((a,i)=>`<tr><td>${esc(a)}</td>${x.pair[i].map(v=>`<td class="c">${v===null?'–':v}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      <p class="m">Findings reported by both scanners of a pair. Matching uses file, category and flagged code, so the same issue found by different tools counts once.</p>
+      ${x.multi.length?`<h3>Found by several scanners (${x.multiTotal})</h3><table><thead><tr><th class="c">Sev.</th><th>Finding</th><th>Scanners</th><th>Status</th><th>File</th></tr></thead><tbody>${x.multi.map(d=>`<tr><td class="c">${sevBadge(d.sevMax)}</td><td>${e(d.it.lastTitle)}</td><td>${esc(d.tools.join(', '))}</td><td>${esc(statusLabel(d.eff))}</td><td>${fileCell(d)}</td></tr>`).join('')}</tbody></table>${x.multiTotal>x.multi.length?`<p class="m">${x.multiTotal-x.multi.length} more not listed.</p>`:''}`:'<p class="m">No finding was reported by more than one scanner.</p>'}`);
   }
   // 6 SLA
   if(sec.sla) section('sla','Age and fix deadlines', `<table><thead><tr><th>Severity</th><th class="c">Deadline</th><th class="c">Open / confirmed</th><th class="c">Avg. age</th><th class="c">Oldest</th><th class="c">Overdue</th><th class="c">Fixed</th><th class="c">Avg. time to fix</th></tr></thead><tbody>
@@ -5226,7 +5408,26 @@ function renderMdReport(M){
   const out=[`# ${mdEsc(projectName())}: Refindings report`, '',
     `Refindings ${APP_VERSION}, created ${fmtDT(M.now)}. ${M.scans.length} scans from ${fmtDT(M.scans[0].started)} to ${fmtDT(M.latest.started)}${M.latest.codebase?', code base '+code(M.latest.codebase):''}${verdictText()}${o.scope==='filtered'?', filtered view':''}.`, ''];
   const toc=[]; const H=(id,t)=>{ toc.push(t); out.push(`## ${t}`, ''); };
+  if(sec.exec){ H('exec','Management summary'); const x=M.exec, t=x.trend;
+    out.push(`**Overall risk: ${x.level?SEV_NAME[x.level]:'none found'}** (${x.level?(x.verified?'based on confirmed findings':'not verified yet: no finding confirmed'):'no unresolved findings'})`, '',
+      '| Severity | Unresolved |', '|---|---:|', ...SEV_ORDER.map(b=>`| ${SEV_NAME[b]} | ${x.bySev[b]} |`), '',
+      `${x.unresolved} unresolved (open, in review or confirmed), ${x.confirmed} confirmed, ${x.fixed} fixed${x.regressions?`, ${x.regressions} regressions`:''}.${t.scans>1?` Latest scan, ${mdEsc(r(t.name))}: ${t.newN} new, ${t.goneN} no longer reported; ${t.latestActive} unresolved still reported by the latest scan of their scanner.`:''}`, '');
+    if(x.top.length) out.push('**Top risks**', '', '| Sev. | Finding | Status | File |', '|---:|---|---|---|', ...x.top.map(d=>`| ${d.sevMax} | ${c_(d.it.lastTitle)}${d.regression?' (_regression_)':''} | ${statusLabel(d.eff)} | ${fileMd(d)} |`), '');
+    out.push('**Recommended next steps**', '', ...x.recs.map((s,i)=>`${i+1}. ${mdEsc(r(s))}`), ''); }
   if(sec.summary){ H('summary','Summary'); out.push(...M.summary.map(s=>'- '+mdEsc(r(s))), '', '| Status | Count |', '|---|---:|', ...segs.map(k=>`| ${statusLabel(k)} | ${M.facts.cnt[k]} |`), `| regressions | ${M.facts.regressions} |`, `| SLA overdue | ${M.facts.slaDue} |`, `| new in latest scan | ${M.facts.isNew} |`, ''); }
+  if(sec.scope){ H('scope','Scope and methodology'); const x=M.scopeInfo;
+    out.push(`${x.total} findings from ${M.scans.length} scans between ${fmtDT(x.from)} and ${fmtDT(x.to)}.`, '', '**Scanners**', '',
+      '| Scanner | Scans | First scan | Latest scan | Latest report file | Raw findings (latest) | Rejected by scanner |', '|---|---:|---|---|---|---:|---:|',
+      ...x.tools.map(t=>`| ${mdCell(t.tool)} | ${t.scans} | ${fmtDT(t.first)} | ${fmtDT(t.last)} | ${code(t.file)} | ${t.raw} | ${t.rejected} |`), '', '**Coverage**', '',
+      x.bases.length?`- Code base${x.bases.length===1?'':'s'}: ${x.bases.map(code).join(', ')}`:'- The reports name no code base; paths are relative to the scanned folder.',
+      ...(x.modules.length?x.modules.map(m=>`- Module scan ${mdEsc(r(scanName(m.scan)))} (${mdEsc(toolOf(m.scan))}) covers only ${code(m.module)}; findings elsewhere are not counted as gone because of it.`):['- All scans cover the whole repository.']), '',
+      '**Selection**', '', `- Statuses: ${x.statuses.map(mdEsc).join(', ')}`, `- Minimum severity: ${x.minSev}`, `- ${x.filtered?'Findings of the current filter view only':'All findings of the project'}${x.verdict}`,
+      `- ${x.rated} of ${x.total} findings rated manually${x.reviewers.length?` by ${x.reviewers.map(n=>mdEsc(n)).join(', ')}`:''}`, '',
+      '**Method**', '', '- Findings come from automated scanners; Refindings does not scan code itself.',
+      '- The same finding is recognised across scans and scanners by file, category and flagged code, even when the wording changes; severity is the highest reported.',
+      '- Ratings (confirmed, false positive, accepted risk, fixed, …) are manual decisions of the reviewers; unrated findings are open.',
+      '- "No longer reported" means the latest scan covering the file did not report the finding; it is not proof of a fix.',
+      '- Limits: only vulnerabilities the scanners detect are covered; code is shown only as far as the reports include it.', ''); }
   if(sec.changes){ H('changes','Changes since last report'); const c=M.changes;
     if(!c) out.push('_No earlier report on record._', '');
     else { out.push(`Last report: ${fmtDT(c.at)}. ${c.newScans.length} new scans, ${c.added.length} new findings, ${c.changed.length} status changes${c.vanished?`, ${c.vanished} findings no longer in the project`:''}.`, '');
@@ -5243,6 +5444,14 @@ function renderMdReport(M){
     out.push('**OWASP Top 10 (2021)**', '', '| Category | Findings | Open / confirmed | Confirmed |', '|---|---:|---:|---:|', ...M.owaspRows.map(([k,v])=>`| ${mdCell(k)} | ${v.total} | ${v.active} | ${v.confirmed} |`), '');
     out.push('**Top files**', '', '| File | Open / confirmed | Total |', '|---|---:|---:|', ...M.topFiles.map(([f,v])=>`| ${code(f)} | ${v.active} | ${v.total} |`), '');
     out.push('**Top modules**', '', '| Folder | Open / confirmed | Critical | Total |', '|---|---:|---:|---:|', ...M.topModules.map(([f,v])=>`| ${code(f)} | ${v.active} | ${v.crit} | ${v.total} |`), ''); }
+  if(sec.tools){ H('tools','Scanner comparison'); const x=M.toolsCmp;
+    if(!x) out.push('_Only one scanner in this report._', '');
+    else { out.push('| Scanner | Findings | Unresolved | Confirmed | False positive | False-positive share of rated | Only this scanner | Also found by others |', '|---|---:|---:|---:|---:|---:|---:|---:|',
+        ...x.rows.map(t=>`| ${mdCell(t.tool)} | ${t.total} | ${t.unresolved} | ${t.confirmed} | ${t.fp} | ${t.rated?Math.round(100*t.fp/t.rated)+' %':'–'} | ${t.only} | ${t.shared} |`), '',
+        '**Overlap** (findings reported by both scanners of a pair)', '', `| | ${x.tools.map(mdCell).join(' | ')} |`, `|---|${'---:|'.repeat(x.tools.length)}`,
+        ...x.tools.map((a,i)=>`| ${mdCell(a)} | ${x.pair[i].map(v=>v===null?'–':v).join(' | ')} |`), '');
+      if(x.multi.length) out.push(`**Found by several scanners (${x.multiTotal})**`, '', '| Sev. | Finding | Scanners | Status | File |', '|---:|---|---|---|---|', ...x.multi.map(d=>`| ${d.sevMax} | ${c_(d.it.lastTitle)} | ${mdCell(d.tools.join(', '))} | ${statusLabel(d.eff)} | ${fileMd(d)} |`), x.multiTotal>x.multi.length?`_${x.multiTotal-x.multi.length} more not listed._`:'', '');
+      else out.push('_No finding was reported by more than one scanner._', ''); } }
   if(sec.sla){ H('sla','Age and fix deadlines');
     out.push('| Severity | Deadline | Open / confirmed | Avg. age | Oldest | Overdue | Fixed | Avg. time to fix |', '|---|---:|---:|---:|---:|---:|---:|---:|', ...M.slaRows.map(x=>`| ${x.b.label} | ${x.sla?x.sla+' d':'–'} | ${x.active} | ${x.avgAge!=null?x.avgAge+' d':'–'} | ${x.maxAge!=null?x.maxAge+' d':'–'} | ${x.overdue} | ${x.fixed} | ${x.avgFix!=null?x.avgFix+' d':'–'} |`), '');
     if(M.slaDue.length) out.push(`**Past the deadline (${M.slaDue.length})**`, '', '| Sev. | Finding | File | Status | Age | Overdue |', '|---:|---|---|---|---:|---:|', ...M.slaDue.map(d=>`| ${d.sevMax} | ${c_(d.it.lastTitle)} | ${fileMd(d)} | ${statusLabel(d.eff)} | ${d.ageDays} d | +${d.slaOver} d |`), ''); }
@@ -5527,6 +5736,149 @@ $('#bulkEditor').onclick=async()=>{ if(!SEL.size || !ensureEditor()) return; con
 $('#bulkClear').onclick=()=>{ SEL.clear(); renderTable(); };
 $('#bulkMerge').onclick=()=>{ if(SEL.size<2){ toast('Select at least two findings'); return; } doMerge([...SEL]); };
 $('#drClose').onclick=closeDrawer; $('#scrim').onclick=closeDrawer;
+/* ---- drawer: size (drag, S/M/L, expand, dock), two columns, code height, mini bar, compare ---- */
+var DRW={min:360,def:760,w:760,pin:false,exp:false,cols:true,mini:false,codeH:null};
+var DRB=null;   // finding pinned on the right for comparison (not saved)
+try{ const o=JSON.parse(localStorage.getItem(LS_KEY+'.drawer')||'null'); if(o){ if(Number.isFinite(+o.w)) DRW.w=+o.w; DRW.pin=!!o.pin; DRW.exp=!!o.exp; DRW.cols=o.cols!==false; DRW.mini=!!o.mini; if(Number.isFinite(+o.codeH)&&+o.codeH>0) DRW.codeH=+o.codeH; } }catch(e){}
+function drwSave(){ try{ localStorage.setItem(LS_KEY+'.drawer', JSON.stringify({w:DRW.w,pin:DRW.pin,exp:DRW.exp,cols:DRW.cols,mini:DRW.mini,codeH:DRW.codeH})); }catch(e){} }
+function drwClamp(w){ const max=DRW.pin ? Math.max(DRW.min,innerWidth-560) : innerWidth-40; return Math.max(Math.min(DRW.min,innerWidth), Math.min(Math.round(w), max)); }
+function drwPreset(k){ return drwClamp(k==='S'?420:k==='M'?640:innerWidth*.6); }
+function applyDrawerLayout(){
+  if(!DRW) return;
+  const dr=$('#drawer'), open=dr.classList.contains('on');
+  const cmp=DRB!=null && !DRW.mini;
+  let eff;
+  if(DRW.mini) eff=64;
+  else { eff=DRW.exp ? Math.round(innerWidth*.9) : drwClamp(DRW.w); if(cmp) eff=Math.max(eff,Math.min(900,innerWidth-40)); }
+  document.documentElement.style.setProperty('--dw',eff+'px');
+  const dock=open && (DRW.mini || (DRW.pin && !DRW.exp && innerWidth-eff>=560));
+  document.body.classList.toggle('dr-dock',dock);
+  document.body.classList.toggle('dr-exp',DRW.exp && !DRW.mini);
+  dr.classList.toggle('mini',DRW.mini);
+  dr.classList.toggle('cmp',cmp);
+  dr.classList.toggle('wide',!DRW.mini && !cmp && DRW.cols && eff>=900);
+  if(DRW.codeH) document.documentElement.style.setProperty('--codeh',DRW.codeH+'px'); else document.documentElement.style.removeProperty('--codeh');
+  for(const b of $('#drTools').querySelectorAll('[data-drw]')){
+    const k=b.dataset.drw;
+    if(k==='mini') continue;
+    b.setAttribute('aria-pressed', String(k==='exp'?DRW.exp : k==='pin'?DRW.pin : k==='cols'?DRW.cols : k==='cmp'?DRB!=null : (!DRW.exp && !cmp && eff===drwPreset(k))));
+  }
+  $('#scrim').classList.toggle('on', open && !dock);
+}
+$('#drTools').addEventListener('click',e=>{
+  const b=e.target.closest('[data-drw]'); if(!b) return; const k=b.dataset.drw;
+  if(k==='cmp'){ DRB = DRB!=null ? null : (CUR||null); if(CUR){ renderDrawer(); markCur(); } return; }
+  if(k==='exp') DRW.exp=!DRW.exp;
+  else if(k==='pin') DRW.pin=!DRW.pin;
+  else if(k==='cols') DRW.cols=!DRW.cols;
+  else if(k==='mini') DRW.mini=true;
+  else { DRW.exp=false; DRW.w=drwPreset(k); }
+  drwSave(); applyDrawerLayout();
+});
+{
+  const h=$('#drResize');
+  h.addEventListener('pointerdown',e=>{ if(e.button!==0) return; e.preventDefault(); DRW.exp=false; h.setPointerCapture(e.pointerId); document.body.classList.add('dr-drag'); });
+  h.addEventListener('pointermove',e=>{ if(!document.body.classList.contains('dr-drag')) return; DRW.w=drwClamp(innerWidth-e.clientX); applyDrawerLayout(); });
+  const end=()=>{ if(!document.body.classList.contains('dr-drag')) return; document.body.classList.remove('dr-drag'); drwSave(); applyDrawerLayout(); };
+  h.addEventListener('pointerup',end); h.addEventListener('pointercancel',end); h.addEventListener('lostpointercapture',end);
+  h.addEventListener('dblclick',()=>{ DRW.exp=false; DRW.w=DRW.def; drwSave(); applyDrawerLayout(); });
+  h.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowLeft' && e.key!=='ArrowRight') return;
+    e.preventDefault(); e.stopPropagation();
+    const base=DRW.exp?Math.round(innerWidth*.9):DRW.w; DRW.exp=false;
+    DRW.w=drwClamp(base+(e.key==='ArrowLeft'?24:-24)); drwSave(); applyDrawerLayout();
+  });
+  addEventListener('resize',applyDrawerLayout);
+  applyDrawerLayout();
+}
+/* two columns: wraps the sections from the first to the last code/reasoning panel into a right column */
+function drwWrapCols(){
+  const b=$('#drBody'), kids=[...b.children];
+  const idx=kids.map((k,i)=>k.classList.contains('scanner-panel')?i:-1).filter(i=>i>=0);
+  if(!idx.length) return;
+  const cols=document.createElement('div'), L=document.createElement('div'), R=document.createElement('div');
+  cols.className='dr-cols'; L.className='dr-colL'; R.className='dr-colR';
+  kids.forEach((k,i)=>(i>=idx[0]&&i<=idx[idx.length-1]?R:L).appendChild(k));
+  cols.append(L,R); b.appendChild(cols);
+}
+/* code height handle under the flagged code (idea 2) */
+function drwCodeHandle(){
+  const pre=$('#drBody pre.code'); if(!pre) return;
+  const rz=document.createElement('div'); rz.className='code-rz'; rz.tabIndex=0;
+  rz.setAttribute('role','separator'); rz.setAttribute('aria-orientation','horizontal'); rz.setAttribute('aria-label','Code height');
+  rz.title='Drag to change the code height, double-click to reset';
+  pre.after(rz);
+}
+{
+  const body=$('#drBody'); let st=null;
+  const cur=pre=>parseFloat(getComputedStyle(pre).maxHeight)||480;
+  const setH=v=>{ DRW.codeH=Math.round(Math.max(100,Math.min(v,innerHeight-120))); applyDrawerLayout(); };
+  body.addEventListener('pointerdown',e=>{ const rz=e.target.closest('.code-rz'); if(!rz||e.button!==0) return; e.preventDefault(); const pre=rz.previousElementSibling; st={y:e.clientY,h:cur(pre),rz,pre}; rz.setPointerCapture(e.pointerId); document.body.classList.add('dr-codedrag'); });
+  body.addEventListener('pointermove',e=>{ if(!st) return; setH(st.h+(e.clientY-st.y)); });
+  const end=()=>{ if(!st) return; st=null; document.body.classList.remove('dr-codedrag'); drwSave(); };
+  body.addEventListener('pointerup',end); body.addEventListener('pointercancel',end); body.addEventListener('lostpointercapture',end);
+  body.addEventListener('dblclick',e=>{ if(!e.target.closest('.code-rz')) return; DRW.codeH=null; drwSave(); applyDrawerLayout(); });
+  body.addEventListener('keydown',e=>{
+    const rz=e.target.closest&&e.target.closest('.code-rz'); if(!rz||(e.key!=='ArrowUp'&&e.key!=='ArrowDown')) return;
+    e.preventDefault(); e.stopPropagation(); setH(cur(rz.previousElementSibling)+(e.key==='ArrowDown'?40:-40)); drwSave();
+  });
+}
+/* mini bar (idea 8) */
+function drwMiniSync(){
+  const d=CUR&&D.find(x=>x.it.id===CUR); if(!d) return;
+  $('#drMiniTitle').textContent=findingDisplayTitle(d.it);
+  $('#drMiniSt').innerHTML=availableStatuses().map(s=>`<button class="btn small${d.eff===s.id?' sel':''}" data-mst="${s.id}" style="color:${s.color}" title="${esc(s.label)} (${esc(s.key)})" aria-pressed="${d.eff===s.id}">${esc(s.key)}</button>`).join('');
+}
+$('#drMini').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.mst){ drawerSet(b.dataset.mst); return; }
+  const k=b.dataset.mini;
+  if(k==='restore'){ DRW.mini=false; drwSave(); applyDrawerLayout(); }
+  else if(k==='prev') step(-1); else if(k==='next') step(1); else if(k==='close') closeDrawer();
+});
+/* compare pane (idea 7) */
+function drwText(h){ const t=document.createElement('div'); t.innerHTML=h; return t.textContent.trim(); }
+function drwFields(d){
+  const it=d.it, sc=S.scans, stt=STATUS_BY_ID[d.eff];
+  return [
+    ['Status', `<span class="pill" style="color:${stt?stt.color:'inherit'}">${esc(stt?stt.label:d.eff)}</span>`],
+    ['Severity', esc(String(d.sevMax==null?'–':d.sevMax))],
+    ['Category', esc(CAT_LABEL[it.cat]||it.cat||'–')],
+    ['File', fileRef(it)],
+    ['Reported by', esc(d.tools.join(', '))],
+    ['First seen', esc(fmtDT(sc[d.first].started))],
+    ['Last seen', esc(fmtDT(sc[d.last].started))+(d.inLatest?' (latest scan)':'')],
+    ['Seen', `${d.nSeen} of ${d.span} scans`],
+    ['Assignee', esc(it.editor||'Unassigned')],
+  ].map(([l,h])=>[l,h,drwText(h)]);
+}
+function drwRenderCmp(){
+  const box=$('#drCmp');
+  const d=DRB!=null ? D.find(x=>x.it.id===DRB) : null;
+  if(DRB!=null && !d) DRB=null;
+  if(!d){ box.innerHTML=''; return; }
+  const a=D.find(x=>x.it.id===CUR), same=!a || d.it.id===CUR;
+  const fa=a?drwFields(a):[], fb=drwFields(d), it=d.it;
+  const rows=fb.map(([l,h,t],i)=>{ const df=!same && fa[i] && fa[i][2]!==t; return `<dt>${l}</dt><dd class="${df?'df':''}">${h}${df?' <span class="dfm" title="Differs from the finding on the left">≠</span>':''}</dd>`; }).join('');
+  const snip=it.snip.map(([ln,f,t])=>`<div class="${f?'hit':''}"><span class="ln">${ln}</span>${esc(t)}</div>`).join('');
+  box.innerHTML=`<div class="cmp-top"><b>Pinned for comparison</b><span><button class="btn small" data-cmp="swap" title="Show the pinned finding on the left and pin the current one">⇄ Swap</button> <button class="btn small" data-cmp="unpin" title="Stop comparing">✕</button></span></div>
+    ${same?'<p class="cmp-hint">Pick another finding in the list (or with j/k) to compare it with this one. Differences are marked with ≠.</p>':''}
+    <h3 class="cmp-t">${esc(findingDisplayTitle(it))}</h3>
+    <dl class="kv">${rows}</dl>
+    ${it.note?`<div class="dr-sec" style="margin-top:14px"><h4>Note</h4><div class="reason">${esc(it.note)}</div></div>`:''}
+    <div class="dr-sec" style="margin-top:14px"><h4>Flagged code</h4><pre class="code">${snip||'<div>–</div>'}</pre></div>`;
+  box.scrollTop=0;
+}
+$('#drCmp').addEventListener('click',e=>{
+  const b=e.target.closest('[data-cmp]'); if(!b) return;
+  if(b.dataset.cmp==='unpin'){ DRB=null; renderDrawer(); markCur(); }
+  else if(b.dataset.cmp==='swap'){ const x=CUR; CUR=DRB; DRB=x; ensureRowShown(CUR); renderDrawer(); markCur(); }
+});
+function drwAfterRender(){
+  drwWrapCols(); drwCodeHandle(); drwRenderCmp(); drwMiniSync(); applyDrawerLayout();
+  const c=$('#drCmp pre.code'), hit=c&&c.querySelector('.hit');
+  if(hit) c.scrollTop=Math.max(0,hit.offsetTop-c.clientHeight/2);
+}
 $('#drPrev').onclick=()=>step(-1); $('#drNext').onclick=()=>step(1);
 $('#drBody').addEventListener('change',e=>{
   if(e.target.id==='drCategory'){setCategory([CUR],e.target.value);return;}

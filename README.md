@@ -1,4 +1,4 @@
-# Refindings 2.7.4
+# Refindings 2.10.0
 
 Review security findings from multiple scanners in one offline HTML application. Runs in a modern browser on Windows, Linux and macOS, without installation or a server. The page blocks all network access (strict Content Security Policy).
 
@@ -41,10 +41,22 @@ A scan of a single module (for example JSpringGuard run on `repo/orders`) report
 - **Review queue** (priority by severity, regression, overdue, unassigned) and **My findings**.
 - Assign reviewers, manage reviewers (create, rename, deactivate), apply bulk changes, merge and split findings, use Undo/Redo.
 - Per-finding **change history** (assignee, status, category, note) and status history.
+- Eight ratings (Open, Confirmed, In review, Test Hardening, Demo Files, False positive, Accepted risk, Fixed) with one-key shortcuts; see [Detail panel](#detail-panel).
 - Edit categories and rating names, colors and shortcuts under **Global settings**. Remove/Restore controls affect new manual assignments while preserving existing decisions.
 - Configure accepted-risk review intervals: default **90 days**, quick choices **30/90/180/365 days**.
 - Path rules, editor links (VS Code, VSCodium, Cursor, JetBrains, custom) and scan renaming.
 - Merge project files or import ratings only; conflicting ratings are flagged for resolution.
+
+## Detail panel
+
+Click a finding to open its detail panel on the right. Keys: `o` `c` `r` `t` `d` `f` `a` `x` set the rating, `j` / `k` (or the arrow keys) go to the next / previous finding, `Esc` closes it, `Ctrl/Cmd+Z` undoes.
+
+- **Resize:** drag the left edge (double-click resets to the default width, arrow keys left/right work on the focused edge), or use **S / M / L**. **⤢** expands the panel to 90 % of the window. Width, columns, code height and the mini bar are remembered in the browser.
+- **Dock:** the **Dock** button makes the page shrink next to the panel instead of being covered, so the findings list stays usable while you step through it. Off by default and remembered. While the panel is expanded, or when the window leaves less than 560 px for the list, the panel overlays the page instead.
+- **▥ Two columns:** from about 900 px, details, rating and notes are on the left; flagged code, scanner reasoning and recommendation on the right. Switch it off with the same button.
+- **Code height:** drag the handle below the flagged code (double-click resets, ↑ / ↓ on the focused handle).
+- **⇥ Mini bar:** collapses the panel to a slim bar with the rating keys, previous / next and the finding title. The page stays usable next to it; **⤢** restores the panel.
+- **⇄ Compare:** pins the current finding on the right. Pick another finding in the list (or with `j` / `k`) and compare status, severity, category, file, tools, first / last seen, note and code. Differences are marked with **≠**; **Swap** exchanges both sides, **✕** ends the comparison. The pinned row is marked in the table. Compare needs at least 900 px and ends when the panel is closed.
 
 ## Large projects
 
