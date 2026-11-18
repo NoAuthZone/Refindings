@@ -5,9 +5,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-6NE2Aanvg8pEitTTY/v8nNJZEG3hDG5MMpy3zCRAOVo=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-tl5ZKzvsuQgoiBrKlJWI0Ds1W3CAuvgxiCuAvn7wpaI='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-AhojLsv2zM0YDoa3i1FozgVYvWKW6XhQI+lAaq1UEqg=' 'sha256-H0vxK66jBYcXI9XpQUAHU58RO7UVsPhASPWOzhLxKEE=' 'sha256-WloByBxBYo16jnNxzeQSKTUHlOlF0nMmN1UGgHaS5ng='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Refindings 2.10.0</title>
+<title>Refindings 2.12.0</title>
 <style>
 :root{
   --bg:#EEF1F4; --surface:#FFFFFF; --sunk:#F6F8FA; --ink:#18212C; --muted:#5A6573; --faint:#8A94A1; --line:#D6DCE3;
@@ -242,6 +242,20 @@ aside.drawer.cmp .dr-cmp{display:block}
 .dr-cmp .kv dd.df{box-shadow:inset 3px 0 0 var(--s-open);padding-left:7px}
 .dr-cmp .dfm{color:var(--s-open);font-weight:700}
 tr.row.pinb{box-shadow:inset 3px 0 0 var(--s-fp)}
+/* code across the whole panel (button "Full panel" at the flagged code) */
+#drawer.codefull .dr-b{display:flex;flex-direction:column;overflow:hidden;padding-bottom:14px}
+#drawer.codefull .dr-b>:not(.dr-cols){display:none}
+#drawer.codefull .dr-cols{display:flex;flex-direction:column;flex:1;min-height:0}
+#drawer.codefull .dr-colL{display:none}
+#drawer.codefull .dr-colR{display:flex;flex-direction:column;flex:1;min-height:0;max-height:none;overflow:hidden;position:static;padding:0}
+#drawer.codefull .dr-colR>:not(.code-sec){display:none}
+#drawer.codefull .code-sec{display:flex;flex-direction:column;flex:1;min-height:0;margin-bottom:0}
+#drawer.codefull .code-sec pre.code{flex:1;min-height:0;max-height:none;height:auto}
+#drawer.codefull .code-sec .code-rz{display:none}
+#drawer.cmp.codefull .dr-cmp{display:flex;flex-direction:column;overflow:hidden;padding-bottom:14px}
+#drawer.cmp.codefull .dr-cmp>:not(.cmp-top):not(.cmp-t):not(.code-sec){display:none}
+#drawer.cmp.codefull .dr-cmp .code-sec{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:0!important}
+#drawer.cmp.codefull .dr-cmp .code-sec pre.code{flex:1;min-height:0;max-height:none}
 .dr-h{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
 .dr-h h3{margin:0;font-size:18px;line-height:1.3;flex:1}
 .dr-b{overflow:auto;padding:14px 18px 30px;flex:1}
@@ -778,7 +792,7 @@ table.list th{vertical-align:top}
 <script id="core">
 /* ============ Core: normalisation, fingerprints, matching ============ */
 const TOOL_VERSION = 4;          // project file schema (4: code snippets stored once in snipPool)
-const APP_VERSION = '2.10.0';     // program version, increase with every change
+const APP_VERSION = '2.12.0';     // program version, increase with every change
 const STATUSES = [
   {id:'open',      label:'Open',               key:'o', color:'var(--s-open)'},
   {id:'confirmed', label:'Confirmed',          key:'c', color:'var(--s-confirmed)'},
@@ -2366,9 +2380,11 @@ const hasAllRecords = state => state.scans.length>0 && state.scans.every(s=>Arra
 
 /* Group the records of one scan into items (same algorithm as always, now shared by import and replay) */
 /* strict (deterministic tools): a finding never joins an item that already has a different finding of this scan */
+const NOFALLBACK_CATS=new Set(['HARDENED','TEST_HARDENING','DEMO_FILES']);
 function applyRecords(state, scanId, started, recs, strict){
   const index = new Map();
-  const addIdx = e => { const k=e.file+'|'+e.cat; if(!index.has(k)) index.set(k,[]); index.get(k).push(e); };
+  const fileIdx = new Map();   // same file, any category: scanners (LLMs above all) name the same place differently
+  const addIdx = e => { const k=e.file+'|'+e.cat; if(!index.has(k)) index.set(k,[]); index.get(k).push(e); if(!fileIdx.has(e.file)) fileIdx.set(e.file,[]); fileIdx.get(e.file).push(e); };
   for(const it of Object.values(state.items)) sigEntries(it).forEach(addIdx);
   const touched=new Set(); let created=0, matched=0;
   for(const q of recs){
@@ -2383,6 +2399,17 @@ function applyRecords(state, scanId, started, recs, strict){
     }
     if(bs<9 && bestFree && bf>=0.5){ best=bestFree; bs=bf; }
     else if(strict && bs<9 && best && touched.has(best.it.id)) best=null;
+    // No match in the same category: look at the same place (file and code/lines) in other categories. Findings
+    // that already have a hit in this scan stay apart, so two different issues at one place are not merged.
+    if(!(best && bs>=0.5) && !NOFALLBACK_CATS.has(q.c)){
+      let fb=null, fs=0;
+      for(const e of fileIdx.get(q.f)||[]){
+        if(e.cat===q.c || NOFALLBACK_CATS.has(e.cat) || touched.has(e.it.id) || e.it.seen[scanId]) continue;
+        const sc=jaccard(q.k,e.sig)+(overlaps(q.r,e.range)?0.25:0);
+        if(sc>fs){ fs=sc; fb=e; }
+      }
+      if(fb && fs>=0.5){ best=fb; bs=fs; }
+    }
     let it, entry;
     if(best && bs>=0.5){ it=best.it; entry=best; matched++; }
     else {
@@ -2522,11 +2549,15 @@ function detectModulePrefix(files,known){
   if(direct*2>=files.size) return '';
   const prefixes=new Map();
   for(const k of known){ for(let i=k.indexOf('/');i>=0;i=k.indexOf('/',i+1)){ const suf=k.slice(i+1); if(files.has(suf)){ let set=prefixes.get(suf); if(!set) prefixes.set(suf,set=new Set()); set.add(k.slice(0,i+1)); } } }
-  const votes=new Map();for(const set of prefixes.values()) for(const pre of set) votes.set(pre,(votes.get(pre)||0)+1);
+  const votes=new Map(), depth=new Map();
+  for(const [suf,set] of prefixes){ const d=suf.split('/').length; for(const pre of set){ votes.set(pre,(votes.get(pre)||0)+1); if(d>(depth.get(pre)||0)) depth.set(pre,d); } }
   let best='',bv=0,second=0;
   for(const [pre,v] of votes){ if(v>bv){ second=bv; best=pre; bv=v; } else if(v>second) second=v; }
   // A tie (e.g. only build.gradle, which every module has) gives no evidence for one module.
-  return best && bv>direct && bv>second && bv*2>=files.size ? best : '';
+  // Evidence is enough when half of the scan's files match, or at least two files do, or one file with a deep path
+  // (src/main/java/...): a module scan often reports many files the larger scan did not (other rules, other depth).
+  const enough = bv*2>=files.size || bv>=2 || (depth.get(best)||0)>=3;
+  return best && bv>direct && bv>second && enough ? best : '';
 }
 function knownFilesExcept(state,scan){
   const known=new Set();
@@ -5737,10 +5768,10 @@ $('#bulkClear').onclick=()=>{ SEL.clear(); renderTable(); };
 $('#bulkMerge').onclick=()=>{ if(SEL.size<2){ toast('Select at least two findings'); return; } doMerge([...SEL]); };
 $('#drClose').onclick=closeDrawer; $('#scrim').onclick=closeDrawer;
 /* ---- drawer: size (drag, S/M/L, expand, dock), two columns, code height, mini bar, compare ---- */
-var DRW={min:360,def:760,w:760,pin:false,exp:false,cols:true,mini:false,codeH:null};
+var DRW={min:360,def:760,w:760,pin:false,exp:false,cols:true,mini:false,codeH:null,codeFull:false};
 var DRB=null;   // finding pinned on the right for comparison (not saved)
-try{ const o=JSON.parse(localStorage.getItem(LS_KEY+'.drawer')||'null'); if(o){ if(Number.isFinite(+o.w)) DRW.w=+o.w; DRW.pin=!!o.pin; DRW.exp=!!o.exp; DRW.cols=o.cols!==false; DRW.mini=!!o.mini; if(Number.isFinite(+o.codeH)&&+o.codeH>0) DRW.codeH=+o.codeH; } }catch(e){}
-function drwSave(){ try{ localStorage.setItem(LS_KEY+'.drawer', JSON.stringify({w:DRW.w,pin:DRW.pin,exp:DRW.exp,cols:DRW.cols,mini:DRW.mini,codeH:DRW.codeH})); }catch(e){} }
+try{ const o=JSON.parse(localStorage.getItem(LS_KEY+'.drawer')||'null'); if(o){ if(Number.isFinite(+o.w)) DRW.w=+o.w; DRW.pin=!!o.pin; DRW.exp=!!o.exp; DRW.cols=o.cols!==false; DRW.mini=!!o.mini; DRW.codeFull=!!o.codeFull; if(Number.isFinite(+o.codeH)&&+o.codeH>0) DRW.codeH=+o.codeH; } }catch(e){}
+function drwSave(){ try{ localStorage.setItem(LS_KEY+'.drawer', JSON.stringify({w:DRW.w,pin:DRW.pin,exp:DRW.exp,cols:DRW.cols,mini:DRW.mini,codeH:DRW.codeH,codeFull:DRW.codeFull})); }catch(e){} }
 function drwClamp(w){ const max=DRW.pin ? Math.max(DRW.min,innerWidth-560) : innerWidth-40; return Math.max(Math.min(DRW.min,innerWidth), Math.min(Math.round(w), max)); }
 function drwPreset(k){ return drwClamp(k==='S'?420:k==='M'?640:innerWidth*.6); }
 function applyDrawerLayout(){
@@ -5756,6 +5787,7 @@ function applyDrawerLayout(){
   document.body.classList.toggle('dr-exp',DRW.exp && !DRW.mini);
   dr.classList.toggle('mini',DRW.mini);
   dr.classList.toggle('cmp',cmp);
+  dr.classList.toggle('codefull',DRW.codeFull && !DRW.mini);
   dr.classList.toggle('wide',!DRW.mini && !cmp && DRW.cols && eff>=900);
   if(DRW.codeH) document.documentElement.style.setProperty('--codeh',DRW.codeH+'px'); else document.documentElement.style.removeProperty('--codeh');
   for(const b of $('#drTools').querySelectorAll('[data-drw]')){
@@ -5808,7 +5840,21 @@ function drwCodeHandle(){
   rz.setAttribute('role','separator'); rz.setAttribute('aria-orientation','horizontal'); rz.setAttribute('aria-label','Code height');
   rz.title='Drag to change the code height, double-click to reset';
   pre.after(rz);
+  const sec=pre.closest('.dr-sec'); if(!sec) return;
+  sec.classList.add('code-sec');
+  const h=sec.querySelector('h4');
+  if(h && !h.querySelector('[data-codefull]')) h.insertAdjacentHTML('beforeend',' <button type="button" class="btn small ghost" data-codefull title="Show the code across the whole panel (remembered)"></button>');
+  drwCodeFullBtn();
 }
+function drwCodeFullBtn(){
+  for(const b of document.querySelectorAll('[data-codefull]')){ b.textContent=DRW.codeFull?'⤡ Back to details':'⤢ Full panel'; b.setAttribute('aria-pressed',String(DRW.codeFull)); }
+}
+$('#drBody').addEventListener('click',e=>{
+  if(!e.target.closest('[data-codefull]')) return;
+  DRW.codeFull=!DRW.codeFull; drwSave(); applyDrawerLayout(); drwCodeFullBtn();
+  const c=$('#drBody pre.code'), hit=c&&c.querySelector('.hit');
+  if(hit) c.scrollTop=Math.max(0,hit.offsetTop-c.clientHeight/2);
+});
 {
   const body=$('#drBody'); let st=null;
   const cur=pre=>parseFloat(getComputedStyle(pre).maxHeight)||480;
@@ -5866,7 +5912,7 @@ function drwRenderCmp(){
     <h3 class="cmp-t">${esc(findingDisplayTitle(it))}</h3>
     <dl class="kv">${rows}</dl>
     ${it.note?`<div class="dr-sec" style="margin-top:14px"><h4>Note</h4><div class="reason">${esc(it.note)}</div></div>`:''}
-    <div class="dr-sec" style="margin-top:14px"><h4>Flagged code</h4><pre class="code">${snip||'<div>–</div>'}</pre></div>`;
+    <div class="dr-sec code-sec" style="margin-top:14px"><h4>Flagged code</h4><pre class="code">${snip||'<div>–</div>'}</pre></div>`;
   box.scrollTop=0;
 }
 $('#drCmp').addEventListener('click',e=>{
