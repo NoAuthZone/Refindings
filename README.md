@@ -1,4 +1,4 @@
-# Refindings 2.10.0
+# Refindings 2.12.0
 
 Review security findings from multiple scanners in one offline HTML application. Runs in a modern browser on Windows, Linux and macOS, without installation or a server. The page blocks all network access (strict Content Security Policy).
 
@@ -11,7 +11,7 @@ Review security findings from multiple scanners in one offline HTML application.
 
 ## Supported inputs
 
-The format is detected from the content; several tools can live in one project. Identical findings are recognised across scans by file, category and flagged code, even if the scanner words the title differently.
+The format is detected from the content; several tools can live in one project. Identical findings are recognised across scans by file, category and flagged code, even if the scanner words the title differently. If the category differs too (LLM scanners such as FalconEYE often name the same issue differently), a finding is still matched to the finding at the same place: same file and similar code or overlapping lines. Findings that already have a match in the same scan stay separate, so two different issues at one place are not merged, and Hardened, Test Hardening and Demo Files are never matched this way.
 
 - **SARIF 2.1.0** (Semgrep, CodeQL, Snyk, Checkov, Trivy, KICS, 2ms, Bearer, Metis and others)
 - **JSON:** Semgrep, Bandit, Gitleaks, Trivy, KICS, 2ms, Bearer, Checkmarx One, Metis, Gito, Claude Code Security Review, promptfoo, vulnerability-agent, GitLab SAST, SonarQube generic issues, Code Climate, reviewdog (rdjson)
@@ -29,7 +29,7 @@ A scan of a single module (for example JSpringGuard run on `repo/orders`) report
 
 - A module scan only covers its folder: findings elsewhere in the repository are not marked "no longer reported" because of it.
 - Comparing a module scan with a full scan shows the findings of other modules as **outside the module**, not as new or gone; reports list them the same way.
-- The **Module** column under **Scans** shows the detected folder and lets you set or clear it by hand (empty = whole repository). Detection gives up when the file names fit several modules equally well.
+- The **Module** column under **Scans** shows the detected folder and lets you set or clear it by hand (empty = whole repository). Detection needs at least two matching files, or one file with a deep path such as `src/main/java/...` (a module scan often reports many files the larger scan did not), and gives up when the file names fit several modules equally well.
 - If Refindings had to guess a scan's base path (no code base in the report), paths are aligned but the scan still counts as a scan of the whole repository.
 
 ## Features
@@ -55,6 +55,7 @@ Click a finding to open its detail panel on the right. Keys: `o` `c` `r` `t` `d`
 - **Dock:** the **Dock** button makes the page shrink next to the panel instead of being covered, so the findings list stays usable while you step through it. Off by default and remembered. While the panel is expanded, or when the window leaves less than 560 px for the list, the panel overlays the page instead.
 - **▥ Two columns:** from about 900 px, details, rating and notes are on the left; flagged code, scanner reasoning and recommendation on the right. Switch it off with the same button.
 - **Code height:** drag the handle below the flagged code (double-click resets, ↑ / ↓ on the focused handle).
+- **⤢ Full panel:** the button next to **Flagged code** shows the code across the whole panel; everything else is hidden. It stays active while you step through findings (**⤡ Back to details** returns) and is remembered. In compare mode both sides show their code.
 - **⇥ Mini bar:** collapses the panel to a slim bar with the rating keys, previous / next and the finding title. The page stays usable next to it; **⤢** restores the panel.
 - **⇄ Compare:** pins the current finding on the right. Pick another finding in the list (or with `j` / `k`) and compare status, severity, category, file, tools, first / last seen, note and code. Differences are marked with **≠**; **Swap** exchanges both sides, **✕** ends the comparison. The pinned row is marked in the table. Compare needs at least 900 px and ends when the panel is closed.
 
